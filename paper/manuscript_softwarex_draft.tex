@@ -193,9 +193,9 @@ The tridiagonal kernel decides whether any of this reaches realistic morphologie
 
 \item Illustrative examples
 
-\textbf{Reproducing the CPU baseline.} \texttt{nxgenesis} on the bundled \texttt{Cal8.g} and \texttt{Cal7difshell.g} models gives stable, low-variance timings (CV $\approx 1\%$, 30 replicates), confirming ordinary GENESIS workflows are unaffected by this release.
+\textbf{Reproducing the CPU baseline.} \texttt{nxgenesis} on the bundled \texttt{Cal8.g} and \texttt{Cal7difshell.g} models gives stable, low-variance timings (CV $\approx 1\%$, 30 replicates), confirming ordinary workflows are unaffected.
 
-\textbf{Reproducing the GPU multiloop result.} \path{genesis/Scripts/benchmark/hh_spiking_benchmark.g} builds $N$ driven, spiking Hodgkin--Huxley neurons under one \texttt{hsolve} (\texttt{chanmode=4}); \path{GENESIS_CUDA_MULTILOOP=}$K$ (or its OpenCL equivalent) dispatches all $K$ steps in one GPU call. Both arms are wall-clocked identically at $K=50\,000$ on the UMCS A40 and A100.
+\textbf{Reproducing the GPU multiloop result.} \path{genesis/Scripts/benchmark/hh_spiking_benchmark.g} builds $N$ driven Hodgkin--Huxley neurons under one \texttt{hsolve} (\texttt{chanmode=4}); \path{GENESIS_CUDA_MULTILOOP=}$K$ dispatches all $K$ steps in one GPU call. Both arms are wall-clocked identically at $K=50\,000$ on the A40 and A100.
 
 Table~\ref{tab:cuda} reports both backends after the scheduler and solver fixes. Speedup grows with $N$ throughout, reaching $21.0\pm0.3\times$ (CUDA) and $19.2\times$ (OpenCL) on the A40 and $21.9\pm0.3\times$ and $20.4\times$ on the A100 at $N=50\,000$.
 
@@ -481,7 +481,7 @@ Measured against other simulators on a published network model, GENESIS~2.5 is $
 
 \emph{Scale.} The kernel assigns one thread per tree, so it accelerates population-scale simulation and not the single detailed cell, where only one thread is active and the GPU is $\sim$20$\times$ slower than the CPU. Intra-tree parallelism, such as cyclic reduction, would extend acceleration to the detailed-morphology regime much of the literature works in. This is where the present design is furthest from complete.
 
-\emph{Coverage.} Synaptically coupled networks are declined rather than accelerated, since the kernels implement only the opcodes a current-driven \texttt{tabchannel} model produces. Extending coverage to synaptic channels, spike generators and concentration pools would reach the models most GENESIS users run. A structural obstacle sits behind it: GENESIS gives each \texttt{hsolve} one spike generator, so a spiking network becomes one solver per cell and dispatch overhead dominates. Batching dispatch across \texttt{hsolve} elements is the fix, and it interacts with event ordering, since a spike raised inside a batch cannot reach another cell's synapses before the batch ends.
+\emph{Coverage.} Both kernels implement the spike-generator and synaptic-channel opcodes, and per-step dispatch runs a spiking model on the device correctly. What keeps it from paying is a setup rule, not a kernel gap: GENESIS allows one spike generator per \texttt{hsolve}, so a spiking network becomes one solver per cell, paying a dispatch per cell per step. Allowing many generators in one solver leaves one dispatch per step, with no batching to interact with event ordering. Profiling bounds the prize: 59\% of that run is the interpreter and the Hines solve, so the ceiling is $2.4\times$; the synaptic element and event messaging are the rest.
 
 \emph{Comparison.} CoreNEURON's multi-rank MPI configuration, and Arbor on a spiking network, are still unmeasured and would place GENESIS~2.5 more completely.
 
