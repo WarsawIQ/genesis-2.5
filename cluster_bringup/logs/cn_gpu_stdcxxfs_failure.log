@@ -1,0 +1,11 @@
+ 
+ Duke, Yale, and the BlueBrain Project -- Copyright 1984-2020
+ Version : 9.0.2 ba57833 (2026-08-10 08:51:04 -0400)
+ 
+ Additional mechanisms from files
+ exp2syn.mod expsyn.mod hh.mod khh.mod nahh.mod netstim.mod passive.mod pattern.mod stim.mod svclmp.mod
+
+ Info : 1 GPUs shared by 1 ranks per node
+ Memory (MBs) :             After mk_mech : Max 117.2734, Min 117.2734, Avg 117.2734 
+ GPU Memory (MiBs) : Used = 426.625000, Free = 40200.187500, Total = 40626.812500
+/storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu/x86_64/special-core: symbol lookup error: /storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu/x86_64/libcorenrnmech.so: undefined symbol: _ZNSt10filesystem7__cxx114path14_M_split_cmptsEv

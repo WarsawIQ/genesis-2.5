@@ -85,7 +85,7 @@
 \cortext[cor1]{Corresponding author.}
 
 \begin{abstract}
-GENESIS is a long-established compartmental neural simulator. We release GENESIS~2.5, adding opt-in OpenCL and CUDA backends for the Hodgkin--Huxley channel-update path and \hte{}, a GPU Hines tree-elimination kernel for dendritic trees, leaving every existing model, script and MPI workflow unchanged. On NVIDIA A100 hardware it reaches $57\times$ end-to-end speedup on a 160\,000-compartment population, matching the fp64 CPU to $\sim$$10^{-7}$\,V. It runs the Vogels--Abbott COBAHH benchmark $1.63\pm0.07\times$ faster than CoreNEURON, and overtakes the GPU-native Arbor beyond 76\,ms of simulated time, its cost per step being 32\% lower. The release also fixes seven latent defects and makes $O(n^2)$ model construction linear.
+GENESIS is a long-established compartmental neural simulator. We release GENESIS~2.5, adding opt-in OpenCL and CUDA backends for the Hodgkin--Huxley channel-update path and \hte{}, a GPU Hines tree-elimination kernel for dendritic trees, leaving every existing model, script and MPI workflow unchanged. On NVIDIA A100 hardware it reaches $57\times$ end-to-end speedup on a 160\,000-compartment population, matching the fp64 CPU to $\sim$$10^{-7}$\,V. On CPU it runs the Vogels--Abbott COBAHH benchmark $1.63\pm0.07\times$ faster than CoreNEURON, and on GPU it overtakes the GPU-native Arbor beyond 76\,ms of simulated time, its cost per step being 32\% lower. The release also fixes seven latent defects and makes $O(n^2)$ model construction linear.
 \end{abstract}
 
 \begin{keyword}
@@ -373,7 +373,9 @@ Because these are independent implementations, we verified their equivalence: bo
 
 The stock benchmark cannot run under CoreNEURON at all, since its channels are ChannelBuilder objects rebuilt inside the interpreter. We transcribed them into NMODL, reproducing the published COBAHH rates, after which CoreNEURON yields a spike train byte-identical to NEURON's. Harness and mechanisms: \path{cluster_bringup/coreneuron/}.
 
-This comparison establishes a single-core baseline only. CoreNEURON targets GPU and multi-rank MPI execution, and exercises neither here; the GENESIS arm is likewise its CPU arm, since VAnet2 cannot yet use the accelerator efficiently (Section~2.1). CoreNEURON's GPU backend, which offloads through OpenACC, could not be built into a working state here, so no GPU figure is reported for it.
+\textbf{CoreNEURON on the GPU.} CoreNEURON exists to run on accelerators, so a CPU-only comparison would flatter us. Building its OpenACC backend with NVHPC left NEURON itself unable to start, so we ran CoreNEURON on its own: NEURON writes the model out with \texttt{nrncore\_write}, and \texttt{special-core} reads those files and simulates without it, which keeps NEURON on its working GCC build. On one A100 CoreNEURON completes the same network in $27.0\pm0.1$\,s --- $2.83\times$ faster than its own CPU arm, and $1.74\times$ faster than GENESIS. Its spike count differs from the CPU arms by 6\% (592\,865 against 558\,824), the same activity regime, so the times remain comparable.
+
+This is the boundary of what the present release offers. On a spiking network of single-compartment cells GENESIS~2.5 cannot use its accelerator at all, because VAnet2 places one spikegen per \texttt{hsolve} (Section~2.1), so a GPU-enabled CoreNEURON beats our CPU solver by $1.74\times$. Removing that restriction is the main piece of work left (Section~5). Where the accelerator does apply --- multi-compartment populations --- the comparison below is GPU on both sides.
 
 \begin{table}[!h]
 \centering
@@ -382,7 +384,9 @@ This comparison establishes a single-core baseline only. CoreNEURON targets GPU 
 \hline
 \textbf{Simulator} & \textbf{Channels} & \textbf{Wall (s)} & \textbf{Spikes} \\
 \hline
-GENESIS 2.5 (VAnet2) & tabulated & \textbf{46.9 $\pm$ 2.1} & 536\,600 \\
+CoreNEURON 9.0.2, GPU & compiled NMODL & \textbf{27.0 $\pm$ 0.1} & 592\,865 \\
+\hline
+GENESIS 2.5 (VAnet2) & tabulated & 46.9 $\pm$ 2.1 & 536\,600 \\
 \hline
 CoreNEURON 9.0.2 & compiled NMODL & 76.5 $\pm$ 0.3 & 558\,824 \\
 \hline
@@ -393,14 +397,14 @@ NEURON 9.0.2 & ChannelBuilder & 123.3 & 574\,138 \\
 NEURON 8.0.2 & ChannelBuilder & 76.5 & -- \\
 \hline
 \end{tabular}
-\caption{Vogels--Abbott COBAHH network, 4000 single-compartment cells, 80 synapses per cell, $dt=0.05$\,ms, 5.0\,s simulated, UMCS node inf03, all arms single-threaded CPU. Mean $\pm$ std over 3 replicates for the top three rows; the two ChannelBuilder rows are single runs, shown for reference only. GENESIS~2.5 is $1.63\pm0.07\times$ faster than CoreNEURON. The two simulators reach the same activity regime (26.8 vs.\ 27.9\,Hz), so the wall times reflect comparable work. All NEURON and CoreNEURON replicates returned an identical spike count, confirming the runs are deterministic. NEURON~8.0.2 is included because its pip distribution ships the CoreNEURON Python interface but not the engine, so the CoreNEURON arm requires NEURON~9. Harness: \protect\path{cluster_bringup/coreneuron/}.}
+\caption{Vogels--Abbott COBAHH network, 4000 single-compartment cells, 80 synapses per cell, $dt=0.05$\,ms, 5.0\,s simulated, UMCS node inf03. All arms are single-threaded CPU except the first, which runs on one A100. Mean $\pm$ std over 3 replicates for the top four rows; the two ChannelBuilder rows are single runs, shown for reference only. GENESIS~2.5 is $1.63\pm0.07\times$ faster than CoreNEURON on CPU, and $1.74\times$ slower than CoreNEURON on GPU --- on this benchmark GENESIS has no accelerator path (Section~2.1). The two simulators reach the same activity regime (26.8 vs.\ 27.9\,Hz), so the wall times reflect comparable work. All NEURON and CoreNEURON replicates returned an identical spike count, confirming the runs are deterministic. NEURON~8.0.2 is included because its pip distribution ships the CoreNEURON Python interface but not the engine, so the CoreNEURON arm requires NEURON~9. Harness: \protect\path{cluster_bringup/coreneuron/}.}
 \label{tab:coreneuron}
 \end{table}
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.92\textwidth]{fig12_coreneuron_comparison.png}
-\caption{GENESIS~2.5 against NEURON and CoreNEURON on the Vogels--Abbott COBAHH network, all arms single-threaded CPU on one UMCS node. Hatched bars are single runs; the others are means of 3 replicates with standard deviations. Throughput is quoted over the $4\times10^{8}$ neuron-steps the 5\,s simulation advances. The GENESIS arm uses no accelerator, only the plain CPU solver, yet completes the network in two thirds of CoreNEURON's time.}
+\caption{GENESIS~2.5 against NEURON and CoreNEURON on the Vogels--Abbott COBAHH network, one UMCS node. All arms are single-threaded CPU except the top one, CoreNEURON on an A100, coloured apart. Hatched bars are single runs; the others are means of 3 replicates with standard deviations. Throughput is quoted over the $4\times10^{8}$ neuron-steps the 5\,s simulation advances. Against CoreNEURON on CPU, the GENESIS arm completes the network in two thirds of the time using no accelerator at all; against CoreNEURON on the GPU it is $1.74\times$ slower, because a spiking network of single-compartment cells is the one case this release cannot accelerate.}
 \label{fig:coreneuron}
 \end{figure}
 
@@ -466,7 +470,7 @@ GENESIS 2.5 adds opt-in OpenCL and CUDA acceleration to GENESIS 2.4/PGENESIS 2.4
 
 The release also carries four correctness fixes independent of accelerator use, benefiting any GENESIS/PGENESIS user. Three are latent Hines-solver defects that silently suppressed \texttt{inject}-driven voltage transients in any multi-neuron \texttt{hsolve}. The fourth is in the accelerator dispatch itself: compartments using opcodes the kernels do not implement were sent to the GPU anyway, producing silently wrong results; they are now detected and computed on the CPU. Separately, five pre-existing linear-scan patterns compounding into $O(n^2)$ model-construction time are fixed, restoring linear scaling and making population-scale models buildable at all.
 
-Measured against other simulators on a published network model, GENESIS~2.5 is $1.63\pm0.07\times$ faster than CoreNEURON and $2.04\pm0.09\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3).
+Measured against other simulators on a published network model, GENESIS~2.5 is $1.63\pm0.07\times$ faster than CoreNEURON and $2.04\pm0.09\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3). That benchmark is a spiking network, which this release cannot accelerate, and CoreNEURON on an A100 runs it $1.74\times$ faster than our CPU solver. On multi-compartment populations, where the accelerator does apply, GENESIS~2.5 overtakes the GPU-native Arbor beyond 76\,ms of simulated time.
 
 \textbf{Future work.} Four directions follow directly from the limits measured here, in what we judge to be descending order of value to users.
 
@@ -474,7 +478,7 @@ Measured against other simulators on a published network model, GENESIS~2.5 is $
 
 \emph{Coverage.} Synaptically coupled networks are declined rather than accelerated, since the kernels implement only the opcodes a current-driven \texttt{tabchannel} model produces. Extending coverage to synaptic channels, spike generators and concentration pools would reach the models most GENESIS users run. A structural obstacle sits behind it: GENESIS gives each \texttt{hsolve} one spike generator, so a spiking network becomes one solver per cell and dispatch overhead dominates. Batching dispatch across \texttt{hsolve} elements is the fix, and it interacts with event ordering, since a spike raised inside a batch cannot reach another cell's synapses before the batch ends.
 
-\emph{Comparison.} Measuring CoreNEURON's GPU and MPI configurations, and Arbor on a spiking network, would place GENESIS~2.5 more completely.
+\emph{Comparison.} CoreNEURON's multi-rank MPI configuration, and Arbor on a spiking network, are still unmeasured and would place GENESIS~2.5 more completely.
 
 \emph{Precision.} The kernels are fp32 throughout, which lets them run on integrated GPUs lacking double precision at a cost of $\sim$10$^{-7}$\,V against the fp64 CPU. Whether that divergence stays bounded over the much longer runs used in plasticity studies is not established here.
 

@@ -6,8 +6,9 @@ hue rather than a categorical palette; GENESIS is the one entity the reader is
 being asked to locate, so it alone is accented. Sorted fastest-first, values
 labelled directly, no legend -- with a single series the title names it.
 
-Data: cluster_bringup/coreneuron/README.md, all arms single-threaded CPU on UMCS
-node inf03, 4000 cells, 5.0 s simulated, dt = 0.05 ms.
+Data: cluster_bringup/coreneuron/README.md, UMCS node inf03, 4000 cells, 5.0 s
+simulated, dt = 0.05 ms. All arms single-threaded CPU except CoreNEURON on the
+A100, which is the one accelerated arm and is coloured apart for that reason.
 """
 
 from __future__ import annotations
@@ -17,11 +18,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 ACCENT = "#1e7f4f"   # GENESIS -- same green as the A100 series in fig10
-NEUTRAL = "#8a8f98"  # the simulators being compared against
+NEUTRAL = "#8a8f98"  # the simulators being compared against, on CPU
+GPU = "#b3541e"      # the one arm that runs on an accelerator
 INK = "#222222"
 
 # label, mean seconds, std (None = single run), replicates
 ROWS = [
+    ("CoreNEURON 9.0.2\n(A100 GPU)", 27.0, 0.1, 3),
     ("GENESIS 2.5\n(no accelerator)", 46.9, 2.1, 3),
     ("CoreNEURON 9.0.2", 76.5, 0.3, 3),
     ("NEURON 8.0.2", 76.5, None, 1),
@@ -48,7 +51,8 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(8.0, 4.0))
 
     y = range(len(rows))
-    colors = [ACCENT if "GENESIS" in l else NEUTRAL for l in labels]
+    colors = [ACCENT if "GENESIS" in l else GPU if "GPU" in l else NEUTRAL
+              for l in labels]
     bars = ax.barh(list(y), means, xerr=errs, height=0.62, color=colors,
                    error_kw={"ecolor": "#444444", "capsize": 3, "lw": 1.2},
                    zorder=3)
@@ -77,7 +81,8 @@ def main() -> None:
     ax.tick_params(axis="y", length=0)
 
     ax.set_title("Vogels–Abbott COBAHH network, 4000 cells, 5 s, dt = 0.05 ms\n"
-                 "single-threaded CPU, one cluster node", fontsize=11)
+                 "single-threaded CPU except the GPU arm, one cluster node",
+                 fontsize=11)
 
     fig.tight_layout()
     out = figures / "fig12_coreneuron_comparison.png"

@@ -84,12 +84,13 @@ pip wheel (`from neuron import coreneuron` imports, but running reports
 
 ## Results
 
-UMCS node inf03, all arms CPU and single-threaded, 4000 cells, 5.0 s simulated,
-`dt = 0.05` ms:
+UMCS node inf03, 4000 cells, 5.0 s simulated, `dt = 0.05` ms. All arms are CPU
+and single-threaded except the first, which runs on one A100:
 
 | simulator | channels | wall (s) | spikes |
 |-----------|----------|---------:|-------:|
-| GENESIS 2.5 (VAnet2) | tabulated | **46.9 ± 2.1** | 536,600 |
+| CoreNEURON 9.0.2, **GPU (A100)** | compiled NMODL | **27.0 ± 0.1** | 592,865 |
+| GENESIS 2.5 (VAnet2) | tabulated | 46.9 ± 2.1 | 536,600 |
 | CoreNEURON 9.0.2 | compiled NMODL | 76.5 ± 0.3 | 558,824 |
 | NEURON 9.0.2 | compiled NMODL | 95.8 ± 0.2 | 558,824 |
 | NEURON 9.0.2 | ChannelBuilder | 123.3 | 574,138 |
@@ -133,15 +134,54 @@ benchmark, so equivalence had to be established rather than assumed:
   0.6 Hz against 15.8 Hz for the central cell -- estimating population activity
   from them understates it roughly threefold.
 
+## CoreNEURON on the GPU
+
+`coreneuron_gpu_standalone.sh`. CoreNEURON is built for accelerators, so leaving
+it on CPU would have made this comparison flattering rather than informative.
+
+Building CoreNEURON's OpenACC backend needs `nvc++`, and NEURON built with NVHPC
+segfaults at startup here -- on a single passive soma, so it is not the model.
+The way round it is to stop needing NEURON at run time. NEURON, on its working
+pip (GCC) build, writes the model to disk; `special-core` then reads those files
+and simulates on its own:
+
+```
+NEURON (pip, GCC) --nrncore_write--> model directory
+                                            |
+                            special-core --datpath ... --gpu
+```
+
+Two things had to be fixed to get there:
+
+1. **The dump produced no files.** `init.hoc` runs the simulation itself and
+   ends with `pc.done()`, so the process exits before `nrncore_write` is
+   reached. The script patches a copy, commenting out `prun()`,
+   `pc.runworker()`, `collect_results()`, `pc.done()` and `output_results()`.
+   Five model files then appear.
+2. **`special-core` would not load:** `undefined symbol: ...path14_M_split_cmptsEv`.
+   Neither the system nor the gcc-toolset-13 `libstdc++.so.6` exports it, and
+   `libstdc++fs` ships only as a static archive. Rebuild the mechanisms with
+   `nrnivmodl -coreneuron -loadflags "-lstdc++fs"`.
+
+Result: **27.0 ± 0.1 s** over three replicates (26.90 / 27.06 / 27.10 s), solver
+time 26.40 / 26.59 / 26.64 s. Logs in `../logs/cn_gpu_r{1,2,3}.log`.
+
+That the run is real, not an early exit, was checked in the output rather than
+assumed: `Number of cells: 4000`, `Number of compartments: 12000`,
+`--tstop=5000`, 426 MiB of GPU memory allocated, and our `khh.mod nahh.mod`
+among the loaded mechanisms. The spike count is 592,865 against 558,824 on CPU,
+a 6% difference -- the same activity regime, and comparable to the 4% between
+GENESIS and NEURON that the fairness check above already accepts.
+
+**This is 1.74x faster than GENESIS**, and it is reported as such in the paper.
+GENESIS 2.5 cannot accelerate this benchmark at all: one spikegen per `hsolve`
+turns a spiking network into one solver per cell, so dispatch dominates.
+
 ### What this does not show
 
-All arms are single-threaded CPU. CoreNEURON is designed for GPU and multi-rank
-MPI execution, and this comparison exercises neither; it establishes the
-single-core baseline only. The GENESIS arm is likewise its CPU arm -- VAnet2
-cannot yet use the GENESIS accelerator efficiently, because one spikegen per
-`hsolve` forces one solver per cell for spiking networks.
-
-Prepared by Karol Chlasta (karol@chlasta.pl).
+CoreNEURON's multi-rank MPI configuration is still unmeasured, as is Arbor on a
+spiking network. For the case where the GENESIS accelerator does apply, see the
+multi-compartment comparison below.
 
 ## Multi-compartment comparison (2026-08-17)
 
@@ -187,10 +227,13 @@ CoreNEURON's own `nrn_setup` line and warns when an arm did not engage.
 inf03 a Xeon Platinum 8358 at 2.60 GHz. Single-threaded arms measured on
 different nodes are not comparable; every figure above is from inf03.
 
-### GPU-to-GPU is still missing
+### GPU-to-GPU
 
-CoreNEURON's GPU path is unreachable here (see
-`softwarex-revision/CORENEURON-GPU-BLOKADA.md`). Arbor 0.10.0 **was** built with
-CUDA successfully on this cluster (`arbor.config()["gpu"] == "cuda"`), since it
-targets CUDA directly rather than through OpenACC; `hh_multicomp_arbor.py` is
-the model for it, written but not yet run.
+Both sides now run on the A100. Arbor 0.10.0 builds against CUDA directly rather
+than through OpenACC (`arbor.config()["gpu"] == "cuda"`) and needed no special
+handling; the model is `hh_multicomp_arbor.py`. CoreNEURON's GPU path took the
+standalone workaround described above.
+
+---
+
+Prepared by Karol Chlasta (karol@chlasta.pl).
