@@ -38,6 +38,12 @@ STEPS = int(sys.argv[2]) if len(sys.argv) > 2 else 5000
 NCOMP = int(os.environ.get("BENCH_NCOMP", "16"))
 USE_CORENEURON = os.environ.get("USE_CORENEURON", "0") == "1"
 USE_GPU = os.environ.get("USE_GPU", "0") == "1"
+TRACE = os.environ.get("TRACE", "0") == "1"
+TRACE_CSV = os.environ.get("TRACE_CSV", "neuron_vm.csv")
+# Injection amplitude in nA. Zero gives a quiescent cell, used to show that
+# wall time on this model does not depend on whether the cell fires -- there
+# are no synapses and no events, so the per-step work is the same either way.
+INJECT_NA = float(os.environ.get("INJECT_NA", "0.5"))
 
 h.load_file("stdrun.hoc")
 h.cvode.cache_efficient(1)
@@ -71,7 +77,7 @@ for i in range(N):
             s.connect(secs[j - 1](1.0), 0.0)
         secs.append(s)
     ic = h.IClamp(secs[0](0.5))
-    ic.delay, ic.dur, ic.amp = 0.0, 1e9, 0.5   # nA, on throughout
+    ic.delay, ic.dur, ic.amp = 0.0, 1e9, INJECT_NA   # nA, on throughout
     clamps.append(ic)
     cells.append(secs)
 
@@ -98,6 +104,13 @@ if USE_CORENEURON:
     coreneuron.enable = True
     coreneuron.gpu = USE_GPU
 
+if TRACE:
+    v_soma = h.Vector().record(cells[0][0](0.5)._ref_v)
+    v_far = h.Vector().record(cells[0][NCOMP - 1](0.5)._ref_v)
+    t_vec = h.Vector().record(h._ref_t)
+    apc = h.APCount(cells[0][0](0.5))
+    apc.thresh = -20.0
+
 run_t0 = time.time()
 h.stdinit()
 if USE_CORENEURON:
@@ -113,3 +126,13 @@ print(f"RESULT_RUN_S={run_t:.3f}")
 print(f"RESULT_WALL_S={build_t + run_t:.3f}")
 print(f"RESULT_VM_SOMA={cells[0][0](0.5).v:.6f}")
 print(f"RESULT_VM_FAR={cells[0][NCOMP - 1](0.5).v:.6f}")
+
+if TRACE:
+    with open(TRACE_CSV, "w") as fh:
+        fh.write("t_ms,vm_soma_mV,vm_far_mV\n")
+        for t, vs, vf in zip(t_vec, v_soma, v_far):
+            fh.write("%.5f,%.6f,%.6f\n" % (t, vs, vf))
+    print(f"RESULT_TRACE_CSV={TRACE_CSV}")
+    print(f"RESULT_TRACE_SAMPLES={len(t_vec)}")
+    print(f"RESULT_SPIKES_CELL0={int(apc.n)}")
+    print(f"RESULT_RATE_HZ={apc.n / (STEPS * 0.01 / 1000.0):.4f}")

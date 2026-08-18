@@ -91,6 +91,7 @@ float dend_xarea = PI * (DEND_D/2) * (DEND_D/2)
 
 create neutral /net
 int n, c
+float carea
 str cell, comp, prev
 
 echo "Building cables..."
@@ -105,19 +106,24 @@ for (n = 0; n < {N_NEURONS}; n = n + 1)
                 Rm {RM_DENS / soma_area} Cm {CM_DENS * soma_area} \
                 Ra {RA_DENS * SOMA_L / soma_xarea}
             setfield {comp} dia {SOMA_D} len {SOMA_L}
+            carea = {soma_area}
         else
             setfield {comp} Em {ELEAK} initVm {EREST_ACT} \
                 Rm {RM_DENS / dend_area} Cm {CM_DENS * dend_area} \
                 Ra {RA_DENS * DEND_L / dend_xarea}
             setfield {comp} dia {DEND_D} len {DEND_L}
+            carea = {dend_area}
         end
+        // carea: the compartment's own area. This used to be soma_area for every
+        // compartment, giving each dendrite four times the intended channel
+        // density. Rm and Cm always used the right area. Fixed 2026-08-18.
         // Na + K on every compartment (active dendrites -> more compute)
         copy /library/Na_chan {comp}/Na_chan
-        setfield {comp}/Na_chan Gbar {GNA_DENS * {soma_area}}
+        setfield {comp}/Na_chan Gbar {GNA_DENS * {carea}}
         addmsg {comp}/Na_chan {comp} CHANNEL Gk Ek
         addmsg {comp} {comp}/Na_chan VOLTAGE Vm
         copy /library/K_chan {comp}/K_chan
-        setfield {comp}/K_chan Gbar {GK_DENS * {soma_area}}
+        setfield {comp}/K_chan Gbar {GK_DENS * {carea}}
         addmsg {comp}/K_chan {comp} CHANNEL Gk Ek
         addmsg {comp} {comp}/K_chan VOLTAGE Vm
         // link to previous compartment (linear cable)

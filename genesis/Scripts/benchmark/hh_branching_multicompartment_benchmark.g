@@ -131,12 +131,16 @@ for (n = 0; n < {N_NEURONS}; n = n + 1)
                 Rm {RM_DENS / dend_area} Cm {CM_DENS * dend_area} \
                 Ra {RA_DENS * DEND_L / dend_xarea}
             setfield {comp} dia {DEND_D} len {DEND_L}
+            // dend_area, not soma_area: these are dendrites. Using the soma's
+            // area here gave every dendrite four times the intended channel
+            // density, while Rm and Cm above used the right one. Fixed
+            // 2026-08-18; the soma block above is correct as written.
             copy /library/Na_chan {comp}/Na_chan
-            setfield {comp}/Na_chan Gbar {GNA_DENS * {soma_area}}
+            setfield {comp}/Na_chan Gbar {GNA_DENS * {dend_area}}
             addmsg {comp}/Na_chan {comp} CHANNEL Gk Ek
             addmsg {comp} {comp}/Na_chan VOLTAGE Vm
             copy /library/K_chan {comp}/K_chan
-            setfield {comp}/K_chan Gbar {GK_DENS * {soma_area}}
+            setfield {comp}/K_chan Gbar {GK_DENS * {dend_area}}
             addmsg {comp}/K_chan {comp} CHANNEL Gk Ek
             addmsg {comp} {comp}/K_chan VOLTAGE Vm
             addmsg {prev} {comp} AXIAL Vm

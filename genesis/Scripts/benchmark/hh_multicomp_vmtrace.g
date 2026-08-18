@@ -177,40 +177,43 @@ echo "ncompts: " {getfield /net/solver ncompts}
 
 reset
 
-// walltimemark/{walltime}: see hh1952_squid_multiloop_benchmark.g for the
-// full rationale (CLOCK_MONOTONIC wall time, not getrusage -- blind to
-// GPU-side compute; and the multiloop "first step dispatches everything"
-// quirk, which is why warm-up + measured steps are combined into one call).
-// Combining is a no-op for CPU/per-step GPU (sequential step calls execute
-// literally either way) and required for correctness in multiloop mode, so
-// one structure works for all three chanmode/dispatch arms alike.
-walltimemark
-step {N_STEPS + 10}
-float t_total = {walltime}
-float t_per_step = {t_total / {N_STEPS + 10}}
-echo "RESULT_T_TOTAL=" {t_total}
-echo "RESULT_T_PER_STEP=" {t_per_step}
-
-// Numeric readout for CPU-vs-GPU parity checks (Karol Chlasta, 2026-07-25):
-// Vm of cell0's LAST compartment (far end of the cable from the current
-// injection at compartment 0) -- only reaches a non-trivial value if axial
-// coupling correctly propagated the signal down the cable. A broken/skipped
-// elimination (e.g. multiloop mode, which never runs do_euler_hsolve) would
-// leave this at rest regardless of what the soma does.
+// ---------------------------------------------------------------------------
+// Trace tail. Everything above is hh_multicompartment_createmap.g verbatim, so
+// the model is the same one the timing benchmark builds; only what happens
+// after `reset` differs. This script is never used for timings.
 //
-// HGET sync (found 2026-07-25, cf. hh1952_ap_verify.g): in chanmode 4/5,
-// getfield reads the element's own field storage, which the accelerator
-// path does NOT keep in sync every step -- HGET pulls the solver's
-// internal Vm array back into element fields on demand. Without this call
-// getfield always returns the untouched initVm regardless of what the
-// solver actually computed.
-str farcomp = "/net/cell[0]/c" @ {NCOMP - 1}
-call /net/solver HGET /net/cell[0]/c0
-call /net/solver HGET {farcomp}
-float vm_far = {getfield {farcomp} Vm}
-echo "RESULT_VM_FAR=" {vm_far}
-echo "RESULT_VM_SOMA=" {getfield /net/cell[0]/c0 Vm}
+// Why a trace at all: the cross-simulator comparison (Table 7) matches the
+// three implementations on geometry, conductances, injection and timestep, but
+// that is an argument, not a measurement. This emits Vm per step so the three
+// can be held against each other numerically.
+//
+// Two compartments are reported. c0 carries the injection; c{NCOMP-1} is the
+// far end of the cable and only moves if axial coupling is integrated, which
+// is the part hines_tree_eliminate takes over on the GPU.
+//
+// HGET before every read: in chanmode 4/5 getfield returns the element's own
+// field storage, which the accelerator does not sync each step. Harmless on
+// CPU, required on GPU. See the note in hh_multicompartment_createmap.g.
 
-echo ""
-echo "=== done: N=" {N_NEURONS} " NCOMP=" {NCOMP} " steps=" {N_STEPS} " chanmode=" {CHANMODE} " ==="
+str farcomp = "/net/cell[0]/c" @ {NCOMP - 1}
+int i
+
+echo "TRACE_BEGIN dt=" {DT} " ncomp=" {NCOMP} " chanmode=" {CHANMODE}
+echo "TRACE_HEADER step t_ms vm_soma_mV vm_far_mV"
+
+for (i = 1; i <= {N_STEPS}; i = i + 1)
+    step 1
+    // HGET is rejected below chanmode 2, where the element fields are already
+    // the solver's own storage and need no pull-back. Calling it anyway costs
+    // two errors per step and GENESIS aborts the script at ten.
+    if ({CHANMODE} >= 2)
+        call /net/solver HGET /net/cell[0]/c0
+        call /net/solver HGET {farcomp}
+    end
+    echo "TRACE " {i} " " {i * DT * 1000.0} " " \
+         {{getfield /net/cell[0]/c0 Vm} * 1000.0} " " \
+         {{getfield {farcomp} Vm} * 1000.0}
+end
+
+echo "TRACE_END"
 quit
