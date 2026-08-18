@@ -37,9 +37,9 @@ delivers events correctly between steps.
 
 ## What already works
 
-Per-step dispatch supports spiking models on the GPU today. Both kernels
-implement `SPIKE_OP` and `SYN2_OP`, with the division of labour that the
-element system forces:
+Per-step dispatch supports spiking models on the GPU today **under CUDA**. The
+CUDA kernel implements `SPIKE_OP` and `SYN2_OP`; the OpenCL one does not (see
+*Backends* below). The division of labour the element system forces:
 
 | stage | where | why |
 |---|---|---|
@@ -113,8 +113,15 @@ spiking network and empty for models without spike elements.
 `cuda_backend.cu` currently counts how many compartments crossed threshold and
 `cuda_hsolve.c` calls `h_dospike_event()` that many times. That is only correct
 because there is one spikegen. It becomes a walk over the flag array, emitting
-from `spikegens[i]` for each flagged compartment `i`. OpenCL takes the same
-change. No kernel changes.
+from `spikegens[i]` for each flagged compartment `i`. No kernel changes.
+
+**CUDA only.** The OpenCL kernel does not implement `SPIKE_OP` or the synaptic
+opcodes at all: `ocl_hsolve.c` marks any compartment carrying them `cpu_only`
+and then disables acceleration for the whole solver. Reaching parity there
+means writing those opcodes into `ocl_channel.cl` first, which is a separate
+piece of work and is not part of this design. Until it is done, a spiking
+network accelerates under CUDA and falls back to the CPU under OpenCL, which is
+the behaviour that already exists — this change does not make it worse.
 
 ### Model
 
@@ -152,6 +159,11 @@ until it passes.
   proportional for large models; allocate only when the model has a spikegen.
 - **The 4000-solver path must keep working.** Existing scripts using the
   `DUPLICATE` idiom must be unaffected, which gate 1 covers.
+- **Gate 1 has a harness already.** `cluster_bringup/80_accel_regression.sh`
+  records VAnet2's `Vm_out_1000.txt` md5 into a golden file and diffs against
+  it. Gate 1 is `record` before the change and `check` after, on the same
+  device -- the script refuses to compare across devices because the fp32
+  kernels are not bit-identical between them.
 - **Host cost may dominate sooner than expected.** If per-step launch overhead
   over 100,000 steps is worse than estimated, the result lands above 27 s and
   the honest outcome is a measured negative. The paper's framing changes either
