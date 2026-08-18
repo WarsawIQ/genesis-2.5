@@ -227,6 +227,49 @@ CoreNEURON's own `nrn_setup` line and warns when an arm did not engage.
 inf03 a Xeon Platinum 8358 at 2.60 GHz. Single-threaded arms measured on
 different nodes are not comparable; every figure above is from inf03.
 
+### Are the three the same model? (2026-08-18)
+
+`vm_cross_check.sh` records Vm from one cell in all three simulators, at the
+soma and at the centre of the last dendrite, and `paper/scripts/compare_vm_traces.py`
+compares them. Two invariants are used, because the cell fires repetitively and
+a point-by-point comparison of a 200 ms run would measure phase drift: the
+first action potential, and the firing rate.
+
+It found three defects, all in the harness rather than in any simulator:
+
+| # | defect | effect |
+|---|---|---|
+| 1 | Arbor injected at `(location 0 0.5)` | an unbranched cell is one 770 um branch, so that is 385 um from the root -- mid-dendrite, not the soma |
+| 2 | Arbor used `neuron_cable_properties()` defaults | ENa +50 / EK -77 instead of the model's +45 / -82; Arbor fired at 65 Hz against NEURON's 10 |
+| 3 | GENESIS scaled every `Gbar` by `soma_area` | each dendrite carried 4x the intended channel density (`soma_area/dend_area` = 4); `Rm`, `Cm`, `Ra` always used the right area |
+
+After the fixes NEURON and Arbor agree to 0.02 mV at the action-potential peak,
+1.6 mV across the spike once the peaks are aligned, and 0.01% on firing rate.
+GENESIS peaks 4.6 mV lower and 0.24 ms earlier and fires faster, because its
+Hodgkin-Huxley rates are written about EREST = -70 mV where NEURON's `hh` is
+written about -65 mV: GENESIS's `alpha_m(v)` is NEURON's `alpha_m(v+5)`,
+verified numerically. That is a parameterisation convention, not a defect, and
+it is left alone.
+
+**Does the rate difference invalidate the throughput comparison?** No, and
+`rate_vs_walltime.sh` measures it rather than arguing it. The model has no
+synapses and no events, so a spike costs nothing beyond the channel update
+every compartment performs every step. Running each simulator with the
+injection switched off:
+
+| simulator | driven | quiescent |
+|---|---:|---:|
+| GENESIS 2.5 GPU | 1.629 s | 1.656 s |
+| Arbor 0.10.0 GPU | 1.558 s | 1.560 s |
+| NEURON 9.0.2 CPU | 85.438 s | 84.927 s |
+
+Re-running the full six-point sweep after the fixes moved no wall time by more
+than 1.3%, so none of the published timings depended on the defects.
+
+GENESIS's own two backends agree to 2.6e-5 V over 200 ms and 14 spikes, fp32
+against fp64, with an identical spike count -- the phase drift the paper
+describes for long runs, not a disagreement.
+
 ### GPU-to-GPU
 
 Both sides now run on the A100. Arbor 0.10.0 builds against CUDA directly rather

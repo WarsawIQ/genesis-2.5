@@ -181,25 +181,37 @@ def make_figure(traces, win, out):
 
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, axes = plt.subplots(1, 2, figsize=(10.0, 3.8))
+    # NEURON is drawn wide and pale underneath so that Arbor lying exactly on
+    # top of it reads as agreement rather than as a missing line; the same
+    # device separates the GENESIS CPU and GPU arms, which also coincide.
     styles = {
-        "GENESIS 2.5 CPU": dict(color="#1e7f4f", lw=2.4, zorder=3),
-        "GENESIS 2.5 GPU": dict(color="#7ac6a0", lw=2.4, ls=(0, (1, 1)), zorder=4),
-        "NEURON 9.0.2": dict(color="#8a8f98", lw=1.4, zorder=2),
-        "Arbor 0.10.0 CPU": dict(color="#b3541e", lw=1.4, zorder=2),
-        "Arbor 0.10.0 GPU": dict(color="#e08a4e", lw=1.4, ls=(0, (4, 2)), zorder=2),
+        "NEURON 9.0.2": dict(color="#c3c7cc", lw=5.0, zorder=1,
+                             solid_capstyle="round"),
+        "Arbor 0.10.0 CPU": dict(color="#b3541e", lw=1.6, zorder=3),
+        "Arbor 0.10.0 GPU": dict(color="#f0a875", lw=1.6, ls=(0, (3, 2)), zorder=4),
+        "GENESIS 2.5 CPU": dict(color="#7fc3a1", lw=5.0, zorder=2,
+                                solid_capstyle="round"),
+        "GENESIS 2.5 GPU": dict(color="#0f5c37", lw=1.6, ls=(0, (3, 2)), zorder=5),
     }
+    order = ["GENESIS 2.5 CPU", "GENESIS 2.5 GPU", "NEURON 9.0.2",
+             "Arbor 0.10.0 CPU", "Arbor 0.10.0 GPU"]
     for ax, idx, title in ((axes[0], 1, "soma (injection site)"),
                            (axes[1], 2, "last dendrite (axial coupling)")):
-        for label, tr in traces.items():
+        for label in order:
+            if label not in traces:
+                continue
+            tr = traces[label]
             t, v = tr[0], tr[idx]
             vv = resample(t, v, win)
             ax.plot(win, vv, label=label, **styles.get(label, {}))
         ax.set_title(title, fontsize=10)
         ax.set_xlabel("time (ms)")
+        ax.set_ylim(-90, 62)
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
     axes[0].set_ylabel("membrane potential (mV)")
-    axes[0].legend(fontsize=7.5, frameon=False, loc="lower right")
+    axes[0].legend(fontsize=7.5, frameon=False, loc="upper left",
+                   handlelength=2.6, borderaxespad=0.2)
     fig.tight_layout()
     fig.savefig(out, dpi=320, bbox_inches="tight")
     plt.close(fig)

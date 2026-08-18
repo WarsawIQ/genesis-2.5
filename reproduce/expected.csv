@@ -10,8 +10,10 @@ ksweep_k5000,tab:mcksweep,end_to_end_speedup,57.0,20,x,N=10000 x 16 comp K=5000 
 vanet2_genesis,tab:coreneuron,wall_s,46.9,25,s,Vogels-Abbott 4000 cells 5 s single-thread CPU
 vanet2_coreneuron,tab:coreneuron,wall_s,76.5,25,s,same model under CoreNEURON
 vanet2_neuron,tab:coreneuron,wall_s,95.8,25,s,same model under NEURON 9.0.2
-crossover_genesis_k5000,tab:mccross,wall_s,1.75,25,s,N=10000 x 16 comp GPU A100
-crossover_genesis_k50000,tab:mccross,wall_s,4.66,25,s,N=10000 x 16 comp GPU A100
+crossover_genesis_k5000,tab:mccross,wall_s,1.59,25,s,N=10000 x 16 comp GPU A100
+crossover_genesis_k50000,tab:mccross,wall_s,4.56,25,s,N=10000 x 16 comp GPU A100
 crossover_arbor_k5000,tab:mccross,wall_s,1.56,25,s,Arbor GPU A100
-crossover_arbor_k50000,tab:mccross,wall_s,5.92,25,s,Arbor GPU A100
-crossover_k,fig:crossover,steps,7600,35,steps,where the two GPU lines cross
+crossover_arbor_k50000,tab:mccross,wall_s,5.95,25,s,Arbor GPU A100
+crossover_k,fig:crossover,steps,6400,35,steps,where the two GPU lines cross
+vm_equivalence_neuron_arbor,fig:vmequiv,ap_peak_diff_mV,0.02,200,mV,NEURON against Arbor on the same model
+rate_insensitivity,text,walltime_change_injection_off_pct,0.0,200,pct,firing rate is not in the timing

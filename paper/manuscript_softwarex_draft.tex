@@ -85,7 +85,7 @@
 \cortext[cor1]{Corresponding author.}
 
 \begin{abstract}
-GENESIS is a long-established compartmental neural simulator. We release GENESIS~2.5, adding opt-in OpenCL and CUDA backends for the Hodgkin--Huxley channel-update path and \hte{}, a GPU Hines tree-elimination kernel for dendritic trees, leaving every existing model, script and MPI workflow unchanged. On cluster hardware it reaches $57\times$ end-to-end speedup on a 160\,000-compartment population, matching the fp64 CPU to $\sim$$10^{-7}$\,V. On CPU it runs the Vogels--Abbott COBAHH benchmark $1.63\pm0.07\times$ faster than CoreNEURON, and on GPU it overtakes the GPU-native Arbor beyond 76\,ms of simulated time; on spiking networks, which it cannot yet accelerate, CoreNEURON's GPU stays $1.74\times$ ahead. It also fixes seven latent defects and makes $O(n^2)$ model construction linear.
+GENESIS is a long-established compartmental neural simulator. We release GENESIS~2.5, adding opt-in OpenCL and CUDA backends for the Hodgkin--Huxley channel-update path and \hte{}, a GPU Hines tree-elimination kernel for dendritic trees, leaving every existing model, script and MPI workflow unchanged. On cluster hardware it reaches $57\times$ end-to-end speedup on a 160\,000-compartment population, matching the fp64 CPU to $\sim$$10^{-7}$\,V. On CPU it runs the Vogels--Abbott COBAHH benchmark $1.63\pm0.07\times$ faster than CoreNEURON, and on GPU it overtakes the GPU-native Arbor beyond 64\,ms of simulated time; on spiking networks, which it cannot yet accelerate, CoreNEURON's GPU stays $1.74\times$ ahead. It also fixes seven latent defects and makes $O(n^2)$ model construction linear.
 \end{abstract}
 
 \begin{keyword}
@@ -337,7 +337,7 @@ The cards nearly coincide end-to-end despite the A100 leading by more than $2\ti
 
 \textbf{The multi-compartment figures are a floor set by the benchmark, not a ceiling set by the kernel.} The sweeps above use $K=200$ ($K=100$ for $N\geq5000$), which at $dt=50\,\mu$s is 5--10\,ms of simulated activity, short enough that fixed costs dominate both arms. Repeating the measurement at $N=10\,000$ over a range of $K$ (Table~\ref{tab:mcksweep}) separates them: end-to-end speedup rises from $4.3\times$ at $K=200$ to $57.0\pm0.9\times$ at $K=5000$, and step-phase from $13.7\times$ to $116.2\times$. Both grow because the one-time costs they contain are amortized over more steps: model construction for the end-to-end figure, buffer setup and the single batched dispatch for the step-phase figure.
 
-Fitting fixed and marginal costs separates them. Construction takes $\approx$1.3\,s on both arms, and one step costs $2.31\times10^{-2}$\,s on the CPU against $1.42\times10^{-4}$\,s on the GPU, a ratio of $163\times$, with the device profile agreeing independently at $140.4\,\mu$s per step. At $K=5000$ the GPU still reproduces the CPU voltages to $\sim$$10^{-7}$\,V, so this is amortization, not skipped work. Table~\ref{tab:multicomp} reports the short-$K$ figures because they are what the standing benchmark measures, but a 250\,ms simulation of this population already reaches $57\times$ end-to-end.
+Fitting fixed and marginal costs separates them: construction takes $\approx$1.3\,s on both arms, while one step costs $2.31\times10^{-2}$\,s on the CPU against $1.42\times10^{-4}$\,s on the GPU, a ratio of $163\times$. At $K=5000$ the GPU still reproduces the CPU voltages to $\sim$$10^{-7}$\,V, so this is amortization, not skipped work. Table~\ref{tab:multicomp} reports the short-$K$ figures because they are what the standing benchmark measures, but a 250\,ms simulation of this population already reaches $57\times$ end-to-end.
 
 \begin{table}[!h]
 \centering
@@ -408,9 +408,11 @@ NEURON 8.0.2 & ChannelBuilder & 76.5 & -- \\
 \label{fig:coreneuron}
 \end{figure}
 
-\textbf{GPU against a GPU-native simulator.} In the comparison above only the competitor could use a GPU, because the Vogels--Abbott network is spiking and our accelerator declines it (Section~2.1). To test the accelerator itself across simulators we used a model it supports --- $N=10\,000$ neurons, each a chain of 16 compartments, HH channels, current injection, no synapses --- reimplemented with matching geometry, conductances, injection and timestep in NEURON and in Arbor~\cite{arbor2019}, which was written from scratch for GPU hardware.
+\textbf{Do the three integrate the same model?} Measured rather than assumed (Fig.~\ref{fig:vmequiv}): NEURON and Arbor agree to $0.02$\,mV at the action-potential peak and to $0.01\%$ on firing rate, while GENESIS peaks $4.6$\,mV lower and fires faster, its Hodgkin--Huxley rates being written about $-70$\,mV where NEURON's use $-65$. Timing is unaffected: with no synapses and no events, switching the injection off moves no arm by $2\%$.
 
-Which simulator is faster depends on run length, and the crossover is measurable. Over $K=5000$ steps on one node (Table~\ref{tab:mccross}) Arbor finishes in $1.56\pm0.02$\,s against our $1.75\pm0.08$\,s; over $K=50\,000$ the order reverses, $4.66\pm0.07$\,s against Arbor's $5.92\pm0.06$\,s. Both are linear in $K$. Fitted over six run lengths from $K=1000$ to $50\,000$, GENESIS costs $1.30$\,s plus $65.9\,\mu$s per step and Arbor $1.07$\,s plus $96.7\,\mu$s: our marginal cost is $32\%$ lower while theirs starts $0.23$\,s ahead, so the lines cross at $K\approx7600$, or 76\,ms of simulated time at $dt=0.01$\,ms (Fig.~\ref{fig:crossover}). Below it Arbor wins on setup; above it, where modelling studies sit, GENESIS~2.5 is faster. The device profile explains the split: our step phase exceeds kernel time by $0.21$\,s at both run lengths, so that excess is one-time dispatch setup, not per-step work, and it costs us the short-run case.  This is the cost of the design that keeps existing models working: Arbor generates specialised code per mechanism, while our kernels interpret the \texttt{hsolve} opcode program at run time. On single-threaded CPU the GENESIS solver is $2.02\times$ slower than CoreNEURON here, the opposite of Table~\ref{tab:coreneuron}, because the two benchmarks stress different things: the spiking network is dominated by synaptic event handling over single compartments, this one by the tridiagonal solve, where CoreNEURON's vectorised layout is stronger. Either way it is the accelerator, not the solver, that this release contributes. Arbor is also faster on 128 CPU threads than on the GPU at this size, its construction cost dominating; we report no PGENESIS arm, since what is being compared here is the accelerator and MPI scaling is reported separately above.
+\textbf{GPU against a GPU-native simulator.} In the comparison above only the competitor could use a GPU, because the Vogels--Abbott network is spiking and our accelerator declines it (Section~2.1). To test the accelerator itself across simulators we used a model it supports --- $N=10\,000$ neurons, each a chain of 16 compartments, HH channels, current injection, no synapses --- reimplemented in NEURON and in Arbor~\cite{arbor2019}, which was written from scratch for GPU hardware.
+
+Which simulator is faster depends on run length, and the crossover is measurable. Over $K=5000$ steps on one node (Table~\ref{tab:mccross}) Arbor finishes in $1.56\pm0.03$\,s against our $1.59\pm0.01$\,s; over $K=50\,000$ the order reverses, $4.56\pm0.01$\,s against Arbor's $5.95\pm0.02$\,s. Both are linear in $K$. Fitted over six run lengths from $K=1000$ to $50\,000$, GENESIS costs $1.28$\,s plus $65.6\,\mu$s per step and Arbor $1.08$\,s plus $97.3\,\mu$s: our marginal cost is $33\%$ lower while theirs starts $0.20$\,s ahead, so the lines cross at $K\approx6400$, or 64\,ms of simulated time at $dt=0.01$\,ms (Fig.~\ref{fig:crossover}). Below it Arbor wins on setup; above it, where modelling studies sit, GENESIS~2.5 is faster. The device profile explains the split: our step phase exceeds kernel time by $0.21$\,s at both run lengths, so the excess is one-time dispatch setup, not per-step work.  This is the cost of the design that keeps existing models working: Arbor generates specialised code per mechanism, while our kernels interpret the \texttt{hsolve} opcode program at run time. On single-threaded CPU the GENESIS solver is $2.02\times$ slower than CoreNEURON here, the opposite of Table~\ref{tab:coreneuron}, because the two benchmarks stress different things: the spiking network is dominated by synaptic event handling over single compartments, this one by the tridiagonal solve, where CoreNEURON's vectorised layout is stronger. Either way it is the accelerator, not the solver, that this release contributes. Arbor is also faster on 128 CPU threads than on the GPU at this size, its construction cost dominating. We report no PGENESIS arm: what is compared here is the accelerator.
 
 \begin{table}[!h]
 \centering
@@ -423,15 +425,9 @@ Which simulator is faster depends on run length, and the crossover is measurable
 \hline
 Arbor 0.10.0 & CPU, 128 threads & 1.09 $\pm$ 0.04 \\
 \hline
-Arbor 0.10.0 & GPU (A100) & 1.56 $\pm$ 0.02 \\
+Arbor 0.10.0 & GPU (A100) & \textbf{1.56 $\pm$ 0.03} \\
 \hline
-GENESIS 2.5 & GPU (A100) & 1.75 $\pm$ 0.08 \\
-\hline
-\multicolumn{3}{|l|}{\emph{$K=50\,000$ steps (500\,ms simulated)}} \\
-\hline
-GENESIS 2.5 & \textbf{GPU (A100)} & \textbf{4.66 $\pm$ 0.07} \\
-\hline
-Arbor 0.10.0 & GPU (A100) & 5.92 $\pm$ 0.06 \\
+GENESIS 2.5 & GPU (A100) & 1.59 $\pm$ 0.01 \\
 \hline
 CoreNEURON 9.0.2 & CPU, 1 thread & 60.94 $\pm$ 0.15 \\
 \hline
@@ -439,16 +435,29 @@ NEURON 9.0.2 & CPU, 1 thread & 82.82 $\pm$ 2.00 \\
 \hline
 GENESIS 2.5 & CPU, 1 thread & 123.41 $\pm$ 1.75 \\
 \hline
+\multicolumn{3}{|l|}{\emph{$K=50\,000$ steps (500\,ms simulated)}} \\
+\hline
+GENESIS 2.5 & \textbf{GPU (A100)} & \textbf{4.56 $\pm$ 0.01} \\
+\hline
+Arbor 0.10.0 & GPU (A100) & 5.95 $\pm$ 0.02 \\
+\hline
 \end{tabular}
-\caption{Multi-compartment Hodgkin--Huxley benchmark across simulators: $N=10\,000$ neurons $\times$ 16 compartments (160\,000 compartments), $dt=0.01$\,ms, all on UMCS node inf03 (Xeon Platinum 8358, NVIDIA A100), mean $\pm$ std over 3 replicates, both arms of every pair timed identically. Thread counts differ by simulator and are stated: Arbor uses all cores by default, the others are single-threaded. The two run lengths bracket the crossover at $K\approx7600$. The models match in geometry, passive properties, conductances, injection and timestep; this is a throughput comparison and not a claim that the three produce identical voltages. Harness and raw data: \protect\path{cluster_bringup/coreneuron/}.}
+\caption{Multi-compartment Hodgkin--Huxley benchmark across simulators: $N=10\,000$ neurons $\times$ 16 compartments (160\,000 compartments), $dt=0.01$\,ms, all on UMCS node inf03 (Xeon Platinum 8358, NVIDIA A100), mean $\pm$ std over 3 replicates, both arms of every pair timed identically. Thread counts differ by simulator and are stated: Arbor uses all cores by default, the others are single-threaded. The CPU arms are reported only at $K=5000$, where they were measured; extrapolating them to the longer run would be an estimate, not a measurement. The GPU rows come from one sweep of six run lengths, which is also what Fig.~\ref{fig:crossover} fits, so the table and the figure cannot disagree. The models match in geometry, passive properties, conductances, injection and timestep, verified against recorded voltages (Fig.~\ref{fig:vmequiv}); this is a throughput comparison and not a claim that the three produce identical trajectories. Harness and raw data: \protect\path{cluster_bringup/coreneuron/}.}
 \label{tab:mccross}
 \end{table}
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.85\textwidth]{fig13_crossover.png}
-\caption{GPU wall clock against run length for the multi-compartment benchmark, $N=10\,000$ neurons $\times$ 16 compartments on the UMCS A100, six run lengths, mean $\pm$ std over 3 replicates each. Both simulators are linear in $K$ with different intercepts and slopes: Arbor starts $0.23$\,s ahead on setup, GENESIS~2.5 advances each step $32\%$ more cheaply. Neither is faster in general --- the lines cross at $K\approx7600$, and a comparison at a single run length reports whichever side of that the author happened to choose.}
+\caption{GPU wall clock against run length for the multi-compartment benchmark, $N=10\,000$ neurons $\times$ 16 compartments on the UMCS A100, six run lengths, mean $\pm$ std over 3 replicates each. Both simulators are linear in $K$ with different intercepts and slopes: Arbor starts $0.20$\,s ahead on setup, GENESIS~2.5 advances each step $33\%$ more cheaply. Neither is faster in general --- the lines cross at $K\approx6400$, and a comparison at a single run length reports whichever side of that the author happened to choose.}
 \label{fig:crossover}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.98\textwidth]{fig14_vm_equivalence.png}
+\caption{The same model in three simulators: membrane potential of one cell over its first action potential, at the soma where the current is injected and at the centre of the last dendrite, which moves only if axial coupling is integrated. Each simulator is drawn twice, wide and pale for one backend with the other dashed on top, so a pair that coincides reads as agreement rather than as a missing line. NEURON and Arbor lie on each other to $0.02$\,mV at the peak and give the same firing rate to $0.01\%$. GENESIS peaks $4.6$\,mV lower and $0.24$\,ms earlier: its Hodgkin--Huxley rates are written about a $-70$\,mV resting potential and NEURON's \texttt{hh} about $-65$\,mV, so GENESIS's $\alpha_m(v)$ equals NEURON's $\alpha_m(v{+}5)$. Its own two backends agree to $2.6\times10^{-5}$\,V over 200\,ms and 14 spikes, fp32 against fp64. Measuring this exposed three defects in the harness --- Arbor injecting into the middle of the cable rather than the soma, Arbor using NEURON's default reversal potentials instead of the model's, and GENESIS scaling every compartment's channel conductance by the soma's area --- all fixed here; none of them changed any wall time by more than $1.3\%$. Data: \protect\path{cluster_bringup/logs/vmcross/}.}
+\label{fig:vmequiv}
 \end{figure}
 
 A reproduction pack is included: \path{sh reproduce/run_all.sh} re-measures every claim here, regenerates the figures from those measurements, and prints each published value beside the reader's own. Raw data and full steps: \path{paper/docs/REPLICATION.md}.
@@ -466,7 +475,7 @@ GENESIS 2.5 adds opt-in OpenCL and CUDA acceleration to GENESIS 2.4/PGENESIS 2.4
 
 The release also carries seven correctness fixes. Three are latent Hines-solver defects that silently suppressed \texttt{inject}-driven voltage transients in any multi-neuron \texttt{hsolve}; these benefit any GENESIS/PGENESIS user, accelerator or not. The other four are in the accelerator and are listed in Section~1. Separately, five pre-existing linear-scan patterns compounding into $O(n^2)$ model-construction time are fixed, restoring linear scaling and making population-scale models buildable at all.
 
-Measured against other simulators on a published network model, GENESIS~2.5 is $1.63\pm0.07\times$ faster than CoreNEURON and $2.04\pm0.09\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3). That benchmark is a spiking network, which this release cannot accelerate, and CoreNEURON on an A100 runs it $1.74\times$ faster than our CPU solver. On multi-compartment populations, where the accelerator does apply, GENESIS~2.5 overtakes the GPU-native Arbor beyond 76\,ms of simulated time.
+Measured against other simulators on a published network model, GENESIS~2.5 is $1.63\pm0.07\times$ faster than CoreNEURON and $2.04\pm0.09\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3). That benchmark is a spiking network, which this release cannot accelerate, and CoreNEURON on an A100 runs it $1.74\times$ faster than our CPU solver. On multi-compartment populations, where the accelerator does apply, GENESIS~2.5 overtakes the GPU-native Arbor beyond 64\,ms of simulated time.
 
 \textbf{Future work.} Four directions follow directly from the limits measured here, in what we judge to be descending order of value to users.
 

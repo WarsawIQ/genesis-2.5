@@ -25,10 +25,18 @@ ARBOR_COLOR = "#9c5315"
 INK = "#222222"
 
 
+# One sweep, one session, one model version. This used to pool every
+# cross_simulator_*.csv and crossover_*.csv in the directory, which mixed
+# measurements taken on different days and, after the 2026-08-18 model fixes,
+# would have mixed model versions too. The fits are only reproducible from a
+# single dataset, so the file is named.
+SWEEP = "crossover_inf03_20260818_232057.csv"
+
+
 def load(logs: Path) -> dict[str, dict[int, list[float]]]:
-    """GPU wall times by simulator and step count, from every matching CSV."""
+    """GPU wall times by simulator and step count, from the named sweep."""
     out: dict[str, dict[int, list[float]]] = {}
-    for path in sorted(logs.glob("cross_simulator_*.csv")) + sorted(logs.glob("crossover_*.csv")):
+    for path in [logs / SWEEP]:
         with path.open(newline="", encoding="utf-8") as f:
             for r in csv.DictReader(f):
                 backend = (r.get("backend") or "GPU").upper()
