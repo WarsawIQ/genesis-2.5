@@ -79,3 +79,8 @@ at large N, say -- that is worth reporting to karol@chlasta.pl.
 The underlying benchmarks live in `cluster_bringup/`, and the cross-simulator
 harness, including how the NEURON and Arbor models were matched to the GENESIS
 one, in `cluster_bringup/coreneuron/README.md`.
+
+One row of Table 5 is out of reach of this pack: CoreNEURON on the GPU needs the
+NVHPC compiler and a rebuild of NEURON, and reproducing it takes hours rather
+than minutes. The procedure, the two failures it runs into, and the raw logs are
+in `cluster_bringup/coreneuron/README.md` and `cluster_bringup/logs/cn_gpu_r*.log`.
