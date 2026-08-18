@@ -357,7 +357,7 @@ Fitting fixed and marginal costs separates them: construction takes $\approx$1.3
 5\,000  & 116.75 & 2.05 & \textbf{57.01 $\pm$ 0.88} \\
 \hline
 \end{tabular}
-\caption{End-to-end wall clock against simulation length, $N=10\,000$ neurons $\times$ 16 compartments (160\,000 compartments), UMCS A40, mean $\pm$ std over 5 replicates, both arms timed identically. The fixed cost each arm carries, $\approx$1.3\,s of model construction, is unchanged across the sweep, so the speedup rises as $K$ grows: at $K=200$ construction is most of the GPU run, at $K=5000$ it is under a tenth of it. Raw data: \protect\path{cluster_bringup/logs/multicomp_ksweep_inf02_A40_20260816.csv}, produced by \protect\path{cluster_bringup/55_multicomp_ksweep.sh}.}
+\caption{End-to-end wall clock against simulation length, $N=10\,000$ neurons $\times$ 16 compartments (160\,000 compartments), UMCS A40, mean $\pm$ std over 5 replicates, both arms timed identically. The fixed cost each arm carries, $\approx$1.3\,s of model construction, is unchanged across the sweep, so the speedup rises as $K$ grows: at $K=200$ construction is most of the GPU run, at $K=5000$ it is under a tenth of it. Re-measured on the same node after the model corrections of Fig.~\ref{fig:vmequiv} (3 replicates): GPU $2.06$\,s against $2.05$\,s and CPU $113.9$\,s against $116.8$\,s, giving $55.4\times$. The difference sits in the CPU arm, which those corrections cannot change the operation count of, and the figure reported here is the fuller 5-replicate campaign. Raw data: \protect\path{cluster_bringup/logs/multicomp_ksweep_inf02_A40_20260816.csv}, produced by \protect\path{cluster_bringup/55_multicomp_ksweep.sh}.}
 \label{tab:mcksweep}
 \end{table}
 

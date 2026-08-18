@@ -264,7 +264,12 @@ injection switched off:
 | NEURON 9.0.2 CPU | 85.438 s | 84.927 s |
 
 Re-running the full six-point sweep after the fixes moved no wall time by more
-than 1.3%, so none of the published timings depended on the defects.
+than 1.3%, so none of the published timings depended on the defects. The
+headline K-sweep figure was spot-checked separately on the A40 at N=10000,
+K=5000 (`55_multicomp_ksweep.sh`, 3 replicates): GPU 2.06 s against the
+published 2.05 s, CPU 113.9 s against 116.8 s, so 55.4x against 57.0x. The
+whole difference is in the CPU arm, whose operation count none of these fixes
+touches.
 
 GENESIS's own two backends agree to 2.6e-5 V over 200 ms and 14 spikes, fp32
 against fp64, with an identical spike count -- the phase drift the paper
