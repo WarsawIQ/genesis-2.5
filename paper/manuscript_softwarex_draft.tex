@@ -471,7 +471,7 @@ The correctness and construction fixes reach further than the accelerator does. 
 
 \item Conclusions
 
-GENESIS 2.5 adds opt-in OpenCL and CUDA acceleration to GENESIS 2.4/PGENESIS 2.4 for Hodgkin--Huxley \texttt{tabchannel} models, without changes to model files, SLI scripts, or MPI workflows (Section~3 reports speedup and fidelity for both integrated-GPU and cluster-class hardware). Beyond the single-compartment multiloop kernel, \hte{} extends acceleration to axially-coupled multi-compartment trees at population scale; the single-detailed-cell regime is not helped by this design, which we measure and report.
+GENESIS 2.5 adds opt-in OpenCL and CUDA acceleration to GENESIS 2.4/PGENESIS 2.4 for Hodgkin--Huxley \texttt{tabchannel} models, without changes to model files, SLI scripts, or MPI workflows (Section~3 reports speedup and fidelity on cluster-class hardware). Beyond the single-compartment multiloop kernel, \hte{} extends acceleration to axially-coupled multi-compartment trees at population scale; the single-detailed-cell regime is not helped by this design, which we measure and report.
 
 The release also carries seven correctness fixes. Three are latent Hines-solver defects that silently suppressed \texttt{inject}-driven voltage transients in any multi-neuron \texttt{hsolve}; these benefit any GENESIS/PGENESIS user, accelerator or not. The other four are in the accelerator and are listed in Section~1. Separately, five pre-existing linear-scan patterns compounding into $O(n^2)$ model-construction time are fixed, restoring linear scaling and making population-scale models buildable at all.
 
@@ -501,7 +501,7 @@ and A40 GPU nodes) at the UMCS Institute of Mathematics, commissioned in
 work, and Karol S.~Karpowicz and Prof.~Przemys\l{}aw Stpiczy\'nski
 for provisioning and support of the compute environment on which the CUDA backend
 was built and validated. The authors also thank WarsawIQ for the AMD Radeon~890M
-integrated GPU used for the laptop-class benchmarks reported here.
+integrated GPU on which the OpenCL backend was developed.
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections

@@ -1,0 +1,28 @@
+node=inf03  binary=nxgenesis_nocl (CPU, no accelerator)
+wall=48.36 s rc=0
+
+== top 30 symbols ==
+    51.28%  [.] do_chip_hh4_update             -      -            
+    13.99%  [.] Synchan                        -      -            
+     6.31%  [.] HinesSolver                    -      -            
+     4.82%  [.] GetActionListByType            -      -            
+     4.26%  [.] CallActionByActionList         -      -            
+     4.14%  [.] Simulate                       -      -            
+     2.87%  [.] CallActionFunc                 -      -            
+     2.14%  [.] Randomspike                    -      -            
+     1.57%  [.] get_rn_dbl                     -      -            
+     1.28%  [.] do_crank_hsolve                -      -            
+     0.95%  [.] hash_function                  -      -            
+     0.86%  [.] CallElementWithMode            -      -            
+     0.83%  [.] CallEventActionWithTime        -      -            
+     0.73%  [.] h_dosynchan                    -      -            
+     0.49%  [.] __strcmp_avx2                  -      -            
+     0.44%  [.] BaseObject                     -      -            
+     0.41%  [.] hash_find                      -      -            
+     0.31%  [.] G_RNG                          -      -            
+
+== grouped ==
+  other                                    33.4%
+  scheduler                                 4.1%
+  synaptic + messaging                      9.7%
+  hsolve interpreter (channels + solve)    52.6%
