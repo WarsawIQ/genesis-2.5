@@ -1,0 +1,6 @@
+cpu rep1 133.5
+gpu rep1 125.2
+cpu rep2 128.8
+gpu rep2 127.7
+cpu rep3 129.9
+gpu rep3 128.5
