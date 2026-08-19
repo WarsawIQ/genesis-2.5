@@ -1,0 +1,17 @@
+# fixed in-degree scaling, A40 (inf02), one run per point
+cells=12500 cpu 131.4
+cells=12500 gpu 121.0
+cells=24500 cpu 314.3
+cells=24500 gpu 300.2
+
+# regime check at 12500 cells
+scaled connection probability:  0.0064
+Average number of Ex_ex synapses per cell:  65
+Average number of Ex_inh synapses per cell:  16
+Average number of Inh_ex synapses per cell:  63
+Average number of Inh_inh synapses per cell:  16
+Average number of Ex_ex synapses per cell:  65
+Average number of Ex_inh synapses per cell:  16
+Average number of Inh_ex synapses per cell:  63
+Average number of Inh_inh synapses per cell:  16
+spikes=1705168
