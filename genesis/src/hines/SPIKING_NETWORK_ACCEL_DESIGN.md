@@ -1,6 +1,6 @@
 # Accelerating synaptically coupled spiking networks
 
-**Status:** implemented. The accelerator runs a synaptically coupled spiking network correctly; it is not yet faster than the CPU arm.
+**Status:** implemented. The accelerator runs a synaptically coupled spiking network correctly, and beats the CPU arm above about 5000 cells.
 
 The spike-generator limit is gone and the Vogels--Abbott model now builds as
 one solver per layer, which is **1.55x faster on CPU** (31.8 +/- 0.4 s against
@@ -340,3 +340,31 @@ Reductions worth trying, in order: fold the scatter into the main launch,
 batch the Vm readback, and give each solver its own stream so the two do not
 serialise. The profile's 2.4x ceiling is still there to be reached; nothing
 about it is blocked by correctness any more.
+
+
+## Where it pays
+
+The per-dispatch cost is fixed; the CPU's work grows with the population. So
+the question is not whether the accelerator helps but above what size.
+Vogels--Abbott through the layer-size knob, A40, one run per point:
+
+| cells | CPU | GPU | |
+|---:|---:|---:|---|
+| 4,000 | 31.5 s | 34.5 s | CPU by 9% |
+| 5,120 | 49.7 s | 49.6 s | even |
+| 12,500 | 124.1 s | 82.1 s | **GPU by 1.51x** |
+| 24,500 | 286.0 s | 205.6 s | **GPU by 1.39x** |
+
+The published benchmark sits just below the crossing, which is why measuring
+only there made the accelerator look like a loss.
+
+Getting from 2.68x slower to the crossing took three changes, in order of what
+they were worth: sending only the synaptic X slots instead of the whole chip
+array each step (88.7 -> 41.1 s), finishing the single-compartment solve in the
+channel kernel so vm[] never leaves the device (41.1 -> 34.5 s), and making
+per-dispatch kernel timing opt-in (no measurable effect, kept because
+instrumentation should not be a default cost).
+
+What is left, if the crossing is worth moving further down: fold the scatter
+into the channel launch, and give each solver its own stream so the two layers
+do not serialise.
