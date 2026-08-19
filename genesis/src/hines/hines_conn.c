@@ -40,14 +40,26 @@ static char rcsid[] = "$Id: hines_conn.c,v 1.2 2005/07/01 10:03:04 svitak Exp $"
 ** hsolve to hsolve.
 */
 
-/* execute Spikegen event */
-void h_dospike_event(hsolve)
+/* execute Spikegen event for the generator on compartment `comp' */
+void h_dospike_event(hsolve,comp)
 	Hsolve  *hsolve;
+	int	comp;
 {
 	struct Spikegen_type *spike;
 	MsgOut  *mo;
+	Element *elm;
 
-	spike = (struct Spikegen_type *) hsolve->spikegen;
+	/* spikegens[] is indexed by compartment so that a solver holding many
+	** cells emits from the generator that actually crossed threshold.
+	** Solvers built without the table, and callers that cannot name a
+	** compartment, fall back to the single legacy pointer. */
+	if (hsolve->spikegens != NULL && comp >= 0 && comp < hsolve->ncompts)
+		elm = hsolve->spikegens[comp];
+	else
+		elm = hsolve->spikegen;
+	if (elm == NULL) return;
+
+	spike = (struct Spikegen_type *) elm;
 	MSGOUTLOOP(spike,mo) {
 		CallEventAction(spike, mo);
 	}

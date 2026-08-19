@@ -83,6 +83,14 @@ int do_hget_children(hsolve)
 {
 	int	g,i,j,k = 0,l,m,n,temp = 0;
 	int     ncompts=hsolve->ncompts;
+	/* This routine runs once per solver, including duplicates: DUPLICATE
+	** copies the whole element with do_copy and then calls it again on the
+	** copy (hines_duplic.c, chanmode 3/4/5). The copied element carries the
+	** original's spikegen pointers, so they are cleared here and rebuilt
+	** below. Leaving them in place would have every duplicate emit from the
+	** original cell's generator, and every duplicate write into the
+	** original's table. The table itself is not freed: it belongs to the
+	** solver that allocated it. */
 	int	nchildren,nconcs,nsynchans=0;
 	Element **compts,*compt,*child = NULL,**children = NULL,*elm,*elm2;
 	int	*elmnum,*firstconc;
@@ -183,6 +191,8 @@ int do_hget_children(hsolve)
 	  for (j=0; j<MAXNAMES; j++) nameused[j]=0;
 
 	  /* Store and identify all the types of children */
+	  hsolve->spikegens=NULL;
+	  hsolve->nspikegens=0;
 	  nchildren=1;	/* note that index zero is NOT used */
 	  for (i=0; i<ncompts; i++) {
 	    for (j=0; j<nnames; j++) nameused[j]=0;
@@ -245,7 +255,32 @@ int do_hget_children(hsolve)
 			ct=MGBLOCK_T;
 		} else if (strcmp(oname,"spikegen")==0) {
 			ct=SPIKEGEN_T;
+			/* Record every generator against the compartment it hangs
+			** off, so SPIKE_OP can emit from the right one when a
+			** solver holds many cells. The first also goes in the
+			** legacy field, which hines_d@.c exposes to SLI.
+			** Allocated on first use: a model with no spike element
+			** pays nothing. `i' is the compartment index of the
+			** enclosing loop. */
+			/* The legacy field keeps its original semantics
+			** exactly: assigned unconditionally, so the last
+			** generator seen wins. Guarding it moved VAnet2's
+			** output, which is the one thing this change must not
+			** do. The new table is additive and sits beside it. */
 			hsolve->spikegen=child;
+			if (hsolve->spikegens==NULL) {
+			    hsolve->spikegens=(Element **)calloc(ncompts,
+							sizeof(Element *));
+			    if (hsolve->spikegens==NULL) {
+				Error();
+				printf(" during SETUP of %s: out of memory for the spikegen table.\n",Pathname(hsolve));
+				return(ERR);
+			    }
+			}
+			if (i>=0 && i<ncompts) {
+			    hsolve->spikegens[i]=child;
+			    hsolve->nspikegens++;
+			}
 		} else if (strcmp(oname,"neutral")==0) {
 			ct=NEUTRAL_T;
 		} else {
@@ -956,13 +991,11 @@ int do_hget_children(hsolve)
 		    ** childlink:  not used
 		    ** childpos:  not used
 		    */
-			if (firstSPIKE) {
-			    firstSPIKE=0;
-			} else {
-			    Error();
-			    printf(" during SETUP of %s: second spikegen %s not allowed.\n",Pathname(hsolve),Pathname(child));
-			    return(ERR);
-			}
+			/* A solver may hold many generators. Each is recorded
+			** against its compartment above and SPIKE_OP emits
+			** from hsolve->spikegens[comp], so a spiking network
+			** no longer has to be built as one solver per cell. */
+			firstSPIKE=0;
 			break;
 
 		    case NEUTRAL_T:

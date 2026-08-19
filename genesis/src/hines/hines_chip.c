@@ -268,7 +268,12 @@ CINTERPOL:		if ((ylo>concen)||(concen>=yhi)) {
 			*op-=1;		/* decrement refractory period */
 			if (Vm>*chip++) {  /* chip[n]=thresh */
 			    if (*op<=0) {        /* check refractory period */
-				h_dospike_event(hsolve);
+				/* vm was advanced past this compartment at the
+				** top of the loop, so the index is one behind
+				** it. Derived rather than counted: nothing is
+				** added to the hot path and there is no counter
+				** to fall out of step with the stream. */
+				h_dospike_event(hsolve,(int)(vm-hsolve->vm)-1);
 				*op=*(op+1);    /* reset refractory period */
 			    }
 			}
