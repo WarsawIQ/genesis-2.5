@@ -59,6 +59,7 @@ struct CudaState {
     int multiloop_called = 0;
     int disabled    = 0;
     int chip_on_gpu = 0;
+    int prof_enabled = 0;
 
     int ncompts = 0, nchips = 0, nops = 0, ncols = 0, xdivs = 0;
     float xmin = 0.0f, invdx = 0.0f;
@@ -272,6 +273,7 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
 
     st->initialized = 1;
     st->chip_on_gpu = 0;
+    st->prof_enabled = (getenv("GENESIS_CUDA_PROFILE") != NULL);
     printf("CUDA: ready (%d compartments, %d chips)\n", ncompts, nchips);
     return st;
 }
@@ -293,13 +295,13 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
                    "clear spike flags");
 
     int block = 64, grid = grid_for(n, block);
-    cudaEventRecord(st->ev_start);
+    if (st->prof_enabled) cudaEventRecord(st->ev_start);
     cuda_chip_channel_update<<<grid, block>>>(
         st->d_vm, st->d_chip, st->d_results, st->d_tablist, st->d_xvals,
         st->d_ops, st->d_opstart, st->d_chipstart,
         st->d_stablist, st->d_spike_refrac, st->d_spike_flag,
         n, st->ncols, st->xdivs, st->xmin, st->invdx);
-    cudaEventRecord(st->ev_stop);
+    if (st->prof_enabled) cudaEventRecord(st->ev_stop);
 
     cudaError_t kerr = cudaGetLastError();
     if (kerr != cudaSuccess) {
@@ -325,10 +327,16 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
         st->spikes_this_step = fired;
     }
 
-    cudaEventSynchronize(st->ev_stop);
-    float ms = 0.0f;
-    cudaEventElapsedTime(&ms, st->ev_start, st->ev_stop);
-    st->prof_kernel_ms += ms;
+    /* Kernel timing costs a full host-device synchronisation per dispatch, and
+       a spiking network pays one dispatch per solver per step -- two hundred
+       thousand of them for VAnet2. It is instrumentation, so it is opt-in:
+       GENESIS_CUDA_PROFILE=1 turns it back on when the number is wanted. */
+    if (st->prof_enabled) {
+        float ms = 0.0f;
+        cudaEventSynchronize(st->ev_stop);
+        cudaEventElapsedTime(&ms, st->ev_start, st->ev_stop);
+        st->prof_kernel_ms += ms;
+    }
     st->prof_calls++;
     return 0;
 }
