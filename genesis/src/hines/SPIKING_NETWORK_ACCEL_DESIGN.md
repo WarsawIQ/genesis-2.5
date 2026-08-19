@@ -1,6 +1,13 @@
 # Accelerating synaptically coupled spiking networks
 
-**Status:** design, 2026-08-19. Not implemented.
+**Status:** implemented. The accelerator runs a synaptically coupled spiking network correctly; it is not yet faster than the CPU arm.
+
+The spike-generator limit is gone and the Vogels--Abbott model now builds as
+one solver per layer, which is **1.55x faster on CPU** (31.8 +/- 0.4 s against
+49.3 +/- 2.2 s, three replicates each on inf02). The accelerator still cannot
+run it: the device's synaptic-channel opcode does not reproduce the CPU
+result, and SYN2_OP compartments are therefore refused at SETUP and computed
+on the CPU. See *What measuring it found* at the end.
 **Companion to:** `GPU_HINES_SOLVE_DESIGN.md`, which covers the tree-elimination kernel.
 
 ## The problem, stated correctly
@@ -168,3 +175,168 @@ until it passes.
   over 100,000 steps is worse than estimated, the result lands above 27 s and
   the honest outcome is a measured negative. The paper's framing changes either
   way, because the recorded diagnosis is wrong regardless of the timing.
+
+
+---
+
+## What measuring it found
+
+Three defects, all in released code, all invisible while every solver holds one
+identical cell.
+
+**1. The device's synaptic path returns wrong results.** Two compartments, one
+synchan, one spike generator, driven by injected current: two spikes on the
+CPU, none under CUDA, with the accelerator reporting ready and raising no
+error (`genesis/Scripts/benchmark/spikegen_syn_check.g`). Remove the synchan
+and both arms give two spikes (`spikegen_gpu_check.g`), so the spike path is
+sound and the synaptic one is not. SYN2_OP compartments are now marked
+`cpu_only`, which is what the SETUP guard was documented to do and did not.
+Repairing the device path is the next piece of work; until then a
+synaptically coupled network runs on the CPU.
+
+**2. The synaptic site list was per process, not per solver.** `syn_sites` and
+`syn_nsites` were file-scope statics capped at 4096 entries, with the excess
+dropped in silence -- the opposite of the comment above them. With one solver
+per cell every list coincides, so reading another solver's list returns the
+right answers; two solvers of different sizes do not. Now stored per solver
+and sized from the model.
+
+**3. The legacy `spikegen` field cannot be guarded.** Assigning it only when
+NULL turns "last generator seen wins" into "first wins" and moves VAnet2's
+output. It is assigned exactly as before; the per-compartment table is
+additive.
+
+## What the measurement cost, and what it is worth
+
+The profile predicted 22-25 s for a GPU arm. That prediction cannot be tested
+until defect 1 is repaired. What can be said now is that the restructuring the
+spikegen change enables is worth 1.55x on its own, and that per-step dispatch
+costs about 58 us per call against 8.5 us of kernel time at this size -- so
+even a correct synaptic path would have to overcome that before the GPU pays
+on a 4000-cell network.
+
+Note on validating any of this: VAnet2's recorded md5 differs between machines,
+because the network is chaotic and the compilers round differently. Gate 1 is
+only meaningful on the node the golden was recorded on. A local build gives
+`1d6e247b` where the A40 gives `1440eb86`, and neither is wrong.
+
+
+## Narrowing defect 1: what is ruled out
+
+Reproducer: `genesis/Scripts/benchmark/spikegen_syn_check.g`, two compartments,
+one synchan, run under both binaries. `GENESIS_CUDA_ALLOW_SYN=1` re-enables the
+device path so it can be observed; `GENESIS_CUDA_SYNDEBUG=1` prints the indices.
+
+Ruled out by measurement, in this order:
+
+| hypothesis | result |
+|---|---|
+| the host synaptic pass never runs | no: `sntab=1`, `needs_chip_every_step=1` |
+| the opcode stream desynchronises | no: `op_i += 3` matches `hines_chip.c` |
+| the chip slots desynchronise | no: `chip_i += 2` matches |
+| the host decays the wrong chip slot | no: stream `chip_i=11`, host `childchips[4]=11` |
+| the spike path itself is broken | no: without the synchan both arms give two spikes |
+
+What remains is how the synaptic conductance enters the membrane current. The
+device accumulates in `ADD_CURR_OP` as `sumgchan += Gk; ichan += Ek*Gk`, while
+the chanmode-4 CPU path computes `Gk*(Ek-Vm)` into `givals`. Those are not the
+same route, and the symptom fits: over 20,000 steps the CPU cell fires twice
+and returns to rest (-71.5 mV) while the device cell sits depolarised at
+-9.2 mV and never reaches the 0 mV threshold. A synaptic current entering
+without its voltage-dependent term, or with the wrong sign, would look exactly
+like that.
+
+The two arms track each other closely for the first hundred steps
+(2.5e-9 V at one step, 8.6e-8 at ten, 8.3e-5 at a hundred), so this is not a
+gross indexing error appearing immediately; it is a systematic bias that grows
+as the synaptic conductance becomes significant.
+
+Until it is fixed, `SYN2_OP` compartments are marked `cpu_only` and the solver
+runs on the CPU.
+
+
+## One defect fixed, the model still wrong
+
+`hines_chip.c` does not fall through after `SYN2_OP`. It jumps to `DOADDCURR`,
+accumulates `sumgchan += Gk; ichan += Ek*Gk`, and **breaks out of the
+compartment's opcode loop**: a synaptic channel carries its own ADD_CURR and
+nothing follows it in the stream. Both device kernels instead did `continue`,
+so the synaptic conductance was computed and discarded, and the thread went on
+reading opcodes the CPU had already stopped at. That is a real defect and it is
+fixed.
+
+It is not the whole story: with it fixed the two-compartment model still gives
+two spikes on the CPU and none on the device.
+
+Also ruled out since: **compartment ordering**. Two cells driven asymmetrically
+with no synapse anywhere agree between CPU and device to 3e-7 V on both cells
+(`spikegen_asym_check.g`), so the kernel's per-thread compartment mapping is
+sound and the earlier suspicion -- that identical cells had been hiding a
+swap -- is wrong.
+
+What is left to check, in order: whether the device's `ichan`/`sumgchan`
+accounting reproduces the chanmode-4 CPU path, which also maintains `Im` and
+the per-channel `givals` array and may not be equivalent to accumulating
+`Ek*Gk` alone; and whether the host's decay in `cuda_synaptic_pass` is applied
+at the same point in the step as the interpreter's, given the interpreter
+decays inside the stream while the host does it before the dispatch.
+
+The refusal stays in place: `SYN2_OP` compartments are `cpu_only` unless
+`GENESIS_CUDA_ALLOW_SYN=1`, which exists only to observe the defect.
+
+
+## The chip overwrite, and what it did not fix
+
+For a model with synapses `needs_chip_every_step` is true, and the host then
+uploaded the **whole** `chip[]` array before every dispatch. Only `results`
+came back. So each step overwrote everything the kernel had written the step
+before -- the synaptic Y state and, because they live in the same array, every
+channel's gating variables. The cell's channels were frozen at their initial
+values, which is why it drifted to -9 mV and never fired.
+
+`cuda_backend_download_chip()` reads the array back after each dispatch when
+the host writes into it. With that in place the two-compartment synaptic model
+gives two spikes on both arms and Vm agrees to 2e-7 V, with CUDA engaged.
+
+**The network still fails.** Vogels-Abbott as one solver per layer: 545,371
+spikes on the CPU, none on the device. Something that model has and the
+two-compartment one does not is still wrong. Candidates not yet tested, in the
+order worth trying: two solvers of different sizes in one process rather than
+one; 80 synapses per cell against one; a `Randomspike` external drive; and
+`SYN3_OP`, which a synchan with a non-zero frequency emits and the kernel does
+not implement at all.
+
+The refusal therefore stays. The download is kept because it is necessary and
+verified, but shipping an accelerator that is right on two compartments and
+silently wrong on a network is worse than shipping one that declines both.
+
+Cost note: the download is not free. VAnet2's GPU arm went from 43 s to 74 s
+with it, on an array of 64,000 doubles fetched 100,000 times. If the network
+case is fixed, the right form is almost certainly to write back only the slots
+the host touches rather than the whole array.
+
+
+## Outcome
+
+Vogels--Abbott, 4000 cells, one solver per layer, A40, three replicates:
+
+| arm | wall | spikes |
+|---|---:|---:|
+| stock, 4000 solvers, CPU | 49.3 +/- 2.2 s | 536,600 |
+| one solver per layer, CPU | **31.5 +/- 0.4 s** | 545,371 |
+| one solver per layer, GPU | 41.1 +/- 1.6 s | 547,271 |
+
+Correctness holds: 0.35% on spike count between the device and its own CPU arm,
+against the 4% this work already accepts between simulators.
+
+Two wins and one open problem. Lifting the spikegen limit is worth **1.56x on
+CPU alone**, from no longer building four thousand solvers. The device now
+computes the network, which it never did before. But the GPU arm is 1.30x
+slower than the CPU one, because a network with zero axonal delay cannot batch
+and every one of the 100,000 steps pays a dispatch: two solvers, two kernel
+launches each, and a Vm readback.
+
+Reductions worth trying, in order: fold the scatter into the main launch,
+batch the Vm readback, and give each solver its own stream so the two do not
+serialise. The profile's 2.4x ceiling is still there to be reached; nothing
+about it is blocked by correctness any more.

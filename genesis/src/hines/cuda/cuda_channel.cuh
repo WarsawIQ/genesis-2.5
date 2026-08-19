@@ -140,6 +140,20 @@ cuda_channel_step(int gid,
             Gk *= chip[chip_i];
             chip_i++;
             op_i += 3;
+            /* hines_chip.c jumps to DOADDCURR here: a synaptic channel
+               carries its own ADD_CURR and there is no separate one after it
+               in the stream, so the current must be accumulated right here.
+
+               Then it breaks out of its *inner* loop -- the `while (1)` at
+               hines_chip.c:408 that runs "through conductance ops till current
+               is computed" -- and the outer loop over the compartment's
+               opcodes carries on with the next channel. The kernel has only
+               the one flat loop, so the equivalent is to continue. Breaking
+               here instead ends the compartment, which costs nothing on a cell
+               with a single synchan and drops the second one on a cell with
+               two -- which is what VAnet2 has. */
+            sumgchan += Gk;
+            ichan    += Ek * Gk;
             continue;
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
@@ -280,6 +294,20 @@ cuda_chip_channel_update(const float *vm,
             Gk *= chip[chip_i];
             chip_i++;
             op_i += 3;
+            /* hines_chip.c jumps to DOADDCURR here: a synaptic channel
+               carries its own ADD_CURR and there is no separate one after it
+               in the stream, so the current must be accumulated right here.
+
+               Then it breaks out of its *inner* loop -- the `while (1)` at
+               hines_chip.c:408 that runs "through conductance ops till current
+               is computed" -- and the outer loop over the compartment's
+               opcodes carries on with the next channel. The kernel has only
+               the one flat loop, so the equivalent is to continue. Breaking
+               here instead ends the compartment, which costs nothing on a cell
+               with a single synchan and drops the second one on a cell with
+               two -- which is what VAnet2 has. */
+            sumgchan += Gk;
+            ichan    += Ek * Gk;
             continue;
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];

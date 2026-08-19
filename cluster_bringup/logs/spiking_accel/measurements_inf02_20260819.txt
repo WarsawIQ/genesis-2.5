@@ -1,0 +1,12 @@
+cpu spikes=545371 rate=27.27 wall=45.5
+gpu spikes=0 rate=0.00 wall=74.1
+---
+cpu spikes=545371 rate=27.27 wall=48.66
+gpu spikes=0 rate=0.00 wall=47.90
+---
+VAnet2-batch.g rep1 48.71
+VAnet2-batch.g rep2 47.38
+VAnet2-batch.g rep3 51.75
+VAnet2-batch-1solver.g rep1 31.42
+VAnet2-batch-1solver.g rep2 32.23
+VAnet2-batch-1solver.g rep3 31.72

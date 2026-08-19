@@ -308,7 +308,15 @@ struct hsolve_type {
 	double	*chip;		/* array for channel element fields */
 	int	nops;		/* number of entries in ops array */
 	int	*ops;		/* array for channel instructions  */
-	Element *spikegen;	/* pointer to Spikegen element */
+	Element *spikegen;	/* first Spikegen element. Kept because
+				** hines_d@.c registers it as a named field of
+				** the object, so removing it would change the
+				** SLI-visible interface. */
+	Element **spikegens;	/* [ncompts], NULL where the compartment has no
+				** generator. A solver may hold many, which is
+				** what lets a spiking network be built as a
+				** single hsolve instead of one per cell. */
+	int	nspikegens;	/* how many entries of spikegens[] are set */
 	double  *vmlast;	/* pointer to end of vm array */
 
     /* concentration stuff */

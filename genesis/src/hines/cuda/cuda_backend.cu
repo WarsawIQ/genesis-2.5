@@ -59,6 +59,7 @@ struct CudaState {
     int multiloop_called = 0;
     int disabled    = 0;
     int chip_on_gpu = 0;
+    int prof_enabled = 0;
 
     int ncompts = 0, nchips = 0, nops = 0, ncols = 0, xdivs = 0;
     float xmin = 0.0f, invdx = 0.0f;
@@ -73,6 +74,20 @@ struct CudaState {
     int   *d_ops = nullptr, *d_opstart = nullptr, *d_chipstart = nullptr;
     /* SPIKE_OP support: the refractory counter must be writable (ops[] is not)
        and the kernel reports spikes back for the host to emit. */
+    /* Where each SYN2_OP's operands start in the owning solver's ops[].
+       Per solver, not per process: with one hsolve per cell every solver's
+       list happens to coincide, which is why a file-scope copy survived, but
+       two solvers of different sizes then read each other's offsets. */
+    int   *syn_sites = nullptr;
+    int    syn_nsites = 0;
+    /* chip[] slots the host writes between steps: the synaptic X states. The
+       kernel only reads them, so the host's copy is authoritative and these
+       are the only values that have to travel each step. */
+    int   *syn_slot_host = nullptr;
+    int   *d_syn_slot = nullptr;
+    float *d_syn_val  = nullptr;
+    float *h_syn_val  = nullptr;
+    int    syn_nslots = 0;
     int   *d_spike_refrac = nullptr, *d_spike_flag = nullptr;
     int   *h_spike_flag = nullptr;
     int    nspike = 0;
@@ -128,6 +143,10 @@ static void cuda_state_destroy(CudaState *st)
     cudaFree(st->d_vm); cudaFree(st->d_chip); cudaFree(st->d_results);
     cudaFree(st->d_tablist); cudaFree(st->d_xvals);
     cudaFree(st->d_ops); cudaFree(st->d_opstart); cudaFree(st->d_chipstart);
+    free(st->syn_sites);
+    free(st->h_syn_val);
+    free(st->syn_slot_host);
+    cudaFree(st->d_syn_slot); cudaFree(st->d_syn_val);
     cudaFree(st->d_spike_refrac); cudaFree(st->d_spike_flag);
     cudaFree(st->d_stablist);
     free(st->h_spike_flag);
@@ -254,6 +273,7 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
 
     st->initialized = 1;
     st->chip_on_gpu = 0;
+    st->prof_enabled = (getenv("GENESIS_CUDA_PROFILE") != NULL);
     printf("CUDA: ready (%d compartments, %d chips)\n", ncompts, nchips);
     return st;
 }
@@ -275,13 +295,13 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
                    "clear spike flags");
 
     int block = 64, grid = grid_for(n, block);
-    cudaEventRecord(st->ev_start);
+    if (st->prof_enabled) cudaEventRecord(st->ev_start);
     cuda_chip_channel_update<<<grid, block>>>(
         st->d_vm, st->d_chip, st->d_results, st->d_tablist, st->d_xvals,
         st->d_ops, st->d_opstart, st->d_chipstart,
         st->d_stablist, st->d_spike_refrac, st->d_spike_flag,
         n, st->ncols, st->xdivs, st->xmin, st->invdx);
-    cudaEventRecord(st->ev_stop);
+    if (st->prof_enabled) cudaEventRecord(st->ev_stop);
 
     cudaError_t kerr = cudaGetLastError();
     if (kerr != cudaSuccess) {
@@ -307,10 +327,16 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
         st->spikes_this_step = fired;
     }
 
-    cudaEventSynchronize(st->ev_stop);
-    float ms = 0.0f;
-    cudaEventElapsedTime(&ms, st->ev_start, st->ev_stop);
-    st->prof_kernel_ms += ms;
+    /* Kernel timing costs a full host-device synchronisation per dispatch, and
+       a spiking network pays one dispatch per solver per step -- two hundred
+       thousand of them for VAnet2. It is instrumentation, so it is opt-in:
+       GENESIS_CUDA_PROFILE=1 turns it back on when the number is wanted. */
+    if (st->prof_enabled) {
+        float ms = 0.0f;
+        cudaEventSynchronize(st->ev_stop);
+        cudaEventElapsedTime(&ms, st->ev_start, st->ev_stop);
+        st->prof_kernel_ms += ms;
+    }
     st->prof_calls++;
     return 0;
 }
@@ -330,6 +356,75 @@ int cuda_backend_upload_chip(void *sth, const double *chip)
     CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, st->nchips * sizeof(float),
                           cudaMemcpyHostToDevice), "upload chip");
     st->chip_on_gpu = 1;
+    return 0;
+}
+
+/* Scatter the host's synaptic X values into the device chip[] at their fixed
+   slots. Replaces uploading the whole array, which would also overwrite the Y
+   state and the channel gating variables the kernel maintains. */
+__global__ void k_scatter_syn(float *chip, const int *slot, const float *val,
+                              int n)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) chip[slot[i]] = val[i];
+}
+
+int cuda_backend_set_syn_slots(void *sth, const int *slots, int n)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st) return -1;
+    cudaFree(st->d_syn_slot); st->d_syn_slot = nullptr;
+    cudaFree(st->d_syn_val);  st->d_syn_val  = nullptr;
+    free(st->h_syn_val);      st->h_syn_val  = nullptr;
+    st->syn_nslots = 0;
+    if (n <= 0) return 0;
+    st->h_syn_val = (float *)malloc((size_t)n * sizeof(float));
+    st->syn_slot_host = (int *)malloc((size_t)n * sizeof(int));
+    if (!st->h_syn_val || !st->syn_slot_host) return -1;
+    memcpy(st->syn_slot_host, slots, (size_t)n * sizeof(int));
+    if (cudaMalloc(&st->d_syn_slot, (size_t)n * sizeof(int)) != cudaSuccess ||
+        cudaMalloc(&st->d_syn_val,  (size_t)n * sizeof(float)) != cudaSuccess ||
+        cudaMemcpy(st->d_syn_slot, slots, (size_t)n * sizeof(int),
+                   cudaMemcpyHostToDevice) != cudaSuccess)
+        return -1;
+    st->syn_nslots = n;
+    return 0;
+}
+
+int cuda_backend_upload_syn_x(void *sth, const double *chip)
+{
+    CudaState *st = (CudaState *)sth;
+    int i, n, threads, blocks;
+    if (!st) return -1;
+    n = st->syn_nslots;
+    if (n <= 0) return 0;
+    /* the slot list lives on the device; the host copy is rebuilt here from
+       the same order it was uploaded in */
+    for (i = 0; i < n; i++) st->h_syn_val[i] = (float)chip[st->syn_slot_host[i]];
+    CUDA_CHECK(cudaMemcpy(st->d_syn_val, st->h_syn_val, (size_t)n * sizeof(float),
+                          cudaMemcpyHostToDevice), "upload syn x");
+    threads = 128; blocks = (n + threads - 1) / threads;
+    k_scatter_syn<<<blocks, threads>>>(st->d_chip, st->d_syn_slot,
+                                       st->d_syn_val, n);
+    return 0;
+}
+
+/* Read the device's chip[] back into the host array.
+   Needed by any model whose host side writes into chip[] between steps: the
+   synaptic pass decays X and injects activation on the host, then uploads the
+   whole array, which would otherwise overwrite everything the kernel wrote the
+   step before -- the synaptic Y state and, because they share chip[], every
+   channel's gating variables too. Downloading after each dispatch keeps the
+   host copy current so the next upload carries the device's own evolution
+   forward instead of resetting it. */
+int cuda_backend_download_chip(void *sth, double *chip)
+{
+    CudaState *st = (CudaState *)sth;
+    int i;
+    if (!st || !chip) return -1;
+    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, st->nchips * sizeof(float),
+                          cudaMemcpyDeviceToHost), "download chip");
+    for (i = 0; i < st->nchips; i++) chip[i] = (double)st->f_chip[i];
     return 0;
 }
 
@@ -551,6 +646,45 @@ int cuda_backend_spikes_this_step(void *sth)
 
 int cuda_backend_has_spikes(void *sth)
 { CudaState *st = (CudaState *)sth; return st ? (st->nspike > 0) : 0; }
+
+/* Which compartment crossed, not just how many. With one generator per solver
+   the count was enough; a solver holding many cells has to emit from the
+   generator belonging to the compartment that actually fired. */
+/* The synaptic site list belongs to one solver. Stored here rather than in a
+   file-scope array so that solvers of different sizes cannot read each other's
+   offsets, and sized from the model rather than capped, so nothing is dropped
+   in silence. */
+int cuda_backend_set_syn_sites(void *sth, const int *sites, int n)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st) return -1;
+    free(st->syn_sites);
+    st->syn_sites = nullptr;
+    st->syn_nsites = 0;
+    if (n <= 0) return 0;
+    st->syn_sites = (int *)malloc((size_t)n * sizeof(int));
+    if (!st->syn_sites) return -1;
+    memcpy(st->syn_sites, sites, (size_t)n * sizeof(int));
+    st->syn_nsites = n;
+    return 0;
+}
+
+int cuda_backend_syn_nsites(void *sth)
+{ CudaState *st = (CudaState *)sth; return st ? st->syn_nsites : 0; }
+
+int cuda_backend_syn_site(void *sth, int i)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st || !st->syn_sites || i < 0 || i >= st->syn_nsites) return -1;
+    return st->syn_sites[i];
+}
+
+int cuda_backend_spike_flag(void *sth, int i)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st || !st->h_spike_flag || i < 0 || i >= st->ncompts) return 0;
+    return st->h_spike_flag[i];
+}
 
 int  cuda_backend_multiloop_total(void *sth)
 { CudaState *st = (CudaState *)sth; return st ? st->multiloop_total : 0; }
