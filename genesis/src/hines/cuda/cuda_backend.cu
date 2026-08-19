@@ -340,6 +340,25 @@ int cuda_backend_upload_chip(void *sth, const double *chip)
     return 0;
 }
 
+/* Read the device's chip[] back into the host array.
+   Needed by any model whose host side writes into chip[] between steps: the
+   synaptic pass decays X and injects activation on the host, then uploads the
+   whole array, which would otherwise overwrite everything the kernel wrote the
+   step before -- the synaptic Y state and, because they share chip[], every
+   channel's gating variables too. Downloading after each dispatch keeps the
+   host copy current so the next upload carries the device's own evolution
+   forward instead of resetting it. */
+int cuda_backend_download_chip(void *sth, double *chip)
+{
+    CudaState *st = (CudaState *)sth;
+    int i;
+    if (!st || !chip) return -1;
+    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, st->nchips * sizeof(float),
+                          cudaMemcpyDeviceToHost), "download chip");
+    for (i = 0; i < st->nchips; i++) chip[i] = (double)st->f_chip[i];
+    return 0;
+}
+
 /* Multiloop dispatch: one upload of vm+chip, one K-step kernel launch, one
    download of vm+chip+results. Mirrors ocl_multiloop_dispatch. */
 int cuda_backend_multiloop(void *sth, double *vm_io, double *chip_io,

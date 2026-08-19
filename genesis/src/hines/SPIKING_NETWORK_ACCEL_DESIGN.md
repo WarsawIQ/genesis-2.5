@@ -283,3 +283,34 @@ decays inside the stream while the host does it before the dispatch.
 
 The refusal stays in place: `SYN2_OP` compartments are `cpu_only` unless
 `GENESIS_CUDA_ALLOW_SYN=1`, which exists only to observe the defect.
+
+
+## The chip overwrite, and what it did not fix
+
+For a model with synapses `needs_chip_every_step` is true, and the host then
+uploaded the **whole** `chip[]` array before every dispatch. Only `results`
+came back. So each step overwrote everything the kernel had written the step
+before -- the synaptic Y state and, because they live in the same array, every
+channel's gating variables. The cell's channels were frozen at their initial
+values, which is why it drifted to -9 mV and never fired.
+
+`cuda_backend_download_chip()` reads the array back after each dispatch when
+the host writes into it. With that in place the two-compartment synaptic model
+gives two spikes on both arms and Vm agrees to 2e-7 V, with CUDA engaged.
+
+**The network still fails.** Vogels-Abbott as one solver per layer: 545,371
+spikes on the CPU, none on the device. Something that model has and the
+two-compartment one does not is still wrong. Candidates not yet tested, in the
+order worth trying: two solvers of different sizes in one process rather than
+one; 80 synapses per cell against one; a `Randomspike` external drive; and
+`SYN3_OP`, which a synchan with a non-zero frequency emits and the kernel does
+not implement at all.
+
+The refusal therefore stays. The download is kept because it is necessary and
+verified, but shipping an accelerator that is right on two compartments and
+silently wrong on a network is worse than shipping one that declines both.
+
+Cost note: the download is not free. VAnet2's GPU arm went from 43 s to 74 s
+with it, on an array of 64,000 doubles fetched 100,000 times. If the network
+case is fixed, the right form is almost certainly to write back only the slots
+the host touches rather than the whole array.

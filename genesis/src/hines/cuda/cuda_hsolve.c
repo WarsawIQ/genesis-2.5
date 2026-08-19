@@ -39,6 +39,7 @@ extern int  cuda_backend_spike_flag(void *sth, int i);
 extern int  cuda_backend_set_syn_sites(void *sth, const int *sites, int n);
 extern int  cuda_backend_syn_nsites(void *sth);
 extern int  cuda_backend_syn_site(void *sth, int i);
+extern int  cuda_backend_download_chip(void *sth, double *chip);
 extern int  cuda_backend_multiloop_total(void *sth);
 extern void cuda_backend_set_multiloop_total(void *sth, int k);
 extern int  cuda_backend_multiloop_called(void *sth);
@@ -137,6 +138,12 @@ static int cuda_perstep_one(Hsolve *hsolve)
     }
     if (cuda_backend_perstep(hsolve->accel_state, hsolve->vm, hsolve->results) != 0)
         return -1;
+    /* Bring chip[] back for models whose host side writes into it between
+       steps. Without this the next step's upload overwrites the kernel's own
+       state -- synaptic Y and every channel gating variable, which share
+       chip[] -- so the cell's channels stay frozen at their initial values. */
+    if (cuda_backend_needs_chip_every_step(hsolve->accel_state))
+        cuda_backend_download_chip(hsolve->accel_state, hsolve->chip);
     /* The kernel records threshold crossings; emission happens here because
        h_dospike_event() dispatches to synapses on other cells, which is
        host-side GENESIS messaging the device cannot do. One call per crossing,
@@ -253,9 +260,21 @@ static void build_comp_index(Hsolve *hsolve, int **out_opstart,
                                     hsolve->childchips[hsolve->ops[op_i + 2]]);
                         (*out_nsyn)++;
                     }
-                    /* GENESIS_CUDA_ALLOW_SYN re-enables the device path for
-                       debugging it. It is known to give wrong results; never
-                       set it for a real run. */
+                    /* Still refused, and the reason is now narrower than it
+                       was. The host used to upload all of chip[] every step,
+                       overwriting the kernel's own state -- synaptic Y and,
+                       sharing the array, every channel gating variable. With
+                       cuda_backend_download_chip() reading it back, a
+                       two-compartment model with one synchan gives two spikes
+                       on both arms and Vm agrees to 2e-7 V.
+
+                       The Vogels-Abbott network still does not: 545,371 spikes
+                       on the CPU against none on the device. Something that
+                       model has and the two-compartment one does not is still
+                       wrong, so the refusal stays until that is found rather
+                       than shipping an accelerator that is correct only on
+                       small models. GENESIS_CUDA_ALLOW_SYN lifts it for
+                       debugging. */
                     if (!getenv("GENESIS_CUDA_ALLOW_SYN")) cpu_only[c] = 1;
                     op_i += 3; chip_i += 2;                break;
                 case SPIKE_OP:
