@@ -1,0 +1,10 @@
+scale=64 cells=4096 cpu 49.7
+scale=64 cells=4096 gpu 49.6
+scale=100 cells=10000 cpu 124.1
+scale=100 cells=10000 gpu 82.1
+scale=140 cells=19600 cpu 286.0
+scale=140 cells=19600 gpu 205.6
+---
+gpu rep1 34.63
+gpu rep2 34.99
+gpu rep3 33.80
