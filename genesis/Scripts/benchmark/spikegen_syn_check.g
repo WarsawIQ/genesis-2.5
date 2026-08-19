@@ -18,6 +18,10 @@
 float EREST = -0.070
 float DT    = 10e-6
 int   NSTEP = 20000
+int e_ns = {getenv GENESIS_BENCH_NSTEP}
+if ({e_ns} >= 1)
+    NSTEP = {e_ns}
+end
 
 include genesis/src/startup/schedule.g
 
@@ -90,5 +94,9 @@ useclock /net/solver 0
 
 reset
 step {NSTEP}
+call /net/solver HGET /net/cell0/soma
+call /net/solver HGET /net/cell1/soma
+echo "RESULT_VM0= " {getfield /net/cell0/soma Vm}
+echo "RESULT_VM1= " {getfield /net/cell1/soma Vm}
 echo "DONE steps=" {NSTEP}
 quit

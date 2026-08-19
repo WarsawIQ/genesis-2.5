@@ -245,9 +245,18 @@ static void build_comp_index(Hsolve *hsolve, int **out_opstart,
                        pass and the refusal message stay accurate. */
                     if (out_syn) {
                         out_syn[*out_nsyn] = op_i;
+                        if (getenv("GENESIS_CUDA_SYNDEBUG"))
+                            fprintf(stderr, "CUDA-syndebug: site %d comp %d "
+                                    "stream chip_i=%d  host childchips[%d]=%d\n",
+                                    *out_nsyn, c, chip_i,
+                                    hsolve->ops[op_i + 2],
+                                    hsolve->childchips[hsolve->ops[op_i + 2]]);
                         (*out_nsyn)++;
                     }
-                    cpu_only[c] = 1;
+                    /* GENESIS_CUDA_ALLOW_SYN re-enables the device path for
+                       debugging it. It is known to give wrong results; never
+                       set it for a real run. */
+                    if (!getenv("GENESIS_CUDA_ALLOW_SYN")) cpu_only[c] = 1;
                     op_i += 3; chip_i += 2;                break;
                 case SPIKE_OP:
                     /* Handled on the device now: the counter is seeded here and
@@ -350,6 +359,11 @@ int cuda_init(Hsolve *hsolve)
 
     build_comp_index(hsolve, &opstart, &chipstart, &cpu_only, &refrac0, &nspike,
                      unsup, &nunsup, syn_sites, &nsyn);
+
+    if (getenv("GENESIS_CUDA_SYNDEBUG"))
+        fprintf(stderr, "CUDA-syndebug: ncompts=%d nsyn=%d nspike=%d "
+                        "sntab=%d needs_chip_every_step=%d\n",
+                n, nsyn, nspike, hsolve->sntab, (hsolve->sntab > 0));
 
     /* Refuse the GPU path when any compartment needs an opcode the kernel does
        not implement; the caller sets cuda_disabled and falls back to the CPU

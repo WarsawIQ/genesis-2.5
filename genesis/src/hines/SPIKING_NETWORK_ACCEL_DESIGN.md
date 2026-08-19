@@ -219,3 +219,37 @@ Note on validating any of this: VAnet2's recorded md5 differs between machines,
 because the network is chaotic and the compilers round differently. Gate 1 is
 only meaningful on the node the golden was recorded on. A local build gives
 `1d6e247b` where the A40 gives `1440eb86`, and neither is wrong.
+
+
+## Narrowing defect 1: what is ruled out
+
+Reproducer: `genesis/Scripts/benchmark/spikegen_syn_check.g`, two compartments,
+one synchan, run under both binaries. `GENESIS_CUDA_ALLOW_SYN=1` re-enables the
+device path so it can be observed; `GENESIS_CUDA_SYNDEBUG=1` prints the indices.
+
+Ruled out by measurement, in this order:
+
+| hypothesis | result |
+|---|---|
+| the host synaptic pass never runs | no: `sntab=1`, `needs_chip_every_step=1` |
+| the opcode stream desynchronises | no: `op_i += 3` matches `hines_chip.c` |
+| the chip slots desynchronise | no: `chip_i += 2` matches |
+| the host decays the wrong chip slot | no: stream `chip_i=11`, host `childchips[4]=11` |
+| the spike path itself is broken | no: without the synchan both arms give two spikes |
+
+What remains is how the synaptic conductance enters the membrane current. The
+device accumulates in `ADD_CURR_OP` as `sumgchan += Gk; ichan += Ek*Gk`, while
+the chanmode-4 CPU path computes `Gk*(Ek-Vm)` into `givals`. Those are not the
+same route, and the symptom fits: over 20,000 steps the CPU cell fires twice
+and returns to rest (-71.5 mV) while the device cell sits depolarised at
+-9.2 mV and never reaches the 0 mV threshold. A synaptic current entering
+without its voltage-dependent term, or with the wrong sign, would look exactly
+like that.
+
+The two arms track each other closely for the first hundred steps
+(2.5e-9 V at one step, 8.6e-8 at ten, 8.3e-5 at a hundred), so this is not a
+gross indexing error appearing immediately; it is a systematic bias that grows
+as the synaptic conductance becomes significant.
+
+Until it is fixed, `SYN2_OP` compartments are marked `cpu_only` and the solver
+runs on the CPU.
