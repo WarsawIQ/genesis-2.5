@@ -73,6 +73,12 @@ struct CudaState {
     int   *d_ops = nullptr, *d_opstart = nullptr, *d_chipstart = nullptr;
     /* SPIKE_OP support: the refractory counter must be writable (ops[] is not)
        and the kernel reports spikes back for the host to emit. */
+    /* Where each SYN2_OP's operands start in the owning solver's ops[].
+       Per solver, not per process: with one hsolve per cell every solver's
+       list happens to coincide, which is why a file-scope copy survived, but
+       two solvers of different sizes then read each other's offsets. */
+    int   *syn_sites = nullptr;
+    int    syn_nsites = 0;
     int   *d_spike_refrac = nullptr, *d_spike_flag = nullptr;
     int   *h_spike_flag = nullptr;
     int    nspike = 0;
@@ -128,6 +134,7 @@ static void cuda_state_destroy(CudaState *st)
     cudaFree(st->d_vm); cudaFree(st->d_chip); cudaFree(st->d_results);
     cudaFree(st->d_tablist); cudaFree(st->d_xvals);
     cudaFree(st->d_ops); cudaFree(st->d_opstart); cudaFree(st->d_chipstart);
+    free(st->syn_sites);
     cudaFree(st->d_spike_refrac); cudaFree(st->d_spike_flag);
     cudaFree(st->d_stablist);
     free(st->h_spike_flag);
@@ -555,6 +562,35 @@ int cuda_backend_has_spikes(void *sth)
 /* Which compartment crossed, not just how many. With one generator per solver
    the count was enough; a solver holding many cells has to emit from the
    generator belonging to the compartment that actually fired. */
+/* The synaptic site list belongs to one solver. Stored here rather than in a
+   file-scope array so that solvers of different sizes cannot read each other's
+   offsets, and sized from the model rather than capped, so nothing is dropped
+   in silence. */
+int cuda_backend_set_syn_sites(void *sth, const int *sites, int n)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st) return -1;
+    free(st->syn_sites);
+    st->syn_sites = nullptr;
+    st->syn_nsites = 0;
+    if (n <= 0) return 0;
+    st->syn_sites = (int *)malloc((size_t)n * sizeof(int));
+    if (!st->syn_sites) return -1;
+    memcpy(st->syn_sites, sites, (size_t)n * sizeof(int));
+    st->syn_nsites = n;
+    return 0;
+}
+
+int cuda_backend_syn_nsites(void *sth)
+{ CudaState *st = (CudaState *)sth; return st ? st->syn_nsites : 0; }
+
+int cuda_backend_syn_site(void *sth, int i)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st || !st->syn_sites || i < 0 || i >= st->syn_nsites) return -1;
+    return st->syn_sites[i];
+}
+
 int cuda_backend_spike_flag(void *sth, int i)
 {
     CudaState *st = (CudaState *)sth;

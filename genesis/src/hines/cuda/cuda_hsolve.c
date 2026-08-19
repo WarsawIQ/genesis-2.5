@@ -36,6 +36,9 @@ extern void cuda_backend_set_last_batch_time(void *sth, double t);
 extern int  cuda_backend_spikes_this_step(void *sth);
 extern int  cuda_backend_has_spikes(void *sth);
 extern int  cuda_backend_spike_flag(void *sth, int i);
+extern int  cuda_backend_set_syn_sites(void *sth, const int *sites, int n);
+extern int  cuda_backend_syn_nsites(void *sth);
+extern int  cuda_backend_syn_site(void *sth, int i);
 extern int  cuda_backend_multiloop_total(void *sth);
 extern void cuda_backend_set_multiloop_total(void *sth, int k);
 extern int  cuda_backend_multiloop_called(void *sth);
@@ -157,12 +160,15 @@ static int cuda_perstep_one(Hsolve *hsolve)
 ** fields they moved to. */
 static int cuda_disabled         = 0;
 
-/* Where each SYN2_OP's operands start in hsolve->ops[], collected at SETUP.
-   Bounded rather than grown: a solver with more synaptic channels than this
-   simply is not accelerated, which is safer than a partial list. */
-#define MAX_SYN_SITES 4096
-static int syn_sites[MAX_SYN_SITES];
-static int syn_nsites = 0;
+/* The SYN2_OP site list lives in the per-solver accelerator state, reached
+   through cuda_backend_syn_site(). It used to be a file-scope array shared by
+   every solver and capped at 4096 entries, which held only because the
+   DUPLICATE idiom gives every solver one identical cell: their offset lists
+   coincide, so reading another solver's list returned the right answers. Two
+   solvers of different sizes, which is what a spiking network built as one
+   hsolve per layer produces, read each other's offsets instead. The cap
+   compounded it by dropping sites past 4096 in silence, the opposite of what
+   its comment claimed. */
 
 /* The half of SYN2_OP that cannot leave the host: the event countdown lives in
    ops[], and h_dosynchan() calls into the synchan child element to fetch its
@@ -172,9 +178,12 @@ static int syn_nsites = 0;
    update alone. */
 static void cuda_synaptic_pass(Hsolve *hsolve)
 {
-    int i;
-    for (i = 0; i < syn_nsites; i++) {
-        int *op = &hsolve->ops[syn_sites[i]];
+    int i, n = cuda_backend_syn_nsites(hsolve->accel_state);
+    for (i = 0; i < n; i++) {
+        int site = cuda_backend_syn_site(hsolve->accel_state, i);
+        int *op;
+        if (site < 0) continue;
+        op = &hsolve->ops[site];
         int  k  = op[0];
         int  nchip;
         /* chip slot for this site: the X state, i.e. the first of its two */
@@ -224,11 +233,21 @@ static void build_comp_index(Hsolve *hsolve, int **out_opstart,
                     /* Three operands (table index, event countdown, child
                        index) and two chip slots (X and Y state), matching the
                        interpreter in hines_chip.c. Getting this wrong
-                       desynchronises everything after it. */
-                    if (out_syn && *out_nsyn < MAX_SYN_SITES) {
+                       desynchronises everything after it.
+
+                       Marked cpu_only until the device path is correct. A
+                       two-compartment model with one synchan
+                       (spikegen_syn_check.g) produces two spikes on the CPU
+                       and none under CUDA, with the accelerator reporting
+                       ready and raising no error -- the same silent
+                       wrong-results failure the SETUP guard exists to
+                       prevent. The site list is still collected so the host
+                       pass and the refusal message stay accurate. */
+                    if (out_syn) {
                         out_syn[*out_nsyn] = op_i;
                         (*out_nsyn)++;
                     }
+                    cpu_only[c] = 1;
                     op_i += 3; chip_i += 2;                break;
                 case SPIKE_OP:
                     /* Handled on the device now: the counter is seeded here and
@@ -305,6 +324,7 @@ int cuda_init(Hsolve *hsolve)
     int nspike = 0;
     int unsup[8], nunsup = 0;
     int nsyn = 0;
+    int *syn_sites = NULL;
     int unsup_count, ci;
     const char *env;
 
@@ -321,6 +341,12 @@ int cuda_init(Hsolve *hsolve)
         
         return -1;
     }
+
+    /* One SYN2_OP consumes three ops[] slots, so that count is a hard upper
+       bound on how many sites the stream can hold. Sizing from the model
+       rather than a constant is what removes the silent truncation. */
+    syn_sites = (int *)malloc(((size_t)no / 3 + 1) * sizeof(int));
+    if (!syn_sites) return -1;
 
     build_comp_index(hsolve, &opstart, &chipstart, &cpu_only, &refrac0, &nspike,
                      unsup, &nunsup, syn_sites, &nsyn);
@@ -344,6 +370,7 @@ int cuda_init(Hsolve *hsolve)
             fprintf(stderr, "%s\n", nunsup >= 8 ? " (list truncated)" : "");
         }
         free(opstart); free(chipstart); free(cpu_only); free(refrac0);
+        free(syn_sites);
         return -1;
     }
     free(cpu_only);
@@ -356,10 +383,16 @@ int cuda_init(Hsolve *hsolve)
                                             opstart, chipstart, refrac0, nspike,
                                             hsolve->stablist, hsolve->sntab);
     if (!hsolve->accel_state) {
-        free(opstart); free(chipstart); free(refrac0);
+        free(opstart); free(chipstart); free(refrac0); free(syn_sites);
         return -1;
     }
-    syn_nsites = nsyn;
+    if (cuda_backend_set_syn_sites(hsolve->accel_state, syn_sites, nsyn) != 0) {
+        fprintf(stderr, "CUDA: cannot store %d synaptic sites for this hsolve; "
+                        "falling back to the CPU solver.\n", nsyn);
+        free(opstart); free(chipstart); free(refrac0); free(syn_sites);
+        return -1;
+    }
+    free(syn_sites);
     cuda_state_register(hsolve, hsolve->accel_state);
     cuda_batch_checked = 0;   /* a solver joined; re-evaluate */
     free(opstart); free(chipstart);
