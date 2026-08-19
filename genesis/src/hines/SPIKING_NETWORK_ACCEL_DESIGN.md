@@ -1,6 +1,13 @@
 # Accelerating synaptically coupled spiking networks
 
-**Status:** design, 2026-08-19. Not implemented.
+**Status:** implemented 2026-08-19, with one of two obstacles cleared.
+
+The spike-generator limit is gone and the Vogels--Abbott model now builds as
+one solver per layer, which is **1.55x faster on CPU** (31.8 +/- 0.4 s against
+49.3 +/- 2.2 s, three replicates each on inf02). The accelerator still cannot
+run it: the device's synaptic-channel opcode does not reproduce the CPU
+result, and SYN2_OP compartments are therefore refused at SETUP and computed
+on the CPU. See *What measuring it found* at the end.
 **Companion to:** `GPU_HINES_SOLVE_DESIGN.md`, which covers the tree-elimination kernel.
 
 ## The problem, stated correctly
@@ -168,3 +175,47 @@ until it passes.
   over 100,000 steps is worse than estimated, the result lands above 27 s and
   the honest outcome is a measured negative. The paper's framing changes either
   way, because the recorded diagnosis is wrong regardless of the timing.
+
+
+---
+
+## What measuring it found
+
+Three defects, all in released code, all invisible while every solver holds one
+identical cell.
+
+**1. The device's synaptic path returns wrong results.** Two compartments, one
+synchan, one spike generator, driven by injected current: two spikes on the
+CPU, none under CUDA, with the accelerator reporting ready and raising no
+error (`genesis/Scripts/benchmark/spikegen_syn_check.g`). Remove the synchan
+and both arms give two spikes (`spikegen_gpu_check.g`), so the spike path is
+sound and the synaptic one is not. SYN2_OP compartments are now marked
+`cpu_only`, which is what the SETUP guard was documented to do and did not.
+Repairing the device path is the next piece of work; until then a
+synaptically coupled network runs on the CPU.
+
+**2. The synaptic site list was per process, not per solver.** `syn_sites` and
+`syn_nsites` were file-scope statics capped at 4096 entries, with the excess
+dropped in silence -- the opposite of the comment above them. With one solver
+per cell every list coincides, so reading another solver's list returns the
+right answers; two solvers of different sizes do not. Now stored per solver
+and sized from the model.
+
+**3. The legacy `spikegen` field cannot be guarded.** Assigning it only when
+NULL turns "last generator seen wins" into "first wins" and moves VAnet2's
+output. It is assigned exactly as before; the per-compartment table is
+additive.
+
+## What the measurement cost, and what it is worth
+
+The profile predicted 22-25 s for a GPU arm. That prediction cannot be tested
+until defect 1 is repaired. What can be said now is that the restructuring the
+spikegen change enables is worth 1.55x on its own, and that per-step dispatch
+costs about 58 us per call against 8.5 us of kernel time at this size -- so
+even a correct synaptic path would have to overcome that before the GPU pays
+on a 4000-cell network.
+
+Note on validating any of this: VAnet2's recorded md5 differs between machines,
+because the network is chaotic and the compilers round differently. Gate 1 is
+only meaningful on the node the golden was recorded on. A local build gives
+`1d6e247b` where the A40 gives `1440eb86`, and neither is wrong.
