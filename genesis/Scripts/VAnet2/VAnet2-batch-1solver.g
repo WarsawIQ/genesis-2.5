@@ -77,6 +77,16 @@ end
 int Ex_NX = 64; int Ex_NY = 50   // 3200 excitatory cells
 int Inh_NX = 32; int Inh_NY = 25 // 800 inhibitory cells
 
+/* Size override, for bracketing a GPU defect that the full network shows and
+** a two-cell model does not. Keeps every structural feature -- two layers,
+** two solvers, planarconnect, the Randomspike drive, many synapses per
+** synchan -- while running in seconds. Unset leaves the published size. */
+int e_scale = {getenv GENESIS_VANET2_SCALE}
+if ({e_scale} >= 2)
+    Ex_NX = {e_scale}; Ex_NY = {e_scale}
+    Inh_NX = {round {e_scale/2}}; Inh_NY = {round {e_scale/2}}
+end
+
 /* In this version of the RSnet script, there will be a layer of
    excitatory cells on a grid, and another layer of inhibitory cells,
    with twice the grid spacing, in order to have a 4:1 ratio of

@@ -260,22 +260,15 @@ static void build_comp_index(Hsolve *hsolve, int **out_opstart,
                                     hsolve->childchips[hsolve->ops[op_i + 2]]);
                         (*out_nsyn)++;
                     }
-                    /* Still refused, and the reason is now narrower than it
-                       was. The host used to upload all of chip[] every step,
-                       overwriting the kernel's own state -- synaptic Y and,
-                       sharing the array, every channel gating variable. With
-                       cuda_backend_download_chip() reading it back, a
-                       two-compartment model with one synchan gives two spikes
-                       on both arms and Vm agrees to 2e-7 V.
-
-                       The Vogels-Abbott network still does not: 545,371 spikes
-                       on the CPU against none on the device. Something that
-                       model has and the two-compartment one does not is still
-                       wrong, so the refusal stays until that is found rather
-                       than shipping an accelerator that is correct only on
-                       small models. GENESIS_CUDA_ALLOW_SYN lifts it for
-                       debugging. */
-                    if (!getenv("GENESIS_CUDA_ALLOW_SYN")) cpu_only[c] = 1;
+                    /* Accelerated. Two defects stood in the way, both in
+                       how the host and the device shared chip[]: the host
+                       uploaded the whole array every step, erasing the
+                       kernel's own state (cuda_backend_download_chip), and
+                       the kernel dropped the synaptic current instead of
+                       accumulating it. A cell with two synchans, which is
+                       what VAnet2 has, also needed the kernel to carry on
+                       through the compartment rather than stop at the first
+                       one. */
                     op_i += 3; chip_i += 2;                break;
                 case SPIKE_OP:
                     /* Handled on the device now: the counter is seeded here and
