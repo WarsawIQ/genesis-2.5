@@ -87,6 +87,26 @@ if ({e_scale} >= 2)
     Inh_NX = {round {e_scale/2}}; Inh_NY = {round {e_scale/2}}
 end
 
+/* Connection probability.
+**
+** The published network uses a fixed 0.02, which at 3200 excitatory cells
+** gives the 65 + 15 synapses per cell the benchmark is specified with. Holding
+** that probability while growing the population grows the in-degree with it:
+** at 10,000 cells each neuron sees 250 inputs, the excitatory-inhibitory
+** balance breaks and the firing rate falls from 27 Hz to under 1. The network
+** is then quiet, and a timing comparison made there is measuring a different
+** dynamical regime rather than a larger version of the same one.
+**
+** So a scaling run holds the in-degree instead, which is the usual way to
+** scale a balanced network, and lets the probability fall as 1/N. Unset, the
+** published value stands untouched.
+*/
+float conn_prob = 0.02
+if ({e_scale} >= 2)
+    conn_prob = {0.02 * 3200.0 / (Ex_NX * Ex_NY)}
+    echo "scaled connection probability: " {conn_prob}
+end
+
 /* In this version of the RSnet script, there will be a layer of
    excitatory cells on a grid, and another layer of inhibitory cells,
    with twice the grid spacing, in order to have a 4:1 ratio of
@@ -213,13 +233,13 @@ function connect_cells
         -sourcemask box -1 -1  1  1 \   // Larger than source area ==> all cells
         -destmask box -1 -1  1  1 \ 
         -desthole box {-Ex_SEP_X*0.5} {-Ex_SEP_Y*0.5} {Ex_SEP_X*0.5} {Ex_SEP_Y*0.5} \
-        -probability 0.02
+        -probability {conn_prob}
 
     planarconnect /Ex_layer/Ex_cell[]/soma/spike \
         /Inh_layer/Inh_cell[]/{Inh_ex_synpath} \
         -relative \	    // Destination coordinates are measured relative to source
         -sourcemask box -1 -1  1  1 \   // Larger than source area ==> all cells
-        -destmask box -1 -1  1  1  -probability 0.02
+        -destmask box -1 -1  1  1  -probability {conn_prob}
 
     // Inh_layer cells connect to inhibitory synchans
     planarconnect /Inh_layer/Inh_cell[]/soma/spike \
@@ -228,13 +248,13 @@ function connect_cells
         -sourcemask box -1 -1  1  1 \   // Larger than source area ==> all cells
         -destmask box -1 -1  1  1 \ 
         -desthole box {-Inh_SEP_X*0.5} {-Inh_SEP_Y*0.5} {Inh_SEP_X*0.5} {Inh_SEP_Y*0.5} \
-        -probability 0.02
+        -probability {conn_prob}
 
    planarconnect /Inh_layer/Inh_cell[]/soma/spike \
       /Ex_layer/Ex_cell[]/{Ex_inh_synpath} \
       -relative \	    // Destination coordinates are measured relative to source
       -sourcemask box -1 -1  1  1 \   // Larger than source area ==> all cells
-      -destmask box -1 -1  1  1  -probability 0.02
+      -destmask box -1 -1  1  1  -probability {conn_prob}
 end
 
 function set_weights(weight)
