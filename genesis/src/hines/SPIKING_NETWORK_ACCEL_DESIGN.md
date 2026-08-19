@@ -253,3 +253,33 @@ as the synaptic conductance becomes significant.
 
 Until it is fixed, `SYN2_OP` compartments are marked `cpu_only` and the solver
 runs on the CPU.
+
+
+## One defect fixed, the model still wrong
+
+`hines_chip.c` does not fall through after `SYN2_OP`. It jumps to `DOADDCURR`,
+accumulates `sumgchan += Gk; ichan += Ek*Gk`, and **breaks out of the
+compartment's opcode loop**: a synaptic channel carries its own ADD_CURR and
+nothing follows it in the stream. Both device kernels instead did `continue`,
+so the synaptic conductance was computed and discarded, and the thread went on
+reading opcodes the CPU had already stopped at. That is a real defect and it is
+fixed.
+
+It is not the whole story: with it fixed the two-compartment model still gives
+two spikes on the CPU and none on the device.
+
+Also ruled out since: **compartment ordering**. Two cells driven asymmetrically
+with no synapse anywhere agree between CPU and device to 3e-7 V on both cells
+(`spikegen_asym_check.g`), so the kernel's per-thread compartment mapping is
+sound and the earlier suspicion -- that identical cells had been hiding a
+swap -- is wrong.
+
+What is left to check, in order: whether the device's `ichan`/`sumgchan`
+accounting reproduces the chanmode-4 CPU path, which also maintains `Im` and
+the per-channel `givals` array and may not be equivalent to accumulating
+`Ek*Gk` alone; and whether the host's decay in `cuda_synaptic_pass` is applied
+at the same point in the step as the interpreter's, given the interpreter
+decays inside the stream while the host does it before the dispatch.
+
+The refusal stays in place: `SYN2_OP` compartments are `cpu_only` unless
+`GENESIS_CUDA_ALLOW_SYN=1`, which exists only to observe the defect.

@@ -140,7 +140,17 @@ cuda_channel_step(int gid,
             Gk *= chip[chip_i];
             chip_i++;
             op_i += 3;
-            continue;
+            /* hines_chip.c does not fall through here: it jumps to DOADDCURR,
+               accumulates this channel's current and breaks out of the
+               compartment's opcode loop. A synaptic channel carries its own
+               ADD_CURR; there is no separate one after it in the stream.
+               Continuing instead dropped the synaptic current entirely and
+               left the thread reading opcodes the CPU had already stopped at,
+               which is why a single synchan silently flattened every cell in
+               the solver. */
+            sumgchan += Gk;
+            ichan    += Ek * Gk;
+            break;
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
             int base = filo * ncols + col;
@@ -280,7 +290,17 @@ cuda_chip_channel_update(const float *vm,
             Gk *= chip[chip_i];
             chip_i++;
             op_i += 3;
-            continue;
+            /* hines_chip.c does not fall through here: it jumps to DOADDCURR,
+               accumulates this channel's current and breaks out of the
+               compartment's opcode loop. A synaptic channel carries its own
+               ADD_CURR; there is no separate one after it in the stream.
+               Continuing instead dropped the synaptic current entirely and
+               left the thread reading opcodes the CPU had already stopped at,
+               which is why a single synchan silently flattened every cell in
+               the solver. */
+            sumgchan += Gk;
+            ichan    += Ek * Gk;
+            break;
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
             int base = filo * ncols + col;
