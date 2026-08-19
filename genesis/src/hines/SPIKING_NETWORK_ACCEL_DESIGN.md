@@ -1,6 +1,6 @@
 # Accelerating synaptically coupled spiking networks
 
-**Status:** implemented 2026-08-19, with one of two obstacles cleared.
+**Status:** implemented. The accelerator runs a synaptically coupled spiking network correctly; it is not yet faster than the CPU arm.
 
 The spike-generator limit is gone and the Vogels--Abbott model now builds as
 one solver per layer, which is **1.55x faster on CPU** (31.8 +/- 0.4 s against
@@ -314,3 +314,29 @@ Cost note: the download is not free. VAnet2's GPU arm went from 43 s to 74 s
 with it, on an array of 64,000 doubles fetched 100,000 times. If the network
 case is fixed, the right form is almost certainly to write back only the slots
 the host touches rather than the whole array.
+
+
+## Outcome
+
+Vogels--Abbott, 4000 cells, one solver per layer, A40, three replicates:
+
+| arm | wall | spikes |
+|---|---:|---:|
+| stock, 4000 solvers, CPU | 49.3 +/- 2.2 s | 536,600 |
+| one solver per layer, CPU | **31.5 +/- 0.4 s** | 545,371 |
+| one solver per layer, GPU | 41.1 +/- 1.6 s | 547,271 |
+
+Correctness holds: 0.35% on spike count between the device and its own CPU arm,
+against the 4% this work already accepts between simulators.
+
+Two wins and one open problem. Lifting the spikegen limit is worth **1.56x on
+CPU alone**, from no longer building four thousand solvers. The device now
+computes the network, which it never did before. But the GPU arm is 1.30x
+slower than the CPU one, because a network with zero axonal delay cannot batch
+and every one of the 100,000 steps pays a dispatch: two solvers, two kernel
+launches each, and a Vm readback.
+
+Reductions worth trying, in order: fold the scatter into the main launch,
+batch the Vm readback, and give each solver its own stream so the two do not
+serialise. The profile's 2.4x ceiling is still there to be reached; nothing
+about it is blocked by correctness any more.
