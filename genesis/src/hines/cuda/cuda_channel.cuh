@@ -210,7 +210,9 @@ cuda_chip_channel_update(const float *vm,
                          const int   ncols,
                          const int   xdivs,
                          const float xmin,
-                         const float invdx)
+                         const float invdx,
+                         float       *vm_out,   /* non-NULL: finish the solve here */
+                         const int    crank)    /* apply the Crank-Nicholson step */
 {
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     if (gid >= ncompts) return;
@@ -342,8 +344,27 @@ cuda_chip_channel_update(const float *vm,
 
     float tbyc     = chip[chip_i];
     float diagterm = chip[chip_i + 1];
-    results[gid * 2]     = Vm + ichan * tbyc;
-    results[gid * 2 + 1] = sumgchan * tbyc + diagterm;
+    if (vm_out) {
+        /* Every compartment is its own tree, so the Hines solve is one
+           division and the kernel can finish it. vm[] stays on the device and
+           results[] carries the answer with an identity denominator, which is
+           what the multiloop path already does, so hines.c skips its own
+           solve. That removes the per-step round trip: without it Vm has to
+           come back for the host to divide and go up again for the next
+           step. */
+        /* resultval is what the CPU solve produces for this row; under
+           Crank-Nicholson hines_solve.c then applies
+           *vm = resultval + resultval - *vm (hines_solve.c:155), so the same
+           correction is applied here. results[] keeps the pre-correction value
+           because that is what the CPU path leaves there. */
+        float resultval = (Vm + ichan * tbyc) / (sumgchan * tbyc + diagterm);
+        vm_out[gid]          = crank ? (resultval + resultval - Vm) : resultval;
+        results[gid * 2]     = resultval;
+        results[gid * 2 + 1] = 1.0f;
+    } else {
+        results[gid * 2]     = Vm + ichan * tbyc;
+        results[gid * 2 + 1] = sumgchan * tbyc + diagterm;
+    }
 }
 
 /* ------------------------------------------------------------------ */

@@ -60,6 +60,14 @@ struct CudaState {
     int disabled    = 0;
     int chip_on_gpu = 0;
     int prof_enabled = 0;
+    /* Every compartment its own tree: the Hines solve is one division, so the
+       channel kernel finishes it and vm[] never leaves the device. */
+    int solve_on_device = 0;
+    /* Whether anything on the host consumes results[] each step. A solver with
+       outgoing messages -- a SAVE of Vm, say -- needs them; one with none does
+       not, and then the download is pure cost. */
+    int results_needed = 1;
+    int crank = 0;
 
     int ncompts = 0, nchips = 0, nops = 0, ncols = 0, xdivs = 0;
     float xmin = 0.0f, invdx = 0.0f;
@@ -286,8 +294,12 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
     if (!st) return -1;
     int n = st->ncompts, nc = st->nchips;
     d2f(vm, st->f_vm, n);
-    CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * sizeof(float),
-                          cudaMemcpyHostToDevice), "upload vm");
+    /* With the solve on the device, vm[] never leaves it: the kernel wrote the
+       final voltages last step and reads them again now. */
+    if (!st->solve_on_device) {
+        CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * sizeof(float),
+                              cudaMemcpyHostToDevice), "upload vm");
+    }
     /* chip[] uploaded by cuda_backend_upload_chip() on the first step */
 
     if (st->nspike > 0)
@@ -300,7 +312,8 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
         st->d_vm, st->d_chip, st->d_results, st->d_tablist, st->d_xvals,
         st->d_ops, st->d_opstart, st->d_chipstart,
         st->d_stablist, st->d_spike_refrac, st->d_spike_flag,
-        n, st->ncols, st->xdivs, st->xmin, st->invdx);
+        n, st->ncols, st->xdivs, st->xmin, st->invdx,
+        st->solve_on_device ? st->d_vm : (float *)0, st->crank);
     if (st->prof_enabled) cudaEventRecord(st->ev_stop);
 
     cudaError_t kerr = cudaGetLastError();
@@ -311,9 +324,12 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
     }
     st->chip_on_gpu = 1;
 
-    CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * sizeof(float),
-                          cudaMemcpyDeviceToHost), "download results");
-    f2d(st->f_results, results_out, n * 2);
+    if (!st->solve_on_device || st->results_needed) {
+        CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * sizeof(float),
+                              cudaMemcpyDeviceToHost), "download results");
+    }
+    if (!st->solve_on_device || st->results_needed)
+        f2d(st->f_results, results_out, n * 2);
 
     /* Count spikes for the caller to emit. The kernel cannot do the emission
        itself: h_dospike_event() dispatches to synapses on other cells, which is
@@ -587,7 +603,8 @@ int cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_io, doubl
             st->d_ops, st->d_opstart, st->d_chipstart,
             st->d_stablist,
             (int *)0, (int *)0,   /* multiloop refuses SPIKE_OP; see cuda_hsolve.c */
-            n, st->ncols, st->xdivs, st->xmin, st->invdx);
+            n, st->ncols, st->xdivs, st->xmin, st->invdx,
+            (float *)0, 0);       /* the tree kernel below does the solve */
         cuda_hines_tree_eliminate<<<tree_grid, tree_block>>>(
             st->d_funcs, st->d_ravals, st->d_results, st->d_vm,
             st->d_fwd_seg_start, st->d_fwd_seg_end,
@@ -678,6 +695,18 @@ int cuda_backend_syn_site(void *sth, int i)
     if (!st || !st->syn_sites || i < 0 || i >= st->syn_nsites) return -1;
     return st->syn_sites[i];
 }
+
+void cuda_backend_set_crank(void *sth, int on)
+{ CudaState *st = (CudaState *)sth; if (st) st->crank = on ? 1 : 0; }
+
+void cuda_backend_set_results_needed(void *sth, int on)
+{ CudaState *st = (CudaState *)sth; if (st) st->results_needed = on ? 1 : 0; }
+
+void cuda_backend_set_solve_on_device(void *sth, int on)
+{ CudaState *st = (CudaState *)sth; if (st) st->solve_on_device = on ? 1 : 0; }
+
+int cuda_backend_solve_on_device(void *sth)
+{ CudaState *st = (CudaState *)sth; return st ? st->solve_on_device : 0; }
 
 int cuda_backend_spike_flag(void *sth, int i)
 {

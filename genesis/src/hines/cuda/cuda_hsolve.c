@@ -42,6 +42,10 @@ extern int  cuda_backend_syn_site(void *sth, int i);
 extern int  cuda_backend_download_chip(void *sth, double *chip);
 extern int  cuda_backend_set_syn_slots(void *sth, const int *slots, int n);
 extern int  cuda_backend_upload_syn_x(void *sth, const double *chip);
+extern void cuda_backend_set_solve_on_device(void *sth, int on);
+extern int  cuda_backend_solve_on_device(void *sth);
+extern void cuda_backend_set_results_needed(void *sth, int on);
+extern void cuda_backend_set_crank(void *sth, int on);
 extern int  cuda_backend_multiloop_total(void *sth);
 extern void cuda_backend_set_multiloop_total(void *sth, int k);
 extern int  cuda_backend_multiloop_called(void *sth);
@@ -441,6 +445,18 @@ int cuda_init(Hsolve *hsolve)
         return -1;
     }
     free(syn_sites);
+    /* Every compartment its own tree: the Hines solve is a single division, so
+       the channel kernel finishes it and vm[] stays on the device. hines.c is
+       told the voltages are ready and skips its own solve. results[] still
+       comes back for any solver with outgoing messages -- a SAVE of Vm needs
+       it every step -- and is left on the device otherwise. */
+    if (hsolve->n_trees > 0 && hsolve->n_trees == hsolve->ncompts) {
+        cuda_backend_set_solve_on_device(hsolve->accel_state, 1);
+        cuda_backend_set_results_needed(hsolve->accel_state,
+                                        hsolve->outinfo != NULL);
+        cuda_backend_set_crank(hsolve->accel_state,
+                               BaseObject(hsolve)->method == CRANK_INT);
+    }
     cuda_state_register(hsolve, hsolve->accel_state);
     cuda_batch_checked = 0;   /* a solver joined; re-evaluate */
     free(opstart); free(chipstart);
@@ -578,8 +594,10 @@ int cuda_chip_update(Hsolve *hsolve)
         }
         cuda_backend_set_last_batch_time(hsolve->accel_state, t);
     }
+    /* 1 tells hines.c the voltages are final and its own solve is not needed,
+       the same signal multiloop mode uses. */
+    return cuda_backend_solve_on_device(hsolve->accel_state) ? 1 : 0;
     }
-    return 0;
 }
 
 void cuda_sync_chip(Hsolve *hsolve)
