@@ -35,6 +35,7 @@ extern double cuda_backend_last_batch_time(void *sth);
 extern void cuda_backend_set_last_batch_time(void *sth, double t);
 extern int  cuda_backend_spikes_this_step(void *sth);
 extern int  cuda_backend_has_spikes(void *sth);
+extern int  cuda_backend_spike_flag(void *sth, int i);
 extern int  cuda_backend_multiloop_total(void *sth);
 extern void cuda_backend_set_multiloop_total(void *sth, int k);
 extern int  cuda_backend_multiloop_called(void *sth);
@@ -56,7 +57,7 @@ extern int  cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_i
 
 /* GENESIS CPU fallback (in hines_4chip.c) */
 extern int do_chip_hh4_update(Hsolve *hsolve);
-extern void h_dospike_event(Hsolve *hsolve);
+extern void h_dospike_event(Hsolve *hsolve, int comp);
 extern void h_dosynchan(Hsolve *hsolve, int stabindex, int cindex);
 extern int  cuda_backend_needs_chip_every_step(void *sth);
 static void cuda_synaptic_pass(Hsolve *hsolve);
@@ -138,8 +139,14 @@ static int cuda_perstep_one(Hsolve *hsolve)
        host-side GENESIS messaging the device cannot do. One call per crossing,
        matching what the CPU interpreter does. */
     if (cuda_backend_has_spikes(hsolve->accel_state)) {
-        int k = cuda_backend_spikes_this_step(hsolve->accel_state);
-        while (k-- > 0) h_dospike_event(hsolve);
+        /* Emit from the generator on each compartment that crossed. Counting
+           crossings and calling the emitter that many times was only correct
+           while a solver held one generator; with many it would send every
+           spike from the same place. */
+        int i;
+        for (i = 0; i < hsolve->ncompts; i++)
+            if (cuda_backend_spike_flag(hsolve->accel_state, i))
+                h_dospike_event(hsolve, i);
     }
     return 0;
 }

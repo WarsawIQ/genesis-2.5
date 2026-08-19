@@ -552,6 +552,16 @@ int cuda_backend_spikes_this_step(void *sth)
 int cuda_backend_has_spikes(void *sth)
 { CudaState *st = (CudaState *)sth; return st ? (st->nspike > 0) : 0; }
 
+/* Which compartment crossed, not just how many. With one generator per solver
+   the count was enough; a solver holding many cells has to emit from the
+   generator belonging to the compartment that actually fired. */
+int cuda_backend_spike_flag(void *sth, int i)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st || !st->h_spike_flag || i < 0 || i >= st->ncompts) return 0;
+    return st->h_spike_flag[i];
+}
+
 int  cuda_backend_multiloop_total(void *sth)
 { CudaState *st = (CudaState *)sth; return st ? st->multiloop_total : 0; }
 
