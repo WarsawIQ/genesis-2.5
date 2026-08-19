@@ -79,6 +79,14 @@ struct CudaState {
        two solvers of different sizes then read each other's offsets. */
     int   *syn_sites = nullptr;
     int    syn_nsites = 0;
+    /* chip[] slots the host writes between steps: the synaptic X states. The
+       kernel only reads them, so the host's copy is authoritative and these
+       are the only values that have to travel each step. */
+    int   *syn_slot_host = nullptr;
+    int   *d_syn_slot = nullptr;
+    float *d_syn_val  = nullptr;
+    float *h_syn_val  = nullptr;
+    int    syn_nslots = 0;
     int   *d_spike_refrac = nullptr, *d_spike_flag = nullptr;
     int   *h_spike_flag = nullptr;
     int    nspike = 0;
@@ -135,6 +143,9 @@ static void cuda_state_destroy(CudaState *st)
     cudaFree(st->d_tablist); cudaFree(st->d_xvals);
     cudaFree(st->d_ops); cudaFree(st->d_opstart); cudaFree(st->d_chipstart);
     free(st->syn_sites);
+    free(st->h_syn_val);
+    free(st->syn_slot_host);
+    cudaFree(st->d_syn_slot); cudaFree(st->d_syn_val);
     cudaFree(st->d_spike_refrac); cudaFree(st->d_spike_flag);
     cudaFree(st->d_stablist);
     free(st->h_spike_flag);
@@ -337,6 +348,56 @@ int cuda_backend_upload_chip(void *sth, const double *chip)
     CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, st->nchips * sizeof(float),
                           cudaMemcpyHostToDevice), "upload chip");
     st->chip_on_gpu = 1;
+    return 0;
+}
+
+/* Scatter the host's synaptic X values into the device chip[] at their fixed
+   slots. Replaces uploading the whole array, which would also overwrite the Y
+   state and the channel gating variables the kernel maintains. */
+__global__ void k_scatter_syn(float *chip, const int *slot, const float *val,
+                              int n)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) chip[slot[i]] = val[i];
+}
+
+int cuda_backend_set_syn_slots(void *sth, const int *slots, int n)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st) return -1;
+    cudaFree(st->d_syn_slot); st->d_syn_slot = nullptr;
+    cudaFree(st->d_syn_val);  st->d_syn_val  = nullptr;
+    free(st->h_syn_val);      st->h_syn_val  = nullptr;
+    st->syn_nslots = 0;
+    if (n <= 0) return 0;
+    st->h_syn_val = (float *)malloc((size_t)n * sizeof(float));
+    st->syn_slot_host = (int *)malloc((size_t)n * sizeof(int));
+    if (!st->h_syn_val || !st->syn_slot_host) return -1;
+    memcpy(st->syn_slot_host, slots, (size_t)n * sizeof(int));
+    if (cudaMalloc(&st->d_syn_slot, (size_t)n * sizeof(int)) != cudaSuccess ||
+        cudaMalloc(&st->d_syn_val,  (size_t)n * sizeof(float)) != cudaSuccess ||
+        cudaMemcpy(st->d_syn_slot, slots, (size_t)n * sizeof(int),
+                   cudaMemcpyHostToDevice) != cudaSuccess)
+        return -1;
+    st->syn_nslots = n;
+    return 0;
+}
+
+int cuda_backend_upload_syn_x(void *sth, const double *chip)
+{
+    CudaState *st = (CudaState *)sth;
+    int i, n, threads, blocks;
+    if (!st) return -1;
+    n = st->syn_nslots;
+    if (n <= 0) return 0;
+    /* the slot list lives on the device; the host copy is rebuilt here from
+       the same order it was uploaded in */
+    for (i = 0; i < n; i++) st->h_syn_val[i] = (float)chip[st->syn_slot_host[i]];
+    CUDA_CHECK(cudaMemcpy(st->d_syn_val, st->h_syn_val, (size_t)n * sizeof(float),
+                          cudaMemcpyHostToDevice), "upload syn x");
+    threads = 128; blocks = (n + threads - 1) / threads;
+    k_scatter_syn<<<blocks, threads>>>(st->d_chip, st->d_syn_slot,
+                                       st->d_syn_val, n);
     return 0;
 }
 

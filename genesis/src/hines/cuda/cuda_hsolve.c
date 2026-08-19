@@ -40,6 +40,8 @@ extern int  cuda_backend_set_syn_sites(void *sth, const int *sites, int n);
 extern int  cuda_backend_syn_nsites(void *sth);
 extern int  cuda_backend_syn_site(void *sth, int i);
 extern int  cuda_backend_download_chip(void *sth, double *chip);
+extern int  cuda_backend_set_syn_slots(void *sth, const int *slots, int n);
+extern int  cuda_backend_upload_syn_x(void *sth, const double *chip);
 extern int  cuda_backend_multiloop_total(void *sth);
 extern void cuda_backend_set_multiloop_total(void *sth, int k);
 extern int  cuda_backend_multiloop_called(void *sth);
@@ -132,18 +134,23 @@ static int cuda_perstep_one(Hsolve *hsolve)
 {
     if (cuda_backend_needs_chip_every_step(hsolve->accel_state)) {
         cuda_synaptic_pass(hsolve);
-        cuda_backend_upload_chip(hsolve->accel_state, hsolve->chip);
+        if (!cuda_backend_chip_on_gpu(hsolve->accel_state))
+            cuda_backend_upload_chip(hsolve->accel_state, hsolve->chip);
+        else
+            /* Only the synaptic X slots the host just wrote. Sending the whole
+               array would overwrite the Y state and the channel gating
+               variables the kernel maintains, which is what made this path
+               return a frozen cell. The kernel never writes X, so nothing has
+               to come back. */
+            cuda_backend_upload_syn_x(hsolve->accel_state, hsolve->chip);
     } else if (!cuda_backend_chip_on_gpu(hsolve->accel_state)) {
         cuda_backend_upload_chip(hsolve->accel_state, hsolve->chip);
     }
     if (cuda_backend_perstep(hsolve->accel_state, hsolve->vm, hsolve->results) != 0)
         return -1;
-    /* Bring chip[] back for models whose host side writes into it between
-       steps. Without this the next step's upload overwrites the kernel's own
-       state -- synaptic Y and every channel gating variable, which share
-       chip[] -- so the cell's channels stay frozen at their initial values. */
-    if (cuda_backend_needs_chip_every_step(hsolve->accel_state))
-        cuda_backend_download_chip(hsolve->accel_state, hsolve->chip);
+    /* No chip[] download: the host writes only the synaptic X slots, which the
+       kernel reads and never writes, so the host copy stays authoritative for
+       everything it touches and the device keeps the rest. */
     /* The kernel records threshold crossings; emission happens here because
        h_dospike_event() dispatches to synapses on other cells, which is
        host-side GENESIS messaging the device cannot do. One call per crossing,
@@ -411,6 +418,21 @@ int cuda_init(Hsolve *hsolve)
     if (!hsolve->accel_state) {
         free(opstart); free(chipstart); free(refrac0); free(syn_sites);
         return -1;
+    }
+    if (nsyn > 0) {
+        /* the chip slot each site's host-side decay writes, in site order */
+        int *slots = (int *)malloc((size_t)nsyn * sizeof(int));
+        int si, rc;
+        if (!slots) { free(opstart); free(chipstart); free(refrac0); free(syn_sites); return -1; }
+        for (si = 0; si < nsyn; si++)
+            slots[si] = hsolve->childchips[hsolve->ops[syn_sites[si] + 2]];
+        rc = cuda_backend_set_syn_slots(hsolve->accel_state, slots, nsyn);
+        free(slots);
+        if (rc != 0) {
+            fprintf(stderr, "CUDA: cannot stage %d synaptic slots; CPU solver.\n", nsyn);
+            free(opstart); free(chipstart); free(refrac0); free(syn_sites);
+            return -1;
+        }
     }
     if (cuda_backend_set_syn_sites(hsolve->accel_state, syn_sites, nsyn) != 0) {
         fprintf(stderr, "CUDA: cannot store %d synaptic sites for this hsolve; "
