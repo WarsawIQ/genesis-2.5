@@ -419,14 +419,14 @@ Arbor 0.10.0 & GPU (A100) & 5.95 $\pm$ 0.02 \\
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.85\textwidth]{fig13_crossover.png}
-\caption{Neither simulator is faster in general: which one wins depends on how long the run is, and where the changeover falls depends on the card. Both are linear in $K$ --- Arbor starts about $0.2$\,s ahead on setup, GENESIS~2.5 advances each step more cheaply --- so a comparison at a single run length reports whichever side of the crossing the author happened to choose. Our per-step margin is the wider one on the A40, $140$ against Arbor's $279\,\mu$s, where on the A100 it is $66$ against $97$; the crossing moves accordingly, from $K\approx6400$ to $K\approx1800$. Our kernel is fp32 where Arbor computes in double, and the A40's double-precision throughput is a fraction of the A100's. $N=10\,000$ neurons $\times$ 16 compartments, mean $\pm$ std over 3 replicates.}
+\caption{Both simulators are linear in $K$, so they cross, and a comparison at a single run length reports whichever side of the crossing the author happened to choose. The crossing sits earlier on the A40 because our kernel is fp32 where Arbor computes in double, and that card's double-precision throughput is a fraction of the A100's. $N=10\,000$ neurons $\times$ 16 compartments, mean $\pm$ std over 3 replicates.}
 \label{fig:crossover}
 \end{figure}
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.98\textwidth]{fig14_vm_equivalence.png}
-\caption{Do the three simulators integrate the same model? One cell's first action potential, at the soma where the current is injected and at the far end of the dendrite, which moves only if axial coupling is integrated. Each simulator is drawn twice --- one backend wide and pale, the other dashed on top --- so a coinciding pair reads as agreement rather than as a missing line. NEURON and Arbor lie on each other to $0.02$\,mV at the peak and agree to $0.01\%$ on firing rate. GENESIS peaks $4.6$\,mV lower because its Hodgkin--Huxley rates are written about a $-70$\,mV rest where NEURON's are written about $-65$. Our own fp32 and fp64 backends agree to $2.6\times10^{-5}$\,V. Data: \protect\path{cluster_bringup/logs/vmcross/}.}
+\caption{Do the three simulators integrate the same model? One cell's first action potential, at the soma and at the far end of the dendrite, which moves only if axial coupling is integrated. Each simulator is drawn twice, one backend wide and pale with the other dashed on top, so a coinciding pair reads as agreement rather than a missing line. NEURON and Arbor agree to $0.02$\,mV at the peak and $0.01\%$ on rate; GENESIS peaks $4.6$\,mV lower, its Hodgkin--Huxley rates being written about a $-70$\,mV rest where NEURON's use $-65$. Data: \protect\path{cluster_bringup/logs/vmcross/}.}
 \label{fig:vmequiv}
 \end{figure}
 
