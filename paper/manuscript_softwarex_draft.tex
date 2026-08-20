@@ -292,37 +292,7 @@ The cards nearly coincide end-to-end despite the A100 leading by more than $2\ti
 \label{fig:multicomp_speedup}
 \end{figure}
 
-\textbf{Population-scale model construction was $O(n^2)$; now $O(n)$.} Pushing toward the $\sim$31\,000-neuron Blue Brain Project scale~\cite{markram2015reconstruction} exposed a defect independent of GPU support: 527\,000 compartments did not finish building within 900\,s. Profiling gave a fitted exponent of $2.31$, traced to five pre-existing linear-scan-per-element patterns in element creation, path resolution and \texttt{hsolve} SETUP, none GPU-specific --- each rescanning siblings, paths or compartments where hashing or amortized growth would do. Fixing all five (Table~\ref{tab:construction_scaling}, Fig.~\ref{fig:construction_scaling}) gives an exponent of $0.99$: that population now builds in $14.6\pm0.2$\,s, and 1.7~million compartments in $51.5\pm0.6$\,s. Output is byte-identical on every validation script, confirming a pure performance fix; full diagnosis in \path{genesis/src/hines/GPU_HINES_SOLVE_DESIGN.md}.
-
-\begin{table}[!h]
-\centering
-\small
-\begin{tabular}{|r|r|r|r|r|}
-\hline
-\textbf{$N$} & \textbf{total comps} & \textbf{before (s)} & \textbf{after: mean$\pm$std (s)} & \textbf{CV} \\
-\hline
-1\,000  & 17\,000  & 0.82  & 0.57 $\pm$ 0.08 & 13.2\% \\
-\hline
-2\,000  & 34\,000  & 2.03  & 0.93 $\pm$ 0.003 & 0.3\% \\
-\hline
-4\,000  & 68\,000  & 8.24  & 1.83 $\pm$ 0.04 & 1.9\% \\
-\hline
-8\,000  & 136\,000  & 105.45 & 4.08 $\pm$ 0.03 & 0.7\% \\
-\hline
-16\,000 & 272\,000  & did not finish (60\,s+) & 7.54 $\pm$ 0.02 & 0.2\% \\
-\hline
-31\,000 & 527\,000  & did not finish (900\,s+) & 14.57 $\pm$ 0.18 & 1.2\% \\
-\hline
-50\,000 & 850\,000  & --            & 23.80 $\pm$ 0.32 & 1.3\% \\
-\hline
-70\,000 & 1\,190\,000 & --           & 34.25 $\pm$ 0.44 & 1.3\% \\
-\hline
-100\,000 & 1\,700\,000 & --           & \textbf{51.48 $\pm$ 0.61} & 1.2\% \\
-\hline
-\end{tabular}
-\caption{Model-construction wall time (construction + \texttt{hsolve} SETUP + one step), \protect\path{hh_branching_multicompartment_benchmark.g}, local machine, before vs.\ after the five fixes. ``After'': mean $\pm$ std, 3 replicates; ``before'': single replicate, not re-measured beyond $N=8000$ (``--'' = never attempted). Fitted exponent: $2.31$ before, $0.99$ after. Raw data: \protect\path{experiments/data/construction_scaling_before_after.csv}.}
-\label{tab:construction_scaling}
-\end{table}
+\textbf{Population-scale model construction was $O(n^2)$; now $O(n)$.} Pushing toward the $\sim$31\,000-neuron Blue Brain Project scale~\cite{markram2015reconstruction} exposed a defect independent of GPU support: 527\,000 compartments did not finish building within 900\,s. Profiling gave a fitted exponent of $2.31$, traced to five pre-existing linear-scan-per-element patterns in element creation, path resolution and \texttt{hsolve} SETUP, none GPU-specific --- each rescanning siblings, paths or compartments where hashing or amortized growth would do. Fixing all five (Fig.~\ref{fig:construction_scaling}) gives an exponent of $0.99$: that population now builds in $14.6\pm0.2$\,s, and 1.7~million compartments in $51.5\pm0.6$\,s. Output is byte-identical on every validation script, confirming a pure performance fix; full diagnosis in \path{genesis/src/hines/GPU_HINES_SOLVE_DESIGN.md}.
 
 \begin{figure}[!h]
 \centering
