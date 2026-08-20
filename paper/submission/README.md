@@ -13,10 +13,13 @@ Built 2026-08-20 from `paper/manuscript_softwarex_submission.tex`.
 
 ## Keep for the revision stage
 
-`latex_source.zip` -- the `.tex` and `figures/`, which is everything the PDF
-needs. Verified by building in an empty directory: 21 pages, no undefined
-references, no missing inputs. No `.bib` file is involved; the bibliography is
-inline in the `.tex`.
+`latex_source.zip` -- the `.tex` and the six figures, flat, with no directory
+structure: Editorial Manager refuses a zip containing subfolders. The manuscript
+still finds its figures because `\graphicspath` adds `figures/` to the search
+path rather than replacing the current directory, so both layouts build.
+Verified by extracting into an empty directory and building: 21 pages, no
+undefined references, no missing graphics. No `.bib` file is involved; the
+bibliography is inline in the `.tex`.
 
 ## Checked against the guide for authors
 
