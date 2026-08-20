@@ -372,7 +372,7 @@ Arbor 0.10.0 & compiled NMODL & A100 & 149.4 $\pm$ 1.1 & 602\,720 \\
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.92\textwidth]{fig12_coreneuron_comparison.png}
-\caption{Where GENESIS~2.5 sits among the other simulators on the Vogels--Abbott COBAHH network, one UMCS node. Every arm is single-threaded CPU except the two coloured apart, CoreNEURON and Arbor on an A100; the hatched bar is a single run, the rest means of 3 replicates. On the same core GENESIS is the fastest of the four --- two thirds of CoreNEURON's time as published, under half once built as one solver per layer --- but CoreNEURON on the GPU stays ahead of all of them.}
+\caption{The measurements of Table~\ref{tab:coreneuron}, drawn. Green is GENESIS, orange the arms running on an A100, grey the CPU arms it is compared against; the dashed guide marks the GENESIS time, so every bar reaching past it is slower. Means of 3 replicates with standard deviations, except the ChannelBuilder row. Arbor comes last despite its GPU because zero axonal delay forces it to exchange spikes every step.}
 \label{fig:coreneuron}
 \end{figure}
 

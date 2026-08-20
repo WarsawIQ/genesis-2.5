@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""Figure: GENESIS 2.5 against NEURON and CoreNEURON on the Vogels-Abbott network.
+"""Figure: where GENESIS 2.5 sits against NEURON, CoreNEURON and Arbor.
 
-One measure (wall-clock time for the same simulation), so the bars carry a single
-hue rather than a categorical palette; GENESIS is the one entity the reader is
-being asked to locate, so it alone is accented. Sorted fastest-first, values
-labelled directly, no legend -- with a single series the title names it.
+The figure answers one question -- who runs the Vogels-Abbott network fastest --
+so the title states the answer and the chart is stripped to what supports it.
+One number per bar (wall clock; throughput is that number divided into a
+constant, so printing both said the same thing twice). Single-line labels with
+the device as a suffix, because two-line labels made the left edge the busiest
+part of the plot. A dashed guide at the GENESIS time lets every slower bar be
+read against it without a second annotation.
+
+Colour carries the only distinction that matters: GENESIS, the arms on a GPU,
+and the rest on CPU.
 
 Data: cluster_bringup/coreneuron/README.md, UMCS node inf03, 4000 cells, 5.0 s
-simulated, dt = 0.05 ms. All arms single-threaded CPU except CoreNEURON on the
-A100, which is the one accelerated arm and is coloured apart for that reason.
+simulated, dt = 0.05 ms.
 """
 
 from __future__ import annotations
@@ -19,22 +24,23 @@ import matplotlib.pyplot as plt
 
 ACCENT = "#1e7f4f"   # GENESIS -- same green as the A100 series in fig10
 NEUTRAL = "#8a8f98"  # the simulators being compared against, on CPU
-GPU = "#b3541e"      # the one arm that runs on an accelerator
+GPU = "#b3541e"      # the arms that run on an accelerator
 INK = "#222222"
+MUTED = "#5a5f66"
 
-# label, mean seconds, std (None = single run), replicates
+# label, mean seconds, std (None = single run)
 ROWS = [
-    ("CoreNEURON 9.0.2\n(A100 GPU)", 27.0, 0.1, 3),
-    ("GENESIS 2.5\n(one solver per layer)", 33.2, 0.7, 3),
-    ("GENESIS 2.5\n(as published)", 46.9, 2.1, 3),
-    ("CoreNEURON 9.0.2", 76.5, 0.3, 3),
-    ("NEURON 9.0.2", 95.8, 0.2, 3),
-    ("NEURON 9.0.2\n(ChannelBuilder)", 123.3, None, 1),
-    ("Arbor 0.10.0\n(A100 GPU)", 149.4, 1.1, 3),
+    ("CoreNEURON 9.0.2 · GPU", 27.0, 0.1),
+    ("GENESIS 2.5, one solver per layer", 33.2, 0.7),
+    ("GENESIS 2.5, as published", 46.9, 2.1),
+    ("CoreNEURON 9.0.2", 76.5, 0.3),
+    ("NEURON 9.0.2", 95.8, 0.2),
+    ("NEURON 9.0.2, ChannelBuilder", 123.3, None),
+    ("Arbor 0.10.0 · GPU", 149.4, 1.1),
 ]
 
-# 4000 cells x 100,000 steps of simulated time
-NEURON_STEPS = 4000 * 100_000
+GENESIS_S = 33.2
+CORENEURON_CPU_S = 76.5
 
 
 def main() -> None:
@@ -46,44 +52,46 @@ def main() -> None:
     labels = [r[0] for r in rows]
     means = [r[1] for r in rows]
     errs = [r[2] if r[2] is not None else 0.0 for r in rows]
-    single = [r[3] == 1 for r in rows]
 
     plt.style.use("seaborn-v0_8-whitegrid")
-    fig, ax = plt.subplots(figsize=(8.0, 4.0))
+    fig, ax = plt.subplots(figsize=(8.0, 3.6))
 
-    y = range(len(rows))
+    y = list(range(len(rows)))
     colors = [ACCENT if "GENESIS" in l else GPU if "GPU" in l else NEUTRAL
               for l in labels]
-    bars = ax.barh(list(y), means, xerr=errs, height=0.62, color=colors,
-                   error_kw={"ecolor": "#444444", "capsize": 3, "lw": 1.2},
-                   zorder=3)
-    # A single run is not a mean; hatch it so the distinction is not colour-only.
-    for b, is_single in zip(bars, single):
-        if is_single:
-            b.set_hatch("//")
-            b.set_edgecolor("#ffffff")
-            b.set_linewidth(0.0)
+    ax.barh(y, means, xerr=errs, height=0.6, color=colors,
+            error_kw={"ecolor": "#444444", "capsize": 2.5, "lw": 1.0},
+            zorder=3)
 
-    for i, (l, m, e, n) in enumerate(rows):
-        thr = NEURON_STEPS / m / 1e6
-        note = f"{m:.1f} s" if n > 1 else f"{m:.1f} s (single run)"
-        ax.text(m + (e or 0) + 2.5, i, f"{note}   |   {thr:.1f}M steps/s",
-                va="center", ha="left", fontsize=9, color=INK)
+    # Read every slower arm against the GENESIS time without a second annotation.
+    ax.axvline(GENESIS_S, color=ACCENT, lw=1.0, ls=(0, (4, 3)), alpha=0.55,
+               zorder=2)
 
-    ax.set_yticks(list(y))
+    for i, (_l, m, e) in enumerate(rows):
+        note = f"{m:.1f} s" if e is not None else f"{m:.1f} s (single run)"
+        ax.text(m + (e or 0) + 2.5, i, note, va="center", ha="left",
+                fontsize=9.5, color=INK)
+
+    ax.set_yticks(y)
     ax.set_yticklabels(labels, fontsize=9.5)
     ax.invert_yaxis()
     ax.set_xlabel("Wall-clock time for the 5 s simulation (s), lower is better")
-    ax.set_xlim(0, 200)
-    ax.grid(True, axis="x", alpha=0.35)
+    ax.set_xlim(0, 185)
+    ax.grid(True, axis="x", alpha=0.3)
     ax.grid(False, axis="y")
     for side in ("top", "right", "left"):
         ax.spines[side].set_visible(False)
     ax.tick_params(axis="y", length=0)
 
-    ax.set_title("Vogels–Abbott COBAHH network, 4000 cells, 5 s, dt = 0.05 ms\n"
-                 "single-threaded CPU except the two GPU arms, one cluster node",
-                 fontsize=11)
+    ratio = CORENEURON_CPU_S / GENESIS_S
+    ax.set_title(
+        f"On one CPU core, GENESIS 2.5 runs this network {ratio:.1f}× faster "
+        "than CoreNEURON",
+        fontsize=11.5, loc="left", color=INK, pad=26)
+    ax.text(0.0, 1.02,
+            "Only CoreNEURON on a GPU is faster — Vogels–Abbott COBAHH, "
+            "4000 cells, 5 s at dt = 0.05 ms, one node",
+            transform=ax.transAxes, fontsize=9, color=MUTED, va="bottom")
 
     fig.tight_layout()
     out = figures / "fig12_coreneuron_comparison.png"
