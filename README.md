@@ -208,8 +208,8 @@ See [`CITATION.cff`](CITATION.cff). Until the SoftwareX manuscript is
 accepted, cite the repository directly:
 
 ```
-Chlasta K, Wójcik GM. GENESIS 2.5: opt-in OpenCL and CUDA acceleration for
-the GENESIS/PGENESIS compartmental neural simulator. v2.5, 2026.
+Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5, 2026.
 https://github.com/WarsawIQ/genesis-2.5
 ```
 
