@@ -1,0 +1,6 @@
+VAnet2-batch-1solver.g rep1 33.63
+VAnet2-batch-1solver.g rep2 33.64
+VAnet2-batch-1solver.g rep3 32.40
+VAnet2-batch.g rep1 47.85
+VAnet2-batch.g rep2 47.82
+VAnet2-batch.g rep3 47.19
