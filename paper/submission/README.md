@@ -9,8 +9,8 @@ Built 2026-08-20 from `paper/manuscript_softwarex_submission.tex`.
 | `manuscript_softwarex_submission.pdf` | Manuscript | 21 pages, built from the source below |
 | `highlights.txt` | Highlights | 5 bullets, each under the 85-character limit |
 | `fig*.png` | Figure | one per figure, in order; also inside the PDF |
-| `response_to_reviewers.md` | Response to Reviewers | point-by-point reply to SOFTX-D-26-00952 |
-| `cover_letter.md` | Cover Letter | resubmission of SOFTX-D-26-00952; paste as plain text |
+| `response_to_reviewers.pdf` | Response to Reviewers | point-by-point reply to SOFTX-D-26-00952, 3 pages |
+| `cover_letter.pdf` | Cover Letter | resubmission of SOFTX-D-26-00952, 1 page |
 | _declaration of interest_ | Declaration of Interest | **generate it from the declarations tool in Editorial Manager.** Not kept in the repository: it is correspondence about the work, not the work |
 
 ## Keep for the revision stage
@@ -33,3 +33,9 @@ bibliography is inline in the `.tex`.
 - CRediT statement, competing-interest declaration and funding statement present
 - generative-AI declaration titled as the guide words it, in a section
   immediately before the references
+
+## Sources kept beside the PDFs
+
+`cover_letter.md` and `response_to_reviewers.md` are the text; `md2tex.py`
+converts them and the `.tex` files are what pdflatex builds. Edit the
+Markdown and re-run the converter rather than the `.tex`.
