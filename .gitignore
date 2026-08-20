@@ -98,5 +98,8 @@ paper/SOFTX-*.pdf
 paper/declarationStatement.docx
 paper/submission/declarationStatement.docx
 paper/drafts/
+# Working history of the paper: old drafts, plans, checklists, status pages.
+# Kept on disk, out of the repository -- it is the notebook, not the work.
+paper/archive/
 *.pdf.bak
 paper/_cleanbuild/

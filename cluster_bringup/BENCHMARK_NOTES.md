@@ -26,7 +26,7 @@ single-compartment parity result (|CPU−CUDA| = 7.04e-8 V, A100).
 dispatch cost — NOT as a multi-compartment simulation result.
 
 **Follow-on:** a genuine multi-compartment GPU speedup needs a GPU-side
-tridiagonal (Hines) solve (see `paper/PLAN_gpu_rewrite.md`; cf. Arbor's
+tridiagonal (Hines) solve (see `genesis/src/hines/GPU_HINES_SOLVE_DESIGN.md`; cf. Arbor's
 GPU-resident cable solver). Until that exists, GPU acceleration in this codebase
 is validated only for single-compartment (point-neuron-per-compartment) networks.
 

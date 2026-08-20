@@ -145,7 +145,7 @@ def main() -> None:
     root = Path(__file__).resolve().parent.parent
     data = root / "data"
     # fig1 was dropped from the current manuscript and fig2/fig3 were never
-    # used in it (see paper/archive/README.md); write reproductions there,
+    # used in it; write reproductions to a fresh file rather than overwriting,
     # not into the live paper/figures/ used by manuscript_softwarex_submission.tex.
     figures = root / "archive" / "figures"
     figures.mkdir(exist_ok=True)
