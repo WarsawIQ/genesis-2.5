@@ -27,6 +27,8 @@ The earlier decision turned on the absence of a head-to-head comparison with oth
 
 \textbf{A reproduction pack.} \texttt{sh reproduce/run\_all.sh} rebuilds the software, re-measures the claims on the reader's own hardware, regenerates the figures from those measurements, and prints each published value beside theirs with a verdict. It refuses to time a binary built for a different GPU than the one in the machine --- a failure that cost us a day and would otherwise cost a reviewer one.
 
+\textbf{On the Code Ocean capsule.} The submission form asks for one. We have not made a capsule, and we would rather explain why than leave the field empty. What this paper claims is GPU acceleration, and a capsule without an NVIDIA card would exercise only the CPU paths --- demonstrating nothing that is in dispute, and possibly suggesting the results cannot be reproduced. In its place we offer the repository, an archived release whose DOI names the exact version every number was measured on, and the reproduction pack described above, which runs on the reviewer's own hardware rather than on a machine we chose. If the editors would still like a capsule, we can prepare one for the two claims that need no GPU: model construction reduced from $O(n^2)$ to linear, and the 1.41x gained on the CPU by building a spiking network as one solver per layer.
+
 The software is archived at https://doi.org/10.5281/zenodo.22032886, which is the exact version the measurements were taken on.
 
 We hope the revised manuscript now meets the standard the reviewers asked for.

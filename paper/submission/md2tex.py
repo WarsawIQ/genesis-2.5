@@ -20,8 +20,11 @@ def esc(t):
             out.append(r"\texttt{" + body + "}")
         else:
             for a, b in (("\\", r"\textbackslash{}"), ("&", r"\&"), ("%", r"\%"),
-                         ("_", r"\_"), ("#", r"\#"), ("$", r"\$")):
+                         ("_", r"\_"), ("#", r"\#"), ("$", r"\$"),
+                         ("^", r"\textasciicircum{}"), ("~", r"\textasciitilde{}")):
                 p = p.replace(a, b)
+            # O(n^2) and the like read better set as maths
+            p = re.sub(r"O\(n\\textasciicircum\{\}2\)", r"$O(n^2)$", p)
             p = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", p)
             p = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\\emph{\1}", p)
             p = p.replace(" -- ", " --- ")
