@@ -85,7 +85,7 @@
 \cortext[cor1]{Corresponding author.}
 
 \begin{abstract}
-GENESIS is a long-established compartmental neural simulator. We release GENESIS~2.5, adding opt-in OpenCL and CUDA backends for the Hodgkin--Huxley channel-update path and \hte{}, a GPU Hines tree-elimination kernel for dendritic trees, leaving every existing model, script and MPI workflow unchanged. On cluster hardware the accelerator reaches $57\times$ end-to-end speedup on a 160\,000-compartment population, matching the fp64 CPU solver to $\sim$$10^{-7}$\,V. Measured against other simulators on one node, it runs the Vogels--Abbott COBAHH benchmark $2.3\times$ faster than CoreNEURON on a single CPU core, and on the GPU it overtakes the GPU-native Arbor beyond 18--64\,ms of simulated time depending on the card; CoreNEURON's GPU stays $1.23\times$ ahead on that spiking benchmark. Spiking networks reach the GPU for the first time. GENESIS gave each solver a single spike generator, so a synaptically coupled network had to be built as one solver per cell; lifting that limit lets a whole layer share one solver, which is $1.4\times$ faster on the CPU before any GPU is involved. The release also makes $O(n^2)$ model construction linear and repairs seven defects, three of them in the solver GENESIS~2.4 ships.
+GENESIS is a long-established compartmental neural simulator. We release GENESIS~2.5, adding opt-in OpenCL and CUDA backends for the Hodgkin--Huxley channel-update path and \hte{}, a GPU Hines tree-elimination kernel for dendritic trees, leaving every existing model, script and MPI workflow unchanged. On cluster hardware the accelerator reaches $57\times$ end-to-end speedup on a 160\,000-compartment population, matching the fp64 CPU solver to $\sim$$10^{-7}$\,V. Measured against other simulators on one node, it runs the Vogels--Abbott COBAHH benchmark $2.3\times$ faster than CoreNEURON on a single CPU core, and on the GPU it overtakes the GPU-native Arbor beyond 18--64\,ms of simulated time depending on the card; CoreNEURON's GPU stays $1.23\times$ ahead on that spiking benchmark. Spiking networks reach the GPU for the first time. GENESIS gave each solver a single spike generator, so a synaptically coupled network had to be built as one solver per cell; lifting that limit lets a whole layer share one solver, $1.4\times$ faster on the CPU alone. On the device such a network runs at parity rather than faster: with zero axonal delay it cannot batch, and every step pays a dispatch. The release also makes $O(n^2)$ model construction linear and repairs seven defects, three of them in the solver GENESIS~2.4 ships.
 \end{abstract}
 
 \begin{keyword}
@@ -193,7 +193,7 @@ The tridiagonal kernel decides whether any of this reaches realistic morphologie
 
 \textbf{Reproducing the GPU multiloop result.} \path{genesis/Scripts/benchmark/hh_spiking_benchmark.g} builds $N$ driven Hodgkin--Huxley neurons under one \texttt{hsolve} (\texttt{chanmode=4}); \path{GENESIS_CUDA_MULTILOOP=}$K$ dispatches all $K$ steps in one GPU call. Both arms are wall-clocked identically at $K=50\,000$ on the A40 and A100.
 
-Table~\ref{tab:cuda} reports both backends after the scheduler and solver fixes. Speedup grows with $N$ throughout, reaching $21.0\pm0.3\times$ (CUDA) and $19.2\times$ (OpenCL) on the A40 and $21.9\pm0.3\times$ and $20.4\times$ on the A100 at $N=50\,000$.
+Table~\ref{tab:cuda} reports both backends after the scheduler and solver fixes; speedup grows with $N$ throughout.
 
 
 
@@ -208,11 +208,11 @@ Table~\ref{tab:cuda} reports both backends after the scheduler and solver fixes.
 \label{fig:divergence}
 \end{figure}
 
-\textbf{CUDA backend on NVIDIA hardware.} The CUDA backend builds from the same source (\texttt{make USE\_CUDA=1}) against the identical harness, and reproduces the fp64 CPU action potential to $7\times10^{-8}$\,V, confirming parity with both the CPU and OpenCL paths. Table~\ref{tab:cuda} reports a 10-replicate sweep on the two UMCS cluster GPUs. The two cards are close at every size, and the OpenCL backend trails CUDA by roughly $8\%$ --- about what a faithful port of the same kernels costs, and the price of running on hardware CUDA does not reach.
+\textbf{CUDA backend on NVIDIA hardware.} The CUDA backend builds from the same source (\texttt{make USE\_CUDA=1}) against the identical harness, and reproduces the fp64 CPU action potential to $7\times10^{-8}$\,V, confirming parity with both the CPU and OpenCL paths. That sweep is 10 replicates on each of the two UMCS cluster GPUs. The two cards are close at every size, and the OpenCL backend trails CUDA by roughly $8\%$ --- about what a faithful port of the same kernels costs, and the price of running on hardware CUDA does not reach.
 
-These are \emph{end-to-end} speedups, and every figure in this paper uses that one definition. Timing the two arms by different clocks inflates the ratio by an order of magnitude and can invent differences between cards; measured consistently the A40 and A100 are indistinguishable here ($21.0\pm0.3\times$ vs.\ $21.9\pm0.3\times$).
+These are \emph{end-to-end} speedups, and every figure in this paper uses that one definition. Timing the two arms by different clocks inflates the ratio tenfold and can invent differences between cards; measured consistently the A40 and A100 are indistinguishable ($21.0\pm0.3\times$ vs.\ $21.9\pm0.3\times$).
 
-At $N=500$ the accelerator barely pays for itself: at that size the fixed costs of construction and transfer dominate a run the CPU finishes in under a second.
+At $N=500$ the accelerator barely pays for itself: fixed costs dominate a run the CPU finishes in under a second.
 
 \begin{table}[!h]
 \centering
@@ -367,7 +367,7 @@ NEURON 9.0.2 & ChannelBuilder & CPU & 123.3 & 574\,138 \\
 Arbor 0.10.0 & compiled NMODL & A100 & 149.4 $\pm$ 1.1 & 602\,720 \\
 \hline
 \end{tabular}
-\caption{Where GENESIS~2.5 stands against the other simulators on a published spiking network, GENESIS in bold. Vogels--Abbott COBAHH, 4000 cells, 80 synapses each, $dt=0.05$\,ms, 5.0\,s simulated, one UMCS node; CPU arms single-threaded. Every arm settles into the same activity regime, $26.8$--$30.1$\,Hz, so the wall times cover comparable work. Means $\pm$ std over 3 replicates, except the ChannelBuilder row, a single run of the benchmark in its original form. The GENESIS GPU arm comes from a later session on the same node, where its own CPU reference ran $34.9\pm0.4$\,s. Harness: \protect\path{cluster_bringup/coreneuron/}.}
+\caption{Where GENESIS~2.5 stands against the other simulators on a published spiking network, GENESIS in bold. Vogels--Abbott COBAHH, 4000 cells, 80 synapses each, $dt=0.05$\,ms, 5.0\,s simulated, one UMCS node; CPU arms single-threaded. Every arm settles into the same activity regime, $26.8$--$30.1$\,Hz, so the wall times cover comparable work. Means $\pm$ std over 3 replicates, except the ChannelBuilder row, a single run of the benchmark in its original form. The GENESIS GPU arm comes from a later session on the same node, where its own CPU reference ran $34.9\pm0.4$\,s; that pair is the one to divide, giving $1.04\times$, rather than rows taken months apart. Harness: \protect\path{cluster_bringup/coreneuron/}.}
 \label{tab:coreneuron}
 \end{table}
 
@@ -430,7 +430,7 @@ Arbor 0.10.0 & GPU (A100) & 5.95 $\pm$ 0.02 \\
 \label{fig:vmequiv}
 \end{figure}
 
-A reproduction pack is included: \path{sh reproduce/run_all.sh} re-measures every claim here, regenerates the figures from those measurements, and prints each published value beside the reader's own. Raw data and full steps: \path{paper/docs/REPLICATION.md}.
+A reproduction pack is included: \path{sh reproduce/run_all.sh} re-measures the claims here on the reader's own hardware, regenerates the figures from those measurements, and prints each published value beside theirs. Two rows need hardware or a toolchain it cannot assume --- CoreNEURON on a GPU, and the A40 arm --- and are documented instead. Raw data and full steps: \path{paper/docs/REPLICATION.md}.
 
 \item Impact
 
@@ -445,7 +445,7 @@ GENESIS 2.5 adds opt-in OpenCL and CUDA acceleration to GENESIS 2.4/PGENESIS 2.4
 
 The release also carries seven correctness fixes to code already in users' hands. Three are Hines-solver defects that silently suppressed \texttt{inject}-driven voltage transients in any multi-neuron \texttt{hsolve}, and benefit any GENESIS/PGENESIS user, accelerator or not; four are in the accelerator as first released (Section~1). Separately, five pre-existing linear-scan patterns compounding into $O(n^2)$ model-construction time are fixed, restoring linear scaling and making population-scale models buildable at all.
 
-Measured against other simulators on a published network model, GENESIS~2.5 is $2.30\times$ faster than CoreNEURON and $2.88\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3). That benchmark is a spiking network, which this release accelerates for the first time though only to parity with its own CPU arm, so CoreNEURON on an A100 still runs it $1.23\times$ faster. On multi-compartment populations, where the accelerator does apply, GENESIS~2.5 overtakes the GPU-native Arbor beyond 64\,ms of simulated time.
+Measured against other simulators on a published network model, GENESIS~2.5 is $2.30\times$ faster than CoreNEURON and $2.88\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3). That benchmark is a spiking network, which this release accelerates for the first time though only to parity with its own CPU arm, so CoreNEURON on an A100 still runs it $1.23\times$ faster. On multi-compartment populations, where the accelerator does apply, GENESIS~2.5 overtakes the GPU-native Arbor beyond 64\,ms of simulated time on an A100 and 18\,ms on an A40.
 
 \textbf{Future work.} Four directions follow directly from the limits measured here, in what we judge to be descending order of value to users.
 
