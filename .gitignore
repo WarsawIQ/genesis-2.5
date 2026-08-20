@@ -101,5 +101,6 @@ paper/drafts/
 # Working history of the paper: old drafts, plans, checklists, status pages.
 # Kept on disk, out of the repository -- it is the notebook, not the work.
 paper/archive/
+paper/docs/x11_binary_confound_investigation.md
 *.pdf.bak
 paper/_cleanbuild/

@@ -28,10 +28,3 @@ inline in the `.tex`.
 - CRediT statement, competing-interest declaration and funding statement present
 - generative-AI declaration titled as the guide words it, in a section
   immediately before the references
-
-## Still to confirm before sending
-
-- the funding sentence says no specific grant; change it if that is wrong
-- CRediT roles, which are the authors' to agree
-- the Zenodo DOI in metadata field C2 points at an archive that predates the
-  fixes this paper reports; cut a new release and update C1/C2 first

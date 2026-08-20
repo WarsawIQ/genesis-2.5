@@ -13,8 +13,7 @@ A clean CPU vs GPU comparison requires **two headless binaries built from the sa
 source** — one with the OpenCL channel-update kernel compiled in (`USE_OPENCL=1`)
 and one without. Using the X11-linked `genesis` binary as the CPU arm is invalid:
 it has per-element construction overhead from the GUI toolkit that scales with
-network size and is unrelated to GPU acceleration. Full investigation:
-`paper/docs/x11_binary_confound_investigation.md`.
+network size and is unrelated to GPU acceleration.
 
 ---
 
