@@ -25,11 +25,13 @@ INK = "#222222"
 # label, mean seconds, std (None = single run), replicates
 ROWS = [
     ("CoreNEURON 9.0.2\n(A100 GPU)", 27.0, 0.1, 3),
-    ("GENESIS 2.5\n(no accelerator)", 46.9, 2.1, 3),
+    ("GENESIS 2.5\n(one solver per layer)", 33.2, 0.7, 3),
+    ("GENESIS 2.5\n(as published)", 46.9, 2.1, 3),
     ("CoreNEURON 9.0.2", 76.5, 0.3, 3),
     ("NEURON 8.0.2", 76.5, None, 1),
     ("NEURON 9.0.2", 95.8, 0.2, 3),
     ("NEURON 9.0.2\n(ChannelBuilder)", 123.3, None, 1),
+    ("Arbor 0.10.0\n(A100 GPU)", 149.4, 1.1, 3),
 ]
 
 # 4000 cells x 100,000 steps of simulated time
@@ -73,7 +75,7 @@ def main() -> None:
     ax.set_yticklabels(labels, fontsize=9.5)
     ax.invert_yaxis()
     ax.set_xlabel("Wall-clock time for the 5 s simulation (s), lower is better")
-    ax.set_xlim(0, 168)
+    ax.set_xlim(0, 200)
     ax.grid(True, axis="x", alpha=0.35)
     ax.grid(False, axis="y")
     for side in ("top", "right", "left"):
@@ -81,7 +83,7 @@ def main() -> None:
     ax.tick_params(axis="y", length=0)
 
     ax.set_title("Vogels–Abbott COBAHH network, 4000 cells, 5 s, dt = 0.05 ms\n"
-                 "single-threaded CPU except the GPU arm, one cluster node",
+                 "single-threaded CPU except the two GPU arms, one cluster node",
                  fontsize=11)
 
     fig.tight_layout()
