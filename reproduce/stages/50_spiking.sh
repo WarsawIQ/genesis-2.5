@@ -21,6 +21,9 @@
 set -u
 RESULTS=$1
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+# run_all.sh writes this header; a stage run on its own has to, or the
+# first claim is read as the column names and every result reports "not run".
+[ -f "$RESULTS/summary.csv" ] || echo "claim,measured,units" > "$RESULTS/summary.csv"
 REPS=${REPS:-3}
 SRC="$ROOT/genesis/Scripts/VAnet2"
 BIN_CPU="$ROOT/genesis/src/nxgenesis_nocl"
