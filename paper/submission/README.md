@@ -11,6 +11,7 @@ Built 2026-08-20 from `paper/manuscript_softwarex_submission.tex`.
 | `fig*.png` | Figure | one per figure, in order; also inside the PDF |
 | `response_to_reviewers.pdf` | Response to Reviewers | point-by-point reply to SOFTX-D-26-00952, 3 pages |
 | `cover_letter.pdf` | Cover Letter | resubmission of SOFTX-D-26-00952, 1 page |
+| `editorial_comments.txt` | _(not a file upload)_ | paste into the "Comments to the editorial office" box |
 | _declaration of interest_ | Declaration of Interest | **generate it from the declarations tool in Editorial Manager.** Not kept in the repository: it is correspondence about the work, not the work |
 
 ## Keep for the revision stage

@@ -1,0 +1,21 @@
+This is a resubmission of SOFTX-D-26-00952, rejected in August 2026.
+
+Reviewer 2 asked for a direct comparison against contemporary GPU-enabled
+simulators, on published workloads, under one benchmarking methodology. We
+carried out that work rather than argue the point: the manuscript now compares
+GENESIS 2.5 with NEURON, CoreNEURON and Arbor, including their GPU backends,
+on the published Vogels-Abbott COBAHH benchmark and on a 160,000-compartment
+multi-compartment population, with a single end-to-end timing definition
+throughout. A point-by-point response to both reviewers is attached.
+
+Two procedural notes:
+
+1. The form asks for a Code Ocean capsule. We have not made one. The paper's
+central claim is GPU acceleration, and a capsule without an NVIDIA card would
+run only the CPU paths. We instead provide the GitHub repository, an archived
+release (10.5281/zenodo.22032886) of the exact version measured, and a
+reproduction pack that re-measures the claims on the reviewer's own hardware.
+We are glad to prepare a capsule for the CPU-only claims if you would like one.
+
+2. The software is at https://github.com/WarsawIQ/genesis-2.5 with README.md
+and a licence file, as the Guide for Authors requires.
