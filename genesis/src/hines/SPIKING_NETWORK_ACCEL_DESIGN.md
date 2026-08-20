@@ -329,6 +329,14 @@ Vogels--Abbott, 4000 cells, one solver per layer, A40, three replicates:
 Correctness holds: 0.35% on spike count between the device and its own CPU arm,
 against the 4% this work already accepts between simulators.
 
+> Superseded 2026-08-20. Once the dispatch came down from 88.7 s to 34.5 s the
+> device count moved to 551,117, so the agreement is 1.05%, not 0.35%. The
+> network is chaotic and fp32 diverges at a rate set by the order of
+> operations, which the reduced dispatch changed. Both counts are identical on
+> the A40 and the A100 -- one thread per tree, no cross-thread reduction -- and
+> the CPU arm is 545,371 on both. See
+> `cluster_bringup/logs/spiking_accel/spike_agreement_20260820.txt`.
+
 Two wins and one open problem. Lifting the spikegen limit is worth **1.56x on
 CPU alone**, from no longer building four thousand solvers. The device now
 computes the network, which it never did before. But the GPU arm is 1.30x

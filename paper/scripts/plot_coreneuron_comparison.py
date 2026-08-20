@@ -9,8 +9,8 @@ the device as a suffix, because two-line labels made the left edge the busiest
 part of the plot. A dashed guide at the GENESIS time lets every slower bar be
 read against it without a second annotation.
 
-Colour carries the only distinction that matters: GENESIS, the arms on a GPU,
-and the rest on CPU.
+Colour carries the only distinction that matters -- which arm is ours -- and
+each label names the device it ran on.
 
 Data: cluster_bringup/coreneuron/README.md, UMCS node inf03, 4000 cells, 5.0 s
 simulated, dt = 0.05 ms.
@@ -32,6 +32,7 @@ MUTED = "#5a5f66"
 ROWS = [
     ("CoreNEURON 9.0.2 · A100", 27.0, 0.1),
     ("GENESIS 2.5, one solver per layer", 33.2, 0.7),
+    ("GENESIS 2.5, one solver per layer · A100", 36.3, 0.9),
     ("GENESIS 2.5, as published", 46.9, 2.1),
     ("CoreNEURON 9.0.2", 76.5, 0.3),
     ("NEURON 9.0.2", 95.8, 0.2),
@@ -57,8 +58,10 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(8.0, 3.6))
 
     y = list(range(len(rows)))
-    colors = [ACCENT if "GENESIS" in l else GPU if "A100" in l else NEUTRAL
-              for l in labels]
+    # Colour carries one thing: which arm is ours. Device used to be colour
+    # too, which stopped working the moment GENESIS gained a GPU arm -- that
+    # bar would have had to be both. Every label names its device instead.
+    colors = [ACCENT if "GENESIS" in l else NEUTRAL for l in labels]
     ax.barh(y, means, xerr=errs, height=0.6, color=colors,
             error_kw={"ecolor": "#444444", "capsize": 2.5, "lw": 1.0},
             zorder=3)

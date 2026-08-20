@@ -354,6 +354,8 @@ CoreNEURON 9.0.2 & compiled NMODL & A100 & 27.0 $\pm$ 0.1 & 592\,865 \\
 \hline
 \textbf{GENESIS 2.5}, one solver per layer & tabulated & CPU & \textbf{33.2 $\pm$ 0.7} & 545\,371 \\
 \hline
+GENESIS 2.5, one solver per layer & tabulated & A100 & 36.3 $\pm$ 0.9 & 551\,117 \\
+\hline
 GENESIS 2.5, VAnet2 as published & tabulated & CPU & 46.9 $\pm$ 2.1 & 536\,600 \\
 \hline
 CoreNEURON 9.0.2 & compiled NMODL & CPU & 76.5 $\pm$ 0.3 & 558\,824 \\
@@ -365,14 +367,14 @@ NEURON 9.0.2 & ChannelBuilder & CPU & 123.3 & 574\,138 \\
 Arbor 0.10.0 & compiled NMODL & A100 & 149.4 $\pm$ 1.1 & 602\,720 \\
 \hline
 \end{tabular}
-\caption{Vogels--Abbott COBAHH network, 4000 cells, 80 synapses each, $dt=0.05$\,ms, 5.0\,s simulated, one UMCS node; CPU arms are single-threaded. Built as one solver per layer, which this release makes possible, GENESIS~2.5 (bold) runs the network $2.30\times$ faster than CoreNEURON on the same core, and only CoreNEURON on a GPU is faster still, by $1.23\times$. Every arm settles into the same activity regime, $26.8$--$30.1$\,Hz, so the wall times cover comparable work. Means $\pm$ std over 3 replicates, except the ChannelBuilder row, a single run of the benchmark in its original form. Harness: \protect\path{cluster_bringup/coreneuron/}.}
+\caption{Vogels--Abbott COBAHH network, 4000 cells, 80 synapses each, $dt=0.05$\,ms, 5.0\,s simulated, one UMCS node; CPU arms are single-threaded. Built as one solver per layer, which this release makes possible, GENESIS~2.5 (bold) runs the network $2.30\times$ faster than CoreNEURON on the same core, and only CoreNEURON on a GPU is faster still, by $1.23\times$. Every arm settles into the same activity regime, $26.8$--$30.1$\,Hz, so the wall times cover comparable work. Means $\pm$ std over 3 replicates, except the ChannelBuilder row, a single run of the benchmark in its original form. The GENESIS GPU arm was measured in a later session on the same node, where its own CPU reference ran $34.9\pm0.4$\,s: the device computes the network at parity, $1.04\times$, rather than ahead of the CPU. Harness: \protect\path{cluster_bringup/coreneuron/}.}
 \label{tab:coreneuron}
 \end{table}
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.92\textwidth]{fig12_coreneuron_comparison.png}
-\caption{The measurements of Table~\ref{tab:coreneuron}, drawn. Green is GENESIS, orange the arms running on an A100, grey the CPU arms it is compared against; the dashed guide marks the GENESIS time, so every bar reaching past it is slower. Means of 3 replicates with standard deviations, except the ChannelBuilder row. Arbor comes last despite its GPU because zero axonal delay forces it to exchange spikes every step.}
+\caption{The measurements of Table~\ref{tab:coreneuron}, drawn. Green is GENESIS, grey the simulators it is compared against; each label names the device, and the dashed guide marks the fastest GENESIS time, so every bar reaching past it is slower. Means of 3 replicates with standard deviations, except the ChannelBuilder row. Arbor comes last despite its GPU because zero axonal delay forces it to exchange spikes every step.}
 \label{fig:coreneuron}
 \end{figure}
 
@@ -449,7 +451,7 @@ Measured against other simulators on a published network model, GENESIS~2.5 is $
 
 \emph{Scale.} The kernel assigns one thread per tree, so it accelerates population-scale simulation and not the single detailed cell, where only one thread is active and the GPU is $\sim$20$\times$ slower than the CPU. Intra-tree parallelism, such as cyclic reduction, would extend acceleration to the detailed-morphology regime much of the literature works in. This is where the present design is furthest from complete.
 
-\emph{Coverage.} The accelerator now runs a synaptically coupled spiking network. GENESIS allowed one spike generator per \texttt{hsolve}, so such a model was built as one solver per cell; lifting that lets Vogels--Abbott be built as one solver per layer, $1.56\times$ faster on CPU alone, the device reproducing it to $1.1\%$ on spike count (551\,117 against 545\,371), against the $6\%$ CoreNEURON's own GPU path differs from its CPU one. A zero-delay network cannot batch, so every step pays a dispatch, which outweighs what the kernel saves: the GPU arm is $1.09\times$ slower. Enlarging it does not help: at 12\,500 cells, with the in-degree held so the $27$\,Hz regime survives, the arms are level ($127.1\pm1.7$\,s against $130.7\pm2.5$). The accelerable fraction stays near $59\%$ at any size, so the ceiling stays $2.4\times$ and the dispatch spends it: reaching it means cutting the dispatch, not growing the model.
+\emph{Coverage.} The accelerator now runs a synaptically coupled spiking network. GENESIS allowed one spike generator per \texttt{hsolve}, so such a model was built as one solver per cell; lifting that lets Vogels--Abbott be built as one solver per layer, $1.56\times$ faster on CPU alone, the device reproducing it to $1.1\%$ on spike count (551\,117 against 545\,371), against the $6\%$ CoreNEURON's own GPU path differs from its CPU one. A zero-delay network cannot batch, so every step pays a dispatch, which outweighs what the kernel saves: the GPU arm is $1.04\times$ slower. Enlarging it does not help: at 12\,500 cells, with the in-degree held so the $27$\,Hz regime survives, the arms are level ($127.1\pm1.7$\,s against $130.7\pm2.5$). The accelerable fraction stays near $59\%$ at any size, so the ceiling stays $2.4\times$ and the dispatch spends it: reaching it means cutting the dispatch, not growing the model.
 
 \emph{Comparison.} CoreNEURON's multi-rank MPI configuration is still unmeasured and would place GENESIS~2.5 more completely.
 

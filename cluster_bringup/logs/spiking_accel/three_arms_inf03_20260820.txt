@@ -1,0 +1,18 @@
+  cpu_published rep 1  50.77s
+  cpu_published rep 2  50.85s
+  cpu_published rep 3  45.12s
+  cpu_1solver rep 1  34.43s
+  cpu_1solver rep 2  35.03s
+  cpu_1solver rep 3  35.10s
+  gpu_1solver rep 1  37.18s
+  gpu_1solver rep 2  35.37s
+  gpu_1solver rep 3  36.21s
+one solver per layer is 1.40x faster on CPU
+the GPU arm takes 1.04x the CPU time
+===
+vanet2_genesis,48.91,s
+vanet2_genesis_1solver,34.85,s
+vanet2_1solver_speedup,1.40,x
+vanet2_gpu_over_cpu,1.04,x
+
+[exited with code 0]
