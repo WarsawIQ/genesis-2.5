@@ -373,7 +373,7 @@ The stock benchmark cannot run under CoreNEURON at all, since its channels are C
 
 \textbf{CoreNEURON on the GPU.} Leaving CoreNEURON on the CPU, where it was never meant to stay, would flatter us. Building its OpenACC backend with NVHPC left NEURON itself unable to start, so we ran CoreNEURON on its own: NEURON writes the model out with \texttt{nrncore\_write}, and \texttt{special-core} reads those files and simulates without it, which keeps NEURON on its working GCC build. On one A100 CoreNEURON completes the same network in $27.0\pm0.1$\,s --- $2.83\times$ faster than its own CPU arm, and $1.23\times$ faster than our best CPU time. Its spike count differs from the CPU arms by 6\% (592\,865 against 558\,824) and from GENESIS by 10\%: CoreNEURON's GPU path requires cell permutation, which reorders synaptic delivery, and the network is chaotic, so counts diverge while the regime does not. This is a throughput comparison in a common regime, not a claim of identical trajectories.
 
-This is the boundary of what the present release offers. Built as one solver per layer the model runs on the accelerator, but only at parity with its own CPU arm (Section~5), so CoreNEURON on a GPU stays ahead --- by $1.23\times$ against our best CPU time, where it was $1.74\times$ against the published one. Where the accelerator pays --- multi-compartment populations --- the comparison below is GPU on both sides.
+This is the boundary of what the release offers. Built as one solver per layer the model does run on the accelerator, but only at parity with its own CPU arm (Section~5), so CoreNEURON's GPU stays ahead by $1.23\times$. Where the accelerator pays --- multi-compartment populations --- the comparison below is GPU on both sides.
 
 \begin{table}[!h]
 \centering
