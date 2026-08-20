@@ -90,11 +90,11 @@ def main() -> None:
     kmax = max(max(s[0]) for s in series.values()) * 1.05
     for name, (ks, means, sds, color, (c0, c1)) in series.items():
         ax.errorbar(ks, means, yerr=sds, color=color, marker="o", markersize=7,
-                    linestyle="none", capsize=3, zorder=3, label=f"{name} (measured)")
+                    linestyle="none", capsize=3, zorder=3,
+                    label=f"{name}: {c0:.2f} s + {c1 * 1e6:.1f} $\\mu$s/step")
         xs = [0, kmax]
         ax.plot(xs, [c0 + c1 * x for x in xs], color=color, linewidth=1.6,
-                linestyle="--", alpha=0.85, zorder=2,
-                label=f"{name}: {c0:.2f} s + {c1 * 1e6:.1f} $\\mu$s/step")
+                linestyle="--", alpha=0.85, zorder=2)
 
     if cross and 0 < cross < kmax:
         ycross = g0 + g1 * cross
@@ -110,9 +110,12 @@ def main() -> None:
     ax.set_ylim(0, None)
     ax.grid(True, alpha=0.35)
     ax.legend(loc="upper left", fontsize=8.5)
-    ax.set_title("GPU wall clock vs run length, 10,000 neurons $\\times$ 16 compartments\n"
-                 "UMCS A100; Arbor leads on setup, GENESIS 2.5 on cost per step",
-                 fontsize=11)
+    ax.set_title("Which simulator is faster depends on how long the run is",
+                 fontsize=11.5, loc="left", color=INK, pad=26)
+    ax.text(0.0, 1.02,
+            "GENESIS 2.5 overtakes Arbor past ~6,400 steps — 10,000 neurons "
+            "\u00d7 16 compartments, both on one A100",
+            transform=ax.transAxes, fontsize=9, color="#5a5f66", va="bottom")
 
     fig.tight_layout()
     out = figures / "fig13_crossover.png"

@@ -417,7 +417,7 @@ Arbor 0.10.0 & GPU (A100) & 5.95 $\pm$ 0.02 \\
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.85\textwidth]{fig13_crossover.png}
-\caption{GPU wall clock against run length for the multi-compartment benchmark, $N=10\,000$ neurons $\times$ 16 compartments on the UMCS A100, six run lengths, mean $\pm$ std over 3 replicates each. Both simulators are linear in $K$ with different intercepts and slopes: Arbor starts $0.20$\,s ahead on setup, GENESIS~2.5 advances each step $33\%$ more cheaply. Neither is faster in general --- the lines cross at $K\approx6400$, and a comparison at a single run length reports whichever side of that the author happened to choose.}
+\caption{Neither simulator is faster in general: which one wins depends on how long the run is. Both are linear in $K$ --- Arbor starts $0.20$\,s ahead on setup, GENESIS~2.5 advances each step $33\%$ more cheaply --- so the lines cross at $K\approx6400$, and a comparison at a single run length reports whichever side of that the author happened to choose. Both arms are on the A100, the only card we ran Arbor on. Our own kernel costs $140.6\,\mu$s per step on the A40 against $65.6$ here, so where the lines cross belongs to this card rather than to the pair of simulators. $N=10\,000$ neurons $\times$ 16 compartments, six run lengths, mean $\pm$ std over 3 replicates.}
 \label{fig:crossover}
 \end{figure}
 
