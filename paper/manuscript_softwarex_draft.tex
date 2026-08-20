@@ -449,17 +449,15 @@ The release also carries seven correctness fixes to code already in users' hands
 
 Measured against other simulators on a published network model, GENESIS~2.5 is $2.30\times$ faster than CoreNEURON and $2.88\times$ faster than NEURON~9.0.2 for single-threaded CPU execution of the Vogels--Abbott COBAHH benchmark, after verifying that the two implementations are equivalent (Section~3). That benchmark is a spiking network, which this release accelerates for the first time though only to parity with its own CPU arm, so CoreNEURON on an A100 still runs it $1.23\times$ faster. On multi-compartment populations, where the accelerator does apply, GENESIS~2.5 overtakes the GPU-native Arbor beyond 64\,ms of simulated time on an A100 and 18\,ms on an A40.
 
-\textbf{Future work.} Four directions follow directly from the limits measured here, in what we judge to be descending order of value to users.
+\textbf{Future work.} Three limits measured here say what to do next, in the order we think they matter to users.
 
-\emph{Scale.} The kernel assigns one thread per tree, so it accelerates population-scale simulation and not the single detailed cell, where only one thread is active and the GPU is $\sim$20$\times$ slower than the CPU. Intra-tree parallelism, such as cyclic reduction, would extend acceleration to the detailed-morphology regime much of the literature works in. This is where the present design is furthest from complete.
+\emph{Parallelism inside the tree.} The kernel gives each tree a thread, so it speeds up populations and does nothing for a single detailed morphology: there only one thread runs, and the GPU is some $20\times$ slower than the CPU. Much of the modelling literature works on exactly that cell, and reaching it needs cyclic reduction or a similar scheme within each tree. This is where the design is furthest from finished.
 
-\emph{Coverage.} The accelerator now runs a synaptically coupled spiking network. GENESIS allowed one spike generator per \texttt{hsolve}, so such a model was built as one solver per cell; lifting that lets Vogels--Abbott be built as one solver per layer, $1.41\times$ faster on CPU alone, the device reproducing it to $1.1\%$ on spike count (551\,117 against 545\,371), against the $6\%$ CoreNEURON's own GPU path differs from its CPU one. A zero-delay network cannot batch, so every step pays a dispatch, which outweighs what the kernel saves: the GPU arm is $1.04\times$ slower. Enlarging it does not help: at 12\,500 cells, with the in-degree held so the $27$\,Hz regime survives, the arms are level ($127.1\pm1.7$\,s against $130.7\pm2.5$). The accelerable fraction stays near $59\%$ at any size, so the ceiling stays $2.4\times$ and the dispatch spends it: reaching it means cutting the dispatch, not growing the model.
+\emph{Cutting the dispatch.} Lifting the one-spike-generator limit is worth $1.41\times$ on the CPU by itself, and the device then reproduces the network's spike count to $1.1\%$. It does not make it faster. A zero-delay network exchanges spikes every step, so nothing can be batched and each step pays a dispatch, which costs more than the kernel saves: the GPU arm is $1.04\times$ slower than its own CPU. A bigger model does not rescue it --- at 12\,500 cells the two arms are level --- because the accelerable fraction sits near $59\%$ whatever the size, holding the ceiling at $2.4\times$ that dispatch then spends. The work to do is cutting dispatch, not building larger networks.
 
-\emph{Comparison.} CoreNEURON's multi-rank MPI configuration is still unmeasured and would place GENESIS~2.5 more completely.
+\emph{Precision over long runs.} fp32 is what lets the kernels run on integrated GPUs with no double-precision hardware, and it costs $\sim$10$^{-7}$\,V against the fp64 CPU over the runs measured here. Whether it stays that small over the far longer runs plasticity studies need is untested.
 
-\emph{Precision.} The kernels are fp32 throughout, which lets them run on integrated GPUs lacking double precision at a cost of $\sim$10$^{-7}$\,V against the fp64 CPU. Whether that divergence stays bounded over the much longer runs used in plasticity studies is not established here.
-
-Packaging into a container-based deployment pipeline~\cite{chlasta2023pipeline} is in progress.
+CoreNEURON's multi-rank MPI configuration is still unmeasured and would place GENESIS~2.5 more completely. Packaging into a container-based deployment pipeline~\cite{chlasta2023pipeline} is in progress.
 
 \end{enumerate}
 
