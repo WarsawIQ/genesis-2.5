@@ -30,13 +30,13 @@ MUTED = "#5a5f66"
 
 # label, mean seconds, std (None = single run)
 ROWS = [
-    ("CoreNEURON 9.0.2 · GPU", 27.0, 0.1),
+    ("CoreNEURON 9.0.2 · A100", 27.0, 0.1),
     ("GENESIS 2.5, one solver per layer", 33.2, 0.7),
     ("GENESIS 2.5, as published", 46.9, 2.1),
     ("CoreNEURON 9.0.2", 76.5, 0.3),
     ("NEURON 9.0.2", 95.8, 0.2),
     ("NEURON 9.0.2, ChannelBuilder", 123.3, None),
-    ("Arbor 0.10.0 · GPU", 149.4, 1.1),
+    ("Arbor 0.10.0 · A100", 149.4, 1.1),
 ]
 
 GENESIS_S = 33.2
@@ -57,7 +57,7 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(8.0, 3.6))
 
     y = list(range(len(rows)))
-    colors = [ACCENT if "GENESIS" in l else GPU if "GPU" in l else NEUTRAL
+    colors = [ACCENT if "GENESIS" in l else GPU if "A100" in l else NEUTRAL
               for l in labels]
     ax.barh(y, means, xerr=errs, height=0.6, color=colors,
             error_kw={"ecolor": "#444444", "capsize": 2.5, "lw": 1.0},
@@ -90,7 +90,7 @@ def main() -> None:
         fontsize=11.5, loc="left", color=INK, pad=26)
     ax.text(0.0, 1.02,
             "Only CoreNEURON on a GPU is faster — Vogels–Abbott COBAHH, "
-            "4000 cells, 5 s at dt = 0.05 ms, one node",
+            "4000 cells, 5 s at dt = 0.05 ms, one cluster node",
             transform=ax.transAxes, fontsize=9, color=MUTED, va="bottom")
 
     fig.tight_layout()
