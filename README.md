@@ -15,7 +15,7 @@ GENESIS/PGENESIS user, accelerated or not.
 
 A manuscript describing all of this is being prepared for submission to
 [SoftwareX](https://www.sciencedirect.com/journal/softwarex); the current
-draft is [`paper/manuscript_softwarex_draft.pdf`](paper/manuscript_softwarex_draft.pdf).
+draft is [`paper/manuscript_softwarex_submission.pdf`](paper/manuscript_softwarex_submission.pdf).
 See [Citing this work](#citing-this-work) below.
 
 ## Important: defect in the v2.5 release, fixed after it
@@ -91,7 +91,7 @@ after, a 1.7-million-compartment, N=100,000 population builds in
 
 The methodology, the confounds we ran into and had to rule out, and the raw
 numbers behind all of this are in the
-[draft manuscript](paper/manuscript_softwarex_draft.pdf) and in
+[draft manuscript](paper/manuscript_softwarex_submission.pdf) and in
 [`paper/docs/REPLICATION.md`](paper/docs/REPLICATION.md).
 
 ## Repository layout

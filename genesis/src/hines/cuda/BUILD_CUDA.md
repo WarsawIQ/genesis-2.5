@@ -9,7 +9,7 @@ both the single-compartment multiloop kernel and the multi-compartment
 `hines_tree_eliminate` tridiagonal-elimination kernel (the latter is not yet
 covered by this doc — see
 [`../GPU_HINES_SOLVE_DESIGN.md`](../GPU_HINES_SOLVE_DESIGN.md)). Full numbers
-are in `paper/manuscript_softwarex_draft.tex` (Tables 3–4) and
+are in `paper/manuscript_softwarex_submission.tex` (Tables 3–4) and
 `paper/docs/REPLICATION.md`; raw campaign data is in `cluster_bringup/logs/`.
 
 ## Files

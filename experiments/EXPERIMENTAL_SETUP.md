@@ -1,7 +1,7 @@
 # GENESIS 2.5 — Experimental Setup and Reproduction
 
 This folder is the self-contained reproducibility package for the GENESIS 2.5
-accelerator benchmarks (paper: `paper/manuscript_softwarex_draft.tex`). It
+accelerator benchmarks (paper: `paper/manuscript_softwarex_submission.tex`). It
 records the exact hardware, software versions, build recipes, and commands used,
 so every number in the paper can be regenerated.
 
@@ -117,4 +117,4 @@ Results: `cuda_validation/` (see that folder's README).
 - Pod CUDA validation: `bash genesis/src/hines/cuda/runpod_validate.sh`
   (on an `sm_89` CUDA pod; installs `ocl-icd-opencl-dev` and builds both arms).
 
-Exact commit for the paper: see `paper/manuscript_softwarex_draft.tex` field C1.
+Exact commit for the paper: see `paper/manuscript_softwarex_submission.tex` field C1.

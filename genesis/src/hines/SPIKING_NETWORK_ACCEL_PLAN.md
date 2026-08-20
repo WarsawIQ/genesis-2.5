@@ -772,7 +772,7 @@ and how much from no longer building 4000 solvers."
 
 **Files:**
 - Modify: `genesis/src/hines/SPIKING_NETWORK_ACCEL_DESIGN.md` (status line and a results section)
-- Modify: `paper/manuscript_softwarex_draft.tex` — only if the result changes a claim
+- Modify: `paper/manuscript_softwarex_submission.tex` — only if the result changes a claim
 
 **Interfaces:**
 - Consumes: Task 6.
@@ -791,7 +791,7 @@ The abstract says a spiking network is one GENESIS cannot yet accelerate, and Ta
 Check the word budget before adding anything — the body was at 3999 of 4000 words:
 
 ```bash
-cd paper && tectonic -X compile manuscript_softwarex_draft.tex --keep-logs
+cd paper && tectonic -X compile manuscript_softwarex_submission.tex --keep-logs
 ```
 
 - [ ] **Step 3: Commit**

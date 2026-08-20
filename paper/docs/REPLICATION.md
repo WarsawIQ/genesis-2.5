@@ -4,7 +4,7 @@
 
 This document records every build and run step needed to reproduce the CPU vs GPU
 benchmark results. The authoritative results for the SoftwareX submission
-(`paper/manuscript_softwarex_draft.tex`, Table 2 / Figs. of the campaign) are
+(`paper/manuscript_softwarex_submission.tex`, Table 2 / Figs. of the campaign) are
 produced by the single driver `experiments/run_overnight_campaign.py` — see
 **"Authoritative reproduction"** below. The earlier sections document the build
 and the historical per-dispatch measurements that led to it.

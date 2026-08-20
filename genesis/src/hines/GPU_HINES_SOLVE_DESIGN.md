@@ -3,7 +3,7 @@
 Goal: real, axially-coupled GPU acceleration for multicompartment dendrite
 trees -- the actual defining use case of GENESIS -- replacing the current
 per-compartment-independent multiloop kernel, which is only valid for
-single-compartment networks (see `../../paper/manuscript_softwarex_draft.tex`
+single-compartment networks (see `../../paper/manuscript_softwarex_submission.tex`
 Impact section, and `cluster_bringup/BENCHMARK_NOTES.md`). Karol Chlasta,
 2026-07-25.
 
@@ -15,7 +15,7 @@ validated against the CPU reference for both linear-chain and branching
 topologies to ~1e-7 V, and speed-swept with 10 replicates on UMCS A40/A100
 cluster nodes and a local AMD Radeon 890M integrated GPU (see "DONE" /
 "VALIDATED" section headings below for each milestone). For the headline
-numbers and how to reproduce them, see `paper/manuscript_softwarex_draft.tex`
+numbers and how to reproduce them, see `paper/manuscript_softwarex_submission.tex`
 (Table 4, Fig. 4) and `paper/docs/REPLICATION.md` rather than this log.
 
 Original status snapshot at the point this log was started, 2026-07-25:

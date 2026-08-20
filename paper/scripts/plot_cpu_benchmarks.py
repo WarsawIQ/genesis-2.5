@@ -146,7 +146,7 @@ def main() -> None:
     data = root / "data"
     # fig1 was dropped from the current manuscript and fig2/fig3 were never
     # used in it (see paper/archive/README.md); write reproductions there,
-    # not into the live paper/figures/ used by manuscript_softwarex_draft.tex.
+    # not into the live paper/figures/ used by manuscript_softwarex_submission.tex.
     figures = root / "archive" / "figures"
     figures.mkdir(exist_ok=True)
 

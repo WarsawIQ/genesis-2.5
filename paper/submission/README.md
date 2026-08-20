@@ -1,12 +1,12 @@
 # SoftwareX submission package
 
-Built 2026-08-20 from `paper/manuscript_softwarex_draft.tex`.
+Built 2026-08-20 from `paper/manuscript_softwarex_submission.tex`.
 
 ## Upload now, at first submission
 
 | file | item type | note |
 |---|---|---|
-| `manuscript_softwarex_draft.pdf` | Manuscript | 21 pages, built from the source below |
+| `manuscript_softwarex_submission.pdf` | Manuscript | 21 pages, built from the source below |
 | `highlights.txt` | Highlights | 5 bullets, each under the 85-character limit |
 | `fig*.png` | Figure | one per figure, in order; also inside the PDF |
 | `declarationStatement.docx` | Declaration of Interest | **regenerate from the declarations tool in Editorial Manager** -- the copy here is from the earlier submission |
