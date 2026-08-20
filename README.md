@@ -179,19 +179,23 @@ dead ends, is in
 
 ## Reproducing the benchmarks
 
-One command re-measures every number in the paper on your own hardware:
+One command re-measures the paper's numbers on your own hardware:
 
 ```sh
 sh reproduce/run_all.sh --quick   # ~15 min, the accelerator claims
-sh reproduce/run_all.sh           # ~90 min, adds the full sweeps
+sh reproduce/run_all.sh           # ~95 min, adds the sweeps and the spiking network
 ```
 
 It builds, checks the fp32 accelerator against the fp64 CPU solver, measures the
-speedups, regenerates the figures from those measurements, and prints each
-published value beside yours with a verdict. Needs a CUDA 12.x toolkit and an
-NVIDIA GPU; no root, no scheduler. See
-[`reproduce/README.md`](reproduce/README.md) for what is checked, what merely
-follows from it, and the three things that move timings enough to matter.
+speedups, compares the spiking network's CPU and GPU arms on spike count,
+regenerates the figures from those measurements, and prints each published value
+beside yours with a verdict. Needs a CUDA 12.x toolkit and an NVIDIA GPU; no
+root, no scheduler.
+
+[`reproduce/README.md`](reproduce/README.md) maps every figure and table in the
+paper to what reproduces it, including the two rows this pack cannot reach and
+where their raw logs are, and lists the four things that move timings enough to
+matter.
 
 
 ## Why "2.5" and not "3.0"
