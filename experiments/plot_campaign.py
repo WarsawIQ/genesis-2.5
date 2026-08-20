@@ -27,6 +27,9 @@ plt.rcParams.update({
     "font.size": 11, "axes.grid": True, "grid.alpha": 0.3,
     "grid.linewidth": 0.6, "axes.axisbelow": True,
     "figure.dpi": 150, "savefig.bbox": "tight",
+    # SoftwareX needs at least 1772 px across for a single-column figure;
+    # 150 dpi at these sizes came out around 1000 and would be rejected.
+    "savefig.dpi": 320,
 })
 
 

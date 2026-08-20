@@ -1,0 +1,5 @@
+Opt-in OpenCL and CUDA backends for GENESIS 2.4/PGENESIS; models unchanged.
+GPU Hines tree-elimination kernel extends acceleration to dendritic trees.
+57x end-to-end on 160,000 compartments, matching the fp64 CPU to ~1e-7 V.
+2.3x faster than CoreNEURON on one core on the Vogels-Abbott benchmark.
+Spiking networks reach the GPU; O(n^2) model construction made linear.
