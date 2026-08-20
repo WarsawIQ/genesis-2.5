@@ -8,6 +8,15 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 # run_all.sh writes this header; a stage run on its own has to, or the
 # first claim is read as the column names and every result reports "not run".
 [ -f "$RESULTS/summary.csv" ] || echo "claim,measured,units" > "$RESULTS/summary.csv"
+
+# run_all.sh puts the CUDA runtime on the library path; a stage run on its own
+# has to as well, or the GPU binary dies with "libcudart.so.12: cannot open
+# shared object file" and the arm is recorded as a failure that never ran.
+if [ -z "${CUDA_HOME:-}" ]; then
+    CUDA_HOME=$(ls -d /usr/local/cuda* /storage/opt/cuda/cuda-* 2>/dev/null | tail -1)
+fi
+[ -d "${CUDA_HOME:-}/lib64" ] && \
+    LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}" && export LD_LIBRARY_PATH
 cd "$ROOT" || exit 1
 S=genesis/Scripts/benchmark/hh_multicompartment_createmap.g
 N=10000

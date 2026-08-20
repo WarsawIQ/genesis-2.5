@@ -21,3 +21,4 @@ vanet2_genesis_1solver,tab:coreneuron,wall_s,33.2,25,s,Vogels-Abbott built as on
 vanet2_1solver_speedup,tab:coreneuron,speedup,1.43,20,x,one solver per layer against one per cell
 vanet2_gpu_over_cpu,text,ratio,1.09,25,x,GPU arm over CPU on the spiking network; parity is the claim
 crossover_k_a40,fig:crossover,steps,1811,35,steps,where the two GPU lines cross on an A40
+vanet2_spike_agreement_pct,text,pct_difference,0.35,200,pct,CPU against GPU spike count on the spiking network

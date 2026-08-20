@@ -355,6 +355,29 @@ function make_output(rootname) // asc_file to {rootname}_{RUNID}.txt
     useclock {rootname} 1
 end
 
+/* Optional spike recording, for checking the accelerated network against the
+** CPU rather than for timing it.
+**
+** spikehistory walks its whole message list on every event, so with one
+** element carrying the whole population each spike costs work proportional to
+** the number of cells. The timed arms must not pay that, so this is off unless
+** GENESIS_VANET2_SPIKEFILE names a file. The file holds one line per spike;
+** its line count is the spike total the paper compares between CPU and GPU.
+*/
+function setup_spikehistory(filename)
+    str filename, cell
+    create spikehistory /spikehist
+    /* leave_open, or the file is reopened and closed once per spike;
+    ** flush 0, or every spike costs an fflush. */
+    setfield /spikehist flush 0 leave_open 1 filename {filename}
+    foreach cell ({el /Ex_layer/Ex_cell[]})
+        addmsg {cell}/soma/spike /spikehist SPIKESAVE
+    end
+    foreach cell ({el /Inh_layer/Inh_cell[]})
+        addmsg {cell}/soma/spike /spikehist SPIKESAVE
+    end
+end
+
 function setup_output
     int i
     str name, cell_name
@@ -534,6 +557,13 @@ set_frequency 70.0
 
 if (Vm_output)
     setup_output
+end
+
+
+str spikefile = {getenv GENESIS_VANET2_SPIKEFILE}
+if ({strlen {spikefile}} > 0)
+    setup_spikehistory {spikefile}
+    echo "recording every spike to "{spikefile}" (not a timing run)"
 end
 
 reset

@@ -24,6 +24,15 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 # run_all.sh writes this header; a stage run on its own has to, or the
 # first claim is read as the column names and every result reports "not run".
 [ -f "$RESULTS/summary.csv" ] || echo "claim,measured,units" > "$RESULTS/summary.csv"
+
+# run_all.sh puts the CUDA runtime on the library path; a stage run on its own
+# has to as well, or the GPU binary dies with "libcudart.so.12: cannot open
+# shared object file" and the arm is recorded as a failure that never ran.
+if [ -z "${CUDA_HOME:-}" ]; then
+    CUDA_HOME=$(ls -d /usr/local/cuda* /storage/opt/cuda/cuda-* 2>/dev/null | tail -1)
+fi
+[ -d "${CUDA_HOME:-}/lib64" ] && \
+    LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}" && export LD_LIBRARY_PATH
 REPS=${REPS:-3}
 SRC="$ROOT/genesis/Scripts/VAnet2"
 BIN_CPU="$ROOT/genesis/src/nxgenesis_nocl"
@@ -85,5 +94,37 @@ if [ -n "$t_one" ] && [ -n "$t_gpu" ]; then
     echo "the GPU arm takes $(awk -v g="$t_gpu" -v c="$t_one" 'BEGIN{printf "%.2f", g/c}')x the CPU time"
 fi
 echo "Per-replicate times: $OUT"
-echo "Correctness of the accelerated network is checked separately, by"
+
+# ------------------------------------------------------------ spike counts
+# A speedup from a network that fires differently is not a reproduction, so
+# the two arms are also compared on what they produced. These runs record
+# every spike and are therefore NOT the runs timed above: spikehistory walks
+# its message list on each event, which costs wall time the published figures
+# do not include. Set SKIP_SPIKE_CHECK=1 to leave them out.
+if [ "${SKIP_SPIKE_CHECK:-0}" != 1 ] && [ -x "$BIN_GPU" ]; then
+    echo
+    echo "Spike counts, CPU against GPU (recorded runs, not timed):"
+    n_cpu=""; n_gpu=""
+    for a in cpu gpu; do
+        b=$BIN_CPU; [ "$a" = gpu ] && b=$BIN_GPU
+        d="$WORK/spikes_$a"; rm -rf "$d"; mkdir -p "$d"
+        cp "$SRC"/*.g "$SRC"/*.p "$d/" 2>/dev/null
+        printf 'setenv SIMPATH . %s/genesis/startup %s/genesis/Scripts/neurokit %s/genesis/Scripts/neurokit/prototypes\nsetenv SIMNOTES %s/.notes\nsetenv GENESIS_HELP %s/genesis/Doc\nschedule\n' \
+            "$ROOT" "$ROOT" "$ROOT" "$d" "$ROOT" > "$d/.simrc"
+        ( cd "$d" && GENESIS_VANET2_SPIKEFILE="$d/spikes.txt" \
+            timeout 3600 "$b" -notty -batch VAnet2-batch-1solver.g > out.log 2>&1 )
+        n=$(wc -l < "$d/spikes.txt" 2>/dev/null || echo 0)
+        echo "  $a  $n spikes"
+        [ "$a" = cpu ] && n_cpu=$n || n_gpu=$n
+    done
+    if [ "${n_cpu:-0}" -gt 0 ] && [ "${n_gpu:-0}" -gt 0 ]; then
+        awk -v c="$n_cpu" -v g="$n_gpu" \
+            'BEGIN{d=(g-c)/c*100; if(d<0)d=-d; printf "vanet2_spike_agreement_pct,%.2f,pct\n", d}' \
+            >> "$RESULTS/summary.csv"
+        awk -v c="$n_cpu" -v g="$n_gpu" \
+            'BEGIN{d=(g-c)/c*100; if(d<0)d=-d; printf "the two arms differ by %.2f%% on spike count\n", d}'
+    fi
+fi
+
+echo "The membrane trace itself is checked by"
 echo "cluster_bringup/80_accel_regression.sh (ACCEL_VANET2_GPU=1)."
