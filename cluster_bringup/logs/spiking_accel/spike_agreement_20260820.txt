@@ -1,0 +1,28 @@
+CPU against GPU on spike count, Vogels-Abbott COBAHH, 4000 cells, 5 s, one
+solver per layer (VAnet2-batch-1solver.g), recorded with
+GENESIS_VANET2_SPIKEFILE. These runs are not timed: spikehistory walks its
+message list on every event.
+
+  node   card   arm   spikes
+  inf03  A100   CPU   545,371
+  inf03  A100   GPU   551,117
+  inf02  A40    CPU   545,371
+  inf02  A40    GPU   551,117
+
+Difference: 1.05%.
+
+The CPU count is exactly the one in Table 5, so the instrumentation counts what
+the paper reports. Both arms are identical across the two cards: the kernel
+runs one thread per tree with no cross-thread reduction, so its result does not
+depend on the device.
+
+This supersedes the 0.35% recorded on 2026-08-19 (GPU 547,271). That figure was
+measured before the dispatch was cut from 88.7 s to 34.5 s, so it describes a
+code path this release does not ship. A chaotic network diverges in fp32 at a
+rate that depends on the order of operations, and the reduced dispatch changed
+that order.
+
+For scale: CoreNEURON's own GPU path differs from its CPU path by 6% on this
+model (592,865 against 558,824, Table 5).
+
+Prepared by Karol Chlasta (karol@chlasta.pl).

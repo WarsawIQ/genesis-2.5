@@ -74,6 +74,7 @@ int	argc;
 char	**argv;
 {
 char * getenv();
+char * val;
 
     initopt(argc, argv, "environment-variable");
     if (G_getopt(argc, argv) != 0)
@@ -82,7 +83,16 @@ char * getenv();
 	return NULL;
       }
 
-    return(CopyString(getenv(optargv[1])));
+    /*
+    ** An unset variable returned NULL, and assigning that to a str or int
+    ** printed "** Error - CastToStr: NULL string" while otherwise behaving
+    ** correctly -- the value came out empty and the script carried on. The
+    ** message is indistinguishable from a real failure in a log, which makes
+    ** every optional environment variable look like a broken run. Unset now
+    ** reads as the empty string, which is what the casts already produced.
+    */
+    val = getenv(optargv[1]);
+    return(CopyString(val ? val : ""));
 }
 
 void do_setenv(argc,argv)
