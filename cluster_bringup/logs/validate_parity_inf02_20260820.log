@@ -1,0 +1,20 @@
+===== PARITY CHECK  inf02  2026-08-20 13:12:02 CEST =====
+NVIDIA A40, 8.6, 595.71.05
+CUDA_HOME=/storage/opt/cuda/cuda-12.8  script=genesis/Scripts/benchmark/hh1952_ap_verify.g  (N=8 steps=200)
+
+----- CPU (fp64) -----
+completed 10 steps in 0.000004 cpu seconds
+completed 200 steps in 0.000028 cpu seconds
+NEURONS_AGREE: YES (spread < 1e-6 V)
+RESULT_VM= -0.02143485882
+
+----- CUDA (fp32, GENESIS_CUDA_MULTILOOP=210) -----
+CUDA: device: NVIDIA A40 (sm_86, 84 SMs)
+CUDA MULTILOOP: 210 steps | kernel 0.4 ms | total 0.4 ms | 2.067 us/step
+NEURONS_AGREE: YES (spread < 1e-6 V)
+RESULT_VM= -0.02143492922
+
+CPU  RESULT_VM = -0.02143485882
+CUDA RESULT_VM = -0.02143492922
+|CPU-CUDA|     = 7.040e-08 V
+PARITY: PASS

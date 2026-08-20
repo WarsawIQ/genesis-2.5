@@ -1,0 +1,9 @@
+== card A40, binary carries sm_86 ==
+== crossover sweep, N=10000 on inf02 ==
+  K=1000 done 13:12:58
+  K=2500 done 13:13:09
+  K=5000 done 13:13:24
+  K=10000 done 13:13:44
+  K=20000 done 13:14:17
+  K=50000 done 13:15:28
+== /storage2/home/kchlasta/genesis-2.5/cluster_bringup/logs/crossover_inf02_20260820_131248.csv ==

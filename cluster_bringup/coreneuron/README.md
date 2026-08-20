@@ -277,10 +277,38 @@ describes for long runs, not a disagreement.
 
 ### GPU-to-GPU
 
-Both sides now run on the A100. Arbor 0.10.0 builds against CUDA directly rather
-than through OpenACC (`arbor.config()["gpu"] == "cuda"`) and needed no special
-handling; the model is `hh_multicomp_arbor.py`. CoreNEURON's GPU path took the
-standalone workaround described above.
+Both sides run on the A100 and, since 2026-08-20, on the A40 as well. Arbor
+0.10.0 builds against CUDA directly rather than through OpenACC
+(`arbor.config()["gpu"] == "cuda"`) and needed no special handling; the model is
+`hh_multicomp_arbor.py`. CoreNEURON's GPU path took the standalone workaround
+described above.
+
+### Both cards (2026-08-20)
+
+The crossover was measured on the A100 only, which left open the objection that
+the card had been chosen to suit us. Repeating the sweep on inf02's A40
+(`logs/crossover_inf02_20260820_131248.csv`, same six K values, 3 replicates):
+
+| card | GENESIS 2.5 | Arbor 0.10.0 | GENESIS ahead from |
+|---|---|---|---|
+| A100 | 1.28 s + 66 us/step | 1.08 s + 97 us/step | K ~ 6,365 (64 ms) |
+| A40 | 1.35 s + 140 us/step | 1.10 s + 279 us/step | K ~ 1,811 (18 ms) |
+
+The ordering holds on both cards and the margin is the wider one on the A40:
+2.0x per step against 1.5x on the A100. Our kernel is fp32 while Arbor computes
+in double, and the A40's double-precision throughput is a fraction of the
+A100's, which is the likely reason Arbor loses more than we do on the weaker
+card.
+
+Arbor's library already carried native SASS for both sm_80 and sm_86, so no
+rebuild was needed on that side -- checked with `cuobjdump --list-elf`, not
+assumed. GENESIS did need one: the shared `$HOME` binary was sm_80 with no PTX,
+which on an A40 would not have launched at all. Rebuilt with `ARCH=sm_86`,
+validated (`|CPU-CUDA| = 7.04e-08 V`, PARITY: PASS), measured, then the sm_80
+binary was put back and the sm_86 one kept beside it as `nxgenesis.sm86`.
+`crossover_sweep.sh` now reads the card from `nvidia-smi` instead of writing
+"A100" into the CSV regardless, and aborts if the binary carries no SASS for the
+card it is about to be timed on.
 
 ---
 

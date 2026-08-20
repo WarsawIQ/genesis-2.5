@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Where GENESIS 2.5 overtakes Arbor, as a function of run length.
+"""Where GENESIS 2.5 overtakes Arbor, and how that point moves with the card.
 
 Both simulators are linear in the number of steps, with different intercepts and
 slopes: Arbor starts ahead on setup, GENESIS advances each step more cheaply.
@@ -7,9 +7,13 @@ The lines therefore cross, and the crossing is the result -- neither simulator
 is faster in general, and a single-run-length comparison would report whichever
 side of it the author happened to pick.
 
-Reads whatever K values are present, so it works with the two-point measurement
-and with a fuller sweep. Only the GPU arms are plotted; the CPU arms belong to a
-different comparison and are two orders of magnitude away.
+One panel per card, because the crossing is not a property of the two
+simulators alone: our kernel is fp32 where Arbor computes in double, so the A40
+-- whose double-precision throughput is a fraction of the A100's -- moves the
+crossing much earlier.
+
+Only the GPU arms are plotted; the CPU arms belong to a different comparison and
+are two orders of magnitude away.
 """
 
 from __future__ import annotations
@@ -23,30 +27,30 @@ import matplotlib.pyplot as plt
 GENESIS_COLOR = "#1e7f4f"
 ARBOR_COLOR = "#9c5315"
 INK = "#222222"
+MUTED = "#5a5f66"
+
+# One sweep per card, each a single session with one model version. Pooling
+# files taken on different days would mix model versions; the fits are only
+# reproducible from a named dataset.
+SWEEPS = [
+    ("NVIDIA A100", "crossover_inf03_20260818_232057.csv"),
+    ("NVIDIA A40", "crossover_inf02_20260820_131248.csv"),
+]
 
 
-# One sweep, one session, one model version. This used to pool every
-# cross_simulator_*.csv and crossover_*.csv in the directory, which mixed
-# measurements taken on different days and, after the 2026-08-18 model fixes,
-# would have mixed model versions too. The fits are only reproducible from a
-# single dataset, so the file is named.
-SWEEP = "crossover_inf03_20260818_232057.csv"
-
-
-def load(logs: Path) -> dict[str, dict[int, list[float]]]:
-    """GPU wall times by simulator and step count, from the named sweep."""
+def load(path: Path) -> dict[str, dict[int, list[float]]]:
+    """GPU wall times by simulator and step count, from one sweep."""
     out: dict[str, dict[int, list[float]]] = {}
-    for path in [logs / SWEEP]:
-        with path.open(newline="", encoding="utf-8") as f:
-            for r in csv.DictReader(f):
-                backend = (r.get("backend") or "GPU").upper()
-                if "GPU" not in backend:
-                    continue
-                try:
-                    k, w = int(r["n_steps"]), float(r["wall_s"])
-                except (KeyError, ValueError):
-                    continue
-                out.setdefault(r["simulator"], {}).setdefault(k, []).append(w)
+    with path.open(newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            backend = (r.get("backend") or "GPU").upper()
+            if "GPU" not in backend:
+                continue
+            try:
+                k, w = int(r["n_steps"]), float(r["wall_s"])
+            except (KeyError, ValueError):
+                continue
+            out.setdefault(r["simulator"], {}).setdefault(k, []).append(w)
     return out
 
 
@@ -60,70 +64,72 @@ def fit(ks: list[int], ts: list[float]) -> tuple[float, float]:
     return my - slope * mx, slope
 
 
+def panel(ax, data, card: str) -> float:
+    series = {}
+    for name, color in (("GENESIS 2.5", GENESIS_COLOR),
+                        ("Arbor 0.10.0", ARBOR_COLOR)):
+        by_k = data.get(name)
+        if not by_k:
+            raise SystemExit(f"{card}: missing {name}")
+        ks = sorted(by_k)
+        means = [statistics.mean(by_k[k]) for k in ks]
+        sds = [statistics.stdev(by_k[k]) if len(by_k[k]) > 1 else 0.0 for k in ks]
+        series[name] = (ks, means, sds, color, fit(ks, means))
+
+    kmax = max(max(s[0]) for s in series.values()) * 1.05
+    for name, (ks, means, sds, color, (c0, c1)) in series.items():
+        ax.errorbar(ks, means, yerr=sds, color=color, marker="o", markersize=6,
+                    linestyle="none", capsize=3, zorder=3,
+                    label=f"{name}: {c0:.2f} s + {c1 * 1e6:.0f} $\\mu$s/step")
+        ax.plot([0, kmax], [c0, c0 + c1 * kmax], color=color, linewidth=1.6,
+                linestyle="--", alpha=0.85, zorder=2)
+
+    (_, _, _, _, (g0, g1)) = series["GENESIS 2.5"]
+    (_, _, _, _, (a0, a1)) = series["Arbor 0.10.0"]
+    cross = (a0 - g0) / (g1 - a1)
+    ycross = g0 + g1 * cross
+    ax.axvline(cross, color="#444444", linewidth=1.0, linestyle=":", zorder=1)
+    ax.plot([cross], [ycross], marker="D", color=INK, markersize=6, zorder=4)
+    ax.set_title(f"{card} — GENESIS ahead from K $\\approx$ {cross:,.0f}"
+                 f"  ({cross * 0.01:.0f} ms simulated)",
+                 fontsize=10, loc="left", color=MUTED, pad=6)
+    ax.set_xlabel("K, simulation steps (dt = 0.01 ms)")
+    ax.set_xlim(0, kmax)
+    ax.set_ylim(0, None)
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="upper left", fontsize=8)
+    return cross
+
+
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
     logs = root.parent / "cluster_bringup" / "logs"
     figures = root / "figures"
     figures.mkdir(exist_ok=True)
 
-    data = load(logs)
-    series = {}
-    for name, color in (("GENESIS 2.5", GENESIS_COLOR), ("Arbor 0.10.0", ARBOR_COLOR)):
-        by_k = data.get(name)
-        if not by_k:
-            continue
-        ks = sorted(by_k)
-        means = [statistics.mean(by_k[k]) for k in ks]
-        sds = [statistics.stdev(by_k[k]) if len(by_k[k]) > 1 else 0.0 for k in ks]
-        series[name] = (ks, means, sds, color, fit(ks, means))
-
-    if len(series) < 2:
-        raise SystemExit(f"need both simulators, found {list(series)}")
-
-    (gk, _, _, _, (g0, g1)) = series["GENESIS 2.5"]
-    (_, _, _, _, (a0, a1)) = series["Arbor 0.10.0"]
-    cross = (a0 - g0) / (g1 - a1) if g1 != a1 else None
-
     plt.style.use("seaborn-v0_8-whitegrid")
-    fig, ax = plt.subplots(figsize=(8.0, 5.0))
+    fig, axes = plt.subplots(1, 2, figsize=(10.0, 4.2))
 
-    kmax = max(max(s[0]) for s in series.values()) * 1.05
-    for name, (ks, means, sds, color, (c0, c1)) in series.items():
-        ax.errorbar(ks, means, yerr=sds, color=color, marker="o", markersize=7,
-                    linestyle="none", capsize=3, zorder=3,
-                    label=f"{name}: {c0:.2f} s + {c1 * 1e6:.1f} $\\mu$s/step")
-        xs = [0, kmax]
-        ax.plot(xs, [c0 + c1 * x for x in xs], color=color, linewidth=1.6,
-                linestyle="--", alpha=0.85, zorder=2)
+    crossings = []
+    for ax, (card, sweep) in zip(axes, SWEEPS):
+        crossings.append((card, panel(ax, load(logs / sweep), card)))
+    axes[0].set_ylabel("Wall-clock time (s), lower is better")
 
-    if cross and 0 < cross < kmax:
-        ycross = g0 + g1 * cross
-        ax.axvline(cross, color="#444444", linewidth=1.0, linestyle=":", zorder=1)
-        ax.plot([cross], [ycross], marker="D", color=INK, markersize=7, zorder=4)
-        ax.annotate(f"crossover\nK $\\approx$ {cross:,.0f} steps\n({cross * 0.01:.0f} ms simulated)",
-                    (cross, ycross), textcoords="offset points", xytext=(14, -34),
-                    fontsize=9, color=INK)
-
-    ax.set_xlabel("K, simulation steps (dt = 0.01 ms)")
-    ax.set_ylabel("Wall-clock time (s), lower is better")
-    ax.set_xlim(0, kmax)
-    ax.set_ylim(0, None)
-    ax.grid(True, alpha=0.35)
-    ax.legend(loc="upper left", fontsize=8.5)
-    ax.set_title("Which simulator is faster depends on how long the run is",
-                 fontsize=11.5, loc="left", color=INK, pad=26)
-    ax.text(0.0, 1.02,
-            "GENESIS 2.5 overtakes Arbor past ~6,400 steps — 10,000 neurons "
-            "\u00d7 16 compartments, both on one A100",
-            transform=ax.transAxes, fontsize=9, color="#5a5f66", va="bottom")
-
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.88))
+    fig.text(0.005, 0.965,
+             "Which simulator is faster depends on run length — and on the card",
+             fontsize=12, color=INK, ha="left", va="bottom")
+    fig.text(0.005, 0.905,
+             "GENESIS 2.5 advances each step more cheaply than Arbor on both "
+             "cards, so it wins every run longer than the marked point; "
+             "10,000 neurons × 16 compartments",
+             fontsize=9, color=MUTED, ha="left", va="bottom")
     out = figures / "fig13_crossover.png"
     fig.savefig(out, dpi=320, bbox_inches="tight")
     plt.close(fig)
     print("Wrote:", out)
-    if cross:
-        print(f"crossover K = {cross:.0f} ({cross * 0.01:.1f} ms simulated)")
+    for card, k in crossings:
+        print(f"  {card}: crossover K = {k:.0f} ({k * 0.01:.1f} ms simulated)")
 
 
 if __name__ == "__main__":
