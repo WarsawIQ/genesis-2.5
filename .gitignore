@@ -96,6 +96,7 @@ liquid/
 paper/SoftwareX/
 paper/SOFTX-*.pdf
 paper/declarationStatement.docx
+paper/submission/declarationStatement.docx
 paper/drafts/
 *.pdf.bak
 paper/_cleanbuild/

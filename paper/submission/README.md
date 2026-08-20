@@ -9,7 +9,7 @@ Built 2026-08-20 from `paper/manuscript_softwarex_submission.tex`.
 | `manuscript_softwarex_submission.pdf` | Manuscript | 21 pages, built from the source below |
 | `highlights.txt` | Highlights | 5 bullets, each under the 85-character limit |
 | `fig*.png` | Figure | one per figure, in order; also inside the PDF |
-| `declarationStatement.docx` | Declaration of Interest | **regenerate from the declarations tool in Editorial Manager** -- the copy here is from the earlier submission |
+| _declaration of interest_ | Declaration of Interest | **generate it from the declarations tool in Editorial Manager.** Not kept in the repository: it is correspondence about the work, not the work |
 
 ## Keep for the revision stage
 
