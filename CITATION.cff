@@ -17,8 +17,11 @@ version: "2.5.1"
 date-released: "2026-08-20"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.21658389"
-    description: "Archived release (Zenodo, v2.5)"  # TODO: replace with the v2.5.1 DOI once minted
+    value: "10.5281/zenodo.22032886"
+    description: "Archived release (Zenodo, v2.5.1)"
+  - type: doi
+    value: "10.5281/zenodo.21716630"
+    description: "Concept DOI, resolves to the latest version"
 keywords:
   - GENESIS
   - PGENESIS
