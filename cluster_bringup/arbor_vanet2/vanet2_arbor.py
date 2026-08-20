@@ -52,6 +52,8 @@ CAT = os.environ.get("ARBOR_COBAHH_CAT", "")
 N_I = int(NCELL / 5.0)          # net.hoc: N_I = int(ncell/5.0)
 N_E = NCELL - N_I
 CONNECTIVITY = 0.02
+C_E = int((NCELL - int(NCELL / 5.0)) * CONNECTIVITY)   # net.hoc: exc per cell
+C_I = int(int(NCELL / 5.0) * CONNECTIVITY)             # net.hoc: inh per cell
 AMPA_GMAX = 0.006               # uS
 GABA_GMAX = 0.067               # uS
 # The benchmark specifies zero axonal delay. Arbor cannot express that: its
@@ -97,11 +99,19 @@ class VogelsAbbott(A.recipe):
             self.props.catalogue.extend(A.load_catalogue(CAT), "")
         # Connections drawn once, so the network is fixed for the run and the
         # same for both backends.
+        # net.hoc draws separately from each population and gives every cell
+        # exactly C_E = int(N_E*CONNECTIVITY) excitatory and C_I =
+        # int(N_I*CONNECTIVITY) inhibitory inputs. Drawing 2% of the whole
+        # population instead gives the same means, 64 and 16, but a binomial
+        # spread around them -- and in a balanced network the cells that happen
+        # to draw less inhibition fire disproportionately, which lifts the
+        # population rate well above what the mean in-degree implies.
         rng = random.Random(SEED)
         self.conns = []
         for gid in range(NCELL):
-            srcs = rng.sample(range(NCELL), int(CONNECTIVITY * NCELL))
-            self.conns.append(srcs)
+            exc = rng.sample(range(0, N_E), C_E)
+            inh = rng.sample(range(N_E, NCELL), C_I)
+            self.conns.append(exc + inh)
 
     def num_cells(self):
         return NCELL
@@ -165,10 +175,40 @@ def main():
     n = len(spikes)
     print("RESULT_NCELL=%d RESULT_NE=%d RESULT_NI=%d" % (NCELL, N_E, N_I))
     print("RESULT_GPU=%s RESULT_HAS_GPU=%s" % ("1" if USE_GPU else "0", ctx.has_gpu))
-    print("RESULT_FANIN=%d" % int(CONNECTIVITY * NCELL))
+    # In-degree actually realised, split by source type. net.hoc gives every
+    # cell 2% of the population, of which 80% are excitatory, so 64 + 16 at the
+    # benchmark's size; a split that comes out otherwise would change the
+    # balance and with it the firing rate.
+    ne = ni = 0
+    for gid in range(min(NCELL, 200)):
+        for src in recipe.conns[gid]:
+            if src == gid:
+                continue
+            if src < N_E:
+                ne += 1
+            else:
+                ni += 1
+    k = min(NCELL, 200)
+    print("RESULT_FANIN=%d RESULT_FANIN_E=%.1f RESULT_FANIN_I=%.1f"
+          % (int(CONNECTIVITY * NCELL), ne / k, ni / k))
     print("RESULT_BUILD_S=%.3f" % build_t)
     print("RESULT_RUN_S=%.3f" % run_t)
     print("RESULT_WALL_S=%.3f" % (build_t + run_t))
+    # A detector reporting more than one spike per action potential would
+    # inflate both the rate and the event traffic, so the shortest interval any
+    # cell shows is checked here: below a millisecond means double counting.
+    per = {}
+    for sp in spikes:
+        gid = int(sp[0][0])
+        per.setdefault(gid, []).append(float(sp[1]))
+    worst = None
+    for gid, ts in per.items():
+        ts.sort()
+        for a, b in zip(ts, ts[1:]):
+            d = b - a
+            if worst is None or d < worst:
+                worst = d
+    print("RESULT_MIN_ISI_MS=%.4f" % (worst if worst is not None else -1))
     print("RESULT_SPIKES=%d" % n)
     print("RESULT_RATE_HZ=%.4f" % (n / NCELL / (TSTOP / 1000.0)))
 
