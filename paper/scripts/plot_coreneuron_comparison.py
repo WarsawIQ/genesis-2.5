@@ -28,7 +28,6 @@ ROWS = [
     ("GENESIS 2.5\n(one solver per layer)", 33.2, 0.7, 3),
     ("GENESIS 2.5\n(as published)", 46.9, 2.1, 3),
     ("CoreNEURON 9.0.2", 76.5, 0.3, 3),
-    ("NEURON 8.0.2", 76.5, None, 1),
     ("NEURON 9.0.2", 95.8, 0.2, 3),
     ("NEURON 9.0.2\n(ChannelBuilder)", 123.3, None, 1),
     ("Arbor 0.10.0\n(A100 GPU)", 149.4, 1.1, 3),
