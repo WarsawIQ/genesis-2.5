@@ -17,3 +17,7 @@ crossover_arbor_k50000,tab:mccross,wall_s,5.95,25,s,Arbor GPU A100
 crossover_k,fig:crossover,steps,6400,35,steps,where the two GPU lines cross
 vm_equivalence_neuron_arbor,fig:vmequiv,ap_peak_diff_mV,0.02,200,mV,NEURON against Arbor on the same model
 rate_insensitivity,text,walltime_change_injection_off_pct,0.0,200,pct,firing rate is not in the timing
+vanet2_genesis_1solver,tab:coreneuron,wall_s,33.2,25,s,Vogels-Abbott built as one solver per layer
+vanet2_1solver_speedup,tab:coreneuron,speedup,1.43,20,x,one solver per layer against one per cell
+vanet2_gpu_over_cpu,text,ratio,1.09,25,x,GPU arm over CPU on the spiking network; parity is the claim
+crossover_k_a40,fig:crossover,steps,1811,35,steps,where the two GPU lines cross on an A40

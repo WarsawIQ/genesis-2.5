@@ -2,7 +2,8 @@
 # Reproduce the figures reported in the GENESIS 2.5 paper.
 #
 #   sh reproduce/run_all.sh --quick     ~15 min, the accelerator claims
-#   sh reproduce/run_all.sh             ~90 min, adds the full sweeps
+#   sh reproduce/run_all.sh             ~95 min, adds the sweeps and the
+#                                       spiking network
 #   sh reproduce/run_all.sh --with-neuron   adds the cross-simulator comparison
 #
 # Every stage writes a CSV under reproduce/results/ and appends one line per
@@ -80,6 +81,29 @@ command -v nvcc >/dev/null 2>&1 || { echo "nvcc not found; set CUDA_HOME" >&2; e
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 nvcc --version | tail -2 | head -1
 
+# A binary built for another card is the failure mode that wastes a reviewer's
+# afternoon: with no PTX in it the kernels will not launch at all, and with PTX
+# they are JIT-compiled and run at a fraction of the speed while still being
+# timed as "GPU". We hit the second of these ourselves -- an A100 measured 278.9
+# s against an expected 4.6 because the binary carried only sm_86. Checked here,
+# before anything is timed, rather than left to be discovered in the numbers.
+check_arch() {
+    [ -x "$1" ] || return 0
+    cap=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 | tr -d '. ')
+    [ -n "$cap" ] || return 0
+    [ -x "$CUDA_HOME/bin/cuobjdump" ] || return 0
+    elf=$("$CUDA_HOME/bin/cuobjdump" --list-elf "$1" 2>/dev/null)
+    case "$elf" in
+        *sm_$cap*) echo "$1 carries native sm_$cap code" ;;
+        "") ;;   # no device code section: a CPU-only binary, nothing to check
+        *) echo
+           echo "WARNING: $1 has no sm_$cap code for the card in this machine."
+           echo "It will either fail to launch or be JIT-compiled and run slow."
+           echo "Rebuild with ARCH=sm_$cap (see cluster_bringup/10_build.sh)."
+           echo ;;
+    esac
+}
+
 # Above 20000 compartments the batched tree solver otherwise declines the model
 # and falls back to per-step dispatch, which measures a different code path.
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0
@@ -93,6 +117,7 @@ else
         || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
     echo "built genesis/src/nxgenesis and nxgenesis_nocl"
 fi
+check_arch genesis/src/nxgenesis
 
 # --------------------------------------------------------------- correctness
 say "correctness: fp32 accelerator against the fp64 CPU solver"
@@ -106,6 +131,12 @@ sh "$HERE/stages/20_speedup.sh" "$RESULTS" "$MODE" | tee "$RESULTS/speedup.txt"
 if [ "$MODE" = full ]; then
     say "run-length crossover"
     sh "$HERE/stages/30_crossover.sh" "$RESULTS" | tee "$RESULTS/crossover.txt"
+fi
+
+# ---------------------------------------------------------------- spiking
+if [ "$MODE" = full ]; then
+    say "spiking network (the coverage this release adds)"
+    sh "$HERE/stages/50_spiking.sh" "$RESULTS" | tee "$RESULTS/spiking.txt"
 fi
 
 # ------------------------------------------------------- other simulators

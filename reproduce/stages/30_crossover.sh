@@ -26,4 +26,47 @@ for K in 5000 50000; do
     awk -v t="$tot" -v K="$K" 'BEGIN{printf "K=%s  GENESIS GPU %.2fs\n", K, t/3}'
     awk -v t="$tot" -v K="$K" 'BEGIN{printf "crossover_genesis_k%s,%.2f,s\n", K, t/3}' >> "$RESULTS/summary.csv"
 done
-echo "Arbor arm: see reproduce/README.md (needs an Arbor built with CUDA)"
+# The Arbor arm, when the reviewer has one. Without it the GENESIS times above
+# still stand on their own; with it the crossing itself is measurable, and the
+# crossing is the claim -- neither simulator is faster in general.
+ARB="$ROOT/cluster_bringup/coreneuron/hh_multicomp_arbor.py"
+if [ -f "$ARB" ] && python3 -c "import arbor" 2>/dev/null; then
+    for K in 5000 50000; do
+        r=1; tot=0
+        while [ "$r" -le 3 ]; do
+            w=$(USE_GPU=1 timeout 3600 python3 "$ARB" "$N" "$K" 2>&1 \
+                | sed -n 's/^RESULT_WALL_S=//p')
+            [ -n "$w" ] || { echo "  Arbor K=$K rep $r failed"; break; }
+            echo "Arbor 0.10.0,$K,$r,$w" >> "$OUT"
+            tot=$(awk "BEGIN{print $tot + $w}")
+            r=$((r+1))
+        done
+        [ "$r" -gt 3 ] && awk -v t="$tot" -v K="$K" \
+            'BEGIN{printf "crossover_arbor_k%s,%.2f,s\n", K, t/3}' >> "$RESULTS/summary.csv"
+    done
+
+    # Two points per simulator give the intercept and slope, and the crossing
+    # follows. It is keyed by card: on our A40 it falls at K ~ 1,800 and on the
+    # A100 at K ~ 6,400, because our kernel is fp32 where Arbor computes in
+    # double. A crossing checked against the wrong card would look like a
+    # failed reproduction when nothing had gone wrong.
+    card=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
+    key=crossover_k; case "$card" in *A40*) key=crossover_k_a40 ;; esac
+    awk -F, -v key="$key" '
+        $1 ~ /GENESIS/ { g[$2] += $4; gn[$2]++ }
+        $1 ~ /Arbor/   { a[$2] += $4; an[$2]++ }
+        END {
+            if (gn[5000] && gn[50000] && an[5000] && an[50000]) {
+                g1 = (g[50000]/gn[50000] - g[5000]/gn[5000]) / 45000
+                a1 = (a[50000]/an[50000] - a[5000]/an[5000]) / 45000
+                g0 = g[5000]/gn[5000] - g1*5000
+                a0 = a[5000]/an[5000] - a1*5000
+                if (g1 != a1) printf "%s,%.0f,steps\n", key, (a0-g0)/(g1-a1)
+            }
+        }' "$OUT" >> "$RESULTS/summary.csv"
+    grep -h "^$key," "$RESULTS/summary.csv" | tail -1 \
+        | awk -F, '{printf "the two GPU lines cross at K ~ %d\n", $2}'
+else
+    echo "Arbor arm skipped (no importable arbor); the crossing needs both sides."
+    echo "See reproduce/README.md for how ours was built."
+fi
