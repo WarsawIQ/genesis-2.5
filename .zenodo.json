@@ -1,0 +1,31 @@
+{
+  "title": "GENESIS 2.5: optimisation and opt-in OpenCL/CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator",
+  "upload_type": "software",
+  "license": "GPL-2.0-or-later",
+  "creators": [
+    {
+      "name": "Chlasta, Karol",
+      "affiliation": "Kozminski University; WarsawIQ"
+    },
+    {
+      "name": "Wójcik, Grzegorz Marcin",
+      "affiliation": "Maria Curie-Skłodowska University in Lublin"
+    }
+  ],
+  "keywords": [
+    "GENESIS",
+    "PGENESIS",
+    "OpenCL",
+    "CUDA",
+    "GPU acceleration",
+    "compartmental neural simulation",
+    "Hines solver"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/WarsawIQ/genesis-2.5",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

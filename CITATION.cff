@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "GENESIS 2.5: opt-in OpenCL and CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator"
+title: "GENESIS 2.5: optimisation and opt-in OpenCL/CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator"
 type: software
 authors:
   - family-names: Chlasta
@@ -13,12 +13,12 @@ authors:
     affiliation: "Maria Curie-Skłodowska University in Lublin"
 repository-code: "https://github.com/WarsawIQ/genesis-2.5"
 license: GPL-2.0-or-later
-version: "2.5"
-date-released: "2026-07-24"
+version: "2.5.1"
+date-released: "2026-08-20"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21658389"
-    description: "Archived release (Zenodo, v2.5)"
+    description: "Archived release (Zenodo, v2.5)"  # TODO: replace with the v2.5.1 DOI once minted
 keywords:
   - GENESIS
   - PGENESIS
