@@ -1593,28 +1593,36 @@ bindist: genesis nxgenesis
 # make separate source dists for genesis and pgenesis.
 # cvs export must be used so that empty directories are pruned.
 #
-srcdist: 
+# Source distribution.
+#
+# The original recipe exported from SourceForge CVS
+# (CVSROOT=$(USER)@cvs.sf.net:/cvsroot/genesis-sim), which no longer exists, so
+# `make srcdist` failed for anyone who tried it. It now takes the same tree from
+# the git checkout. Two deliberate differences from the original: the tree comes
+# from HEAD rather than "-D now" of a CVS trunk, and the obsolete .tar.Z outputs
+# are gone -- `compress` is absent from most current systems, while .gz and .bz2
+# are not.
+#
+# The canonical archive of a release is the Zenodo record generated from the git
+# tag; this target exists for distributing GENESIS and PGENESIS separately, the
+# way genesis-sim.org does.
+srcdist:
 	-@mkdir -p ../distributions
-	(CVSROOT=$(USER)@cvs.sf.net:/cvsroot/genesis-sim; \
-	CVS_RSH=ssh; \
-	cd ../distributions; \
-	cvs export -D now genesis2 > /dev/null; \
-	mv genesis2 $(VERSNAME); \
-	tar cZf $(VERSNAME)-src.tar.Z -X ../src/excludeFromSrc $(VERSNAME)/genesis; \
-	md5sum $(VERSNAME)-src.tar.Z > $(VERSNAME)-src.tar.Z.md5; \
+	@git -C ../.. rev-parse --is-inside-work-tree >/dev/null 2>&1 || \
+		{ echo "srcdist: not a git checkout; export the tree yourself and tar it"; exit 1; }
+	(cd ../distributions; \
+	rm -rf $(VERSNAME); \
+	git -C ../.. archive --format=tar --prefix=$(VERSNAME)/ HEAD | tar xf -; \
 	tar czf $(VERSNAME)-src.tar.gz -X ../src/excludeFromSrc $(VERSNAME)/genesis; \
 	md5sum $(VERSNAME)-src.tar.gz > $(VERSNAME)-src.tar.gz.md5; \
 	tar cjf $(VERSNAME)-src.tar.bz2 -X ../src/excludeFromSrc $(VERSNAME)/genesis; \
 	md5sum $(VERSNAME)-src.tar.bz2 > $(VERSNAME)-src.tar.bz2.md5; \
-	tar cZf p$(VERSNAME)-src.tar.Z -X ../src/excludeFromSrc $(VERSNAME)/pgenesis; \
-	md5sum p$(VERSNAME)-src.tar.Z > p$(VERSNAME)-src.tar.Z.md5; \
 	tar czf p$(VERSNAME)-src.tar.gz -X ../src/excludeFromSrc $(VERSNAME)/pgenesis; \
 	md5sum p$(VERSNAME)-src.tar.gz > p$(VERSNAME)-src.tar.gz.md5; \
 	tar cjf p$(VERSNAME)-src.tar.bz2 -X ../src/excludeFromSrc $(VERSNAME)/pgenesis; \
 	md5sum p$(VERSNAME)-src.tar.bz2 > p$(VERSNAME)-src.tar.bz2.md5; \
 	rm -rf $(VERSNAME))
 	-cp README ../distributions/README.$(VERSNAME)
-	-cp ChangeLog ../distributions/ChangeLog.$(VERSNAME)
 
 TestSuite:
 	(cd ..; \

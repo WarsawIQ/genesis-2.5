@@ -104,3 +104,6 @@ paper/archive/
 paper/docs/x11_binary_confound_investigation.md
 *.pdf.bak
 paper/_cleanbuild/
+
+# make srcdist / make bindist outputs
+genesis/distributions/
