@@ -284,7 +284,7 @@ LEXLIB=-lfl
 
 LIBS= $(LEXLIB) $(GCMALLOCLIB) -lm
 
-TERMCAP=-lncurses -ltinfo -lOpenCL
+TERMCAP=-lncurses -ltinfo
 TERMOPT=-DTERMIO -DDONT_USE_SIGIO
 
 ## end	Linux 1.2.x and up on Intel x86-based systems
@@ -1409,7 +1409,22 @@ XODUS 	=	$(XODUSLIB)/_xo/xolib.o \
 		$(XODUSLIB)/Widg/libWidg.a \
 		$(XODUSLIB)/Xo/libXo.a
 
-EXTRALIBS =  	$(SPRNGLIB) $(TERMCAP)
+# GPU runtime, linked only when a backend is actually requested.
+#
+# -lOpenCL used to be appended to TERMCAP, which is the terminal-library
+# variable, so EVERY build linked it -- including the plain CPU build the README
+# documents as "same as GENESIS 2.4". Because the accelerator libraries are
+# linked hard rather than dlopen'd, such a binary does not fall back to the CPU
+# when libOpenCL is missing: it refuses to start. That is what made a CPU-only
+# build fail on cluster compute nodes while running fine on the login node.
+ifdef USE_OPENCL
+GPULIBS = -lOpenCL
+endif
+ifdef USE_CUDA
+GPULIBS = -L$(CUDA_HOME)/lib64 -lcudart
+endif
+
+EXTRALIBS =  	$(SPRNGLIB) $(TERMCAP) $(GPULIBS)
 
 SUBDIR =        sys ss sim $(SPRNGDIR) shell newconn $(OLDCONNDIR) \
 		buffer concen device hh hines olf out segment \
