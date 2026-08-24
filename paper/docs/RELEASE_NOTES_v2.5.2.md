@@ -48,6 +48,17 @@ same reason. **v2.5.2 is the first release whose binary agrees with its tag.**
 
 ## Known, not fixed here
 
+- **A clean clone does not build.** Both `genesis` and `nxgenesis` stop with
+  `No rule to make target 'diskio/interface/netcdf/netcdflib.o'`: the top-level
+  `libs` step enters `diskio/` but never descends into
+  `diskio/interface/netcdf/`. Building that object by hand works —
+  `(cd diskio/interface/netcdf && make netcdflib.o)` — and the build still fails
+  afterwards, on a cause not yet identified. A tree that has been built before
+  does not hit this, because the objects survive, which is why it went unnoticed
+  until this release was packaged from a fresh checkout. **This is why v2.5.2
+  ships without a binary tarball**; one was built and verified earlier from a
+  tree with prior build state, so the packaging procedure itself works.
+
 - On very new toolchains (GCC 15.2 / glibc 2.42) the build completes but the
   binary segfaults during start-up inside `tset()`. GCC 8.5 builds a working
   binary. Not diagnosed.
