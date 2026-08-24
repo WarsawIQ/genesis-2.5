@@ -1,24 +1,68 @@
 # GENESIS 2.5
 
-GENESIS 2.5 is GENESIS 2.4 / PGENESIS 2.4 with two new, optional accelerator
-backends for the `hsolve` compartmental solver: OpenCL and CUDA, on the same
-interface. Nothing about the existing CPU, MPI, model files, or SLI scripts
-changes. If you don't turn a GPU backend on, GENESIS behaves exactly as it
-did in 2.4.
+**Latest release: [v2.5.1](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.1)** ·
+[archived on Zenodo](https://doi.org/10.5281/zenodo.22032886) ·
+[draft manuscript](paper/manuscript_softwarex_submission.pdf)
 
-Along the way we also found and fixed some pre-existing bugs that have
-nothing to do with GPUs: three Hines-solver defects that silently dropped
-`inject`-driven voltage transients in multi-neuron `hsolve` setups, and five
-`O(n²)` linear-scan patterns in element creation and `hsolve` setup that made
-building large models effectively quadratic in time. Both fixes benefit any
-GENESIS/PGENESIS user, accelerated or not.
+GENESIS 2.5 is GENESIS 2.4 / PGENESIS 2.4 with two optional accelerator backends
+for the `hsolve` compartmental solver — OpenCL and CUDA, behind the same
+interface — plus fixes to the CPU solver that benefit everyone. **Your models,
+scripts and MPI workflows do not change.** With no GPU backend enabled, GENESIS
+behaves exactly as 2.4 did.
 
-A manuscript describing all of this is being prepared for submission to
-[SoftwareX](https://www.sciencedirect.com/journal/softwarex); the current
-draft is [`paper/manuscript_softwarex_submission.pdf`](paper/manuscript_softwarex_submission.pdf).
-See [Citing this work](#citing-this-work) below.
+> ⚠️ **Running the `v2.5` tag or its Zenodo archive?** One class of model
+> produces **wrong results** on the GPU there. Read
+> [Known issues](#known-issues) before you trust any output. Fixed on `master`
+> and in `v2.5.1`.
 
-## Important: defect in the v2.5 release, fixed after it
+## TL;DR — what 2.5 gives you over 2.4
+
+| | |
+|---|---|
+| **GPU acceleration, opt-in** | OpenCL and CUDA backends for `hsolve` at `chanmode=4`/`5`. No model changes; leave them off and nothing differs from 2.4 |
+| **Dendritic trees on the GPU** | `hines_tree_eliminate` runs the real Hines elimination, one thread per neuron — 37.3× (A40) / 80.8× (A100) step-phase at 50,000 × 16 compartments |
+| **Isopotential networks on the GPU** | batched multi-step kernel, 21.0× / 21.9× end-to-end at N = 50,000, matching the fp64 CPU reference to ~1e-7 V |
+| **Three Hines-solver defects fixed** | `inject`-driven voltage transients were silently dropped in multi-neuron `hsolve` setups — a CPU bug, present since 2.4 |
+| **Model construction no longer quadratic** | five `O(n²)` linear scans removed; a 1.7-million-compartment model that never finished building now builds in 51.5 ± 0.6 s |
+| **Faster than NEURON on one CPU core** | Vogels–Abbott COBAHH, 4000 cells, 5 s: 1.63× vs CoreNEURON, 2.04× vs NEURON 9.0.2 |
+
+Both the solver fix and the construction fix apply whether or not you ever touch
+a GPU.
+
+## Install
+
+Nothing here needs root or a scheduler. Linux, x86_64, GCC, GNU Make.
+
+**CPU only — the safe default, and all you need to run existing models:**
+
+```sh
+git clone https://github.com/WarsawIQ/genesis-2.5.git
+cd genesis-2.5/genesis/src
+make clean && make && make install
+```
+
+**With a GPU** — pick one backend; if both are defined CUDA wins:
+
+```sh
+make USE_CUDA=1 CUDA_HOME=/usr/local/cuda nxgenesis    # CUDA 12.x
+make USE_OPENCL=1 nxgenesis                            # OpenCL 1.2+
+```
+
+**With MPI (PGENESIS):**
+
+```sh
+cd ../../pgenesis/src && make install
+sh ../regen_pgenesis_wrapper.sh    # see Building: the stock rule can emit a 0-byte wrapper
+```
+
+Then read [Building](#building) for the parts that bite — the CUDA linker step,
+the empty PGENESIS wrapper, and why a GPU-enabled binary can refuse to start on
+a compute node. If you only want to check the claims, skip all of it and run
+[`reproduce/run_all.sh --quick`](#reproducing-the-benchmarks).
+
+## Known issues
+
+### Wrong results in the `v2.5` release, fixed after it
 
 **If you ran the `v2.5` tag (or its Zenodo archive) with `chanmode=4`/`5` on a
 model that uses synaptic channels, a `spike` element, GHK, or calcium
@@ -50,8 +94,7 @@ Verified byte-identical to the CPU reference over the full VAnet2 run.
 `inject`, including every benchmark under `genesis/Scripts/benchmark/`. The
 speedup figures below were measured on those and are not touched by this.
 
-
-## Cosmetic: the v2.5.1 tag reports 2.4 in its banner
+### The `v2.5.1` tag reports 2.4 in its banner (cosmetic)
 
 Binaries built from the `v2.5.1` tag — and from its Zenodo archive — print
 `Release Version: 2.4 / Release Date: May 2019` at startup. The release, the tag
@@ -59,13 +102,12 @@ and the SoftwareX metadata table all say 2.5.1; only the banner disagreed.
 
 `VERSIONSTR` and `VERSIONDATESTR` live in `genesis/src/sim/sim_version.h` and
 had never been touched since the 2.4 May 2019 update. The Makefile's separate
-`VERSION` variable, which names the install directory and the tarball, was
-2.4 for the same reason. Both now say 2.5.1; fixed on `master` after the tag.
+`VERSION` variable, which names the install directory and the tarball, was 2.4
+for the same reason. Both now say 2.5.1; fixed on `master` after the tag.
 
 **Nothing computational is affected** — no solver, kernel or model behaviour
-depends on either string. This is recorded here only because the archived
-artifact a reader downloads will disagree with the version they were told to
-expect, and that is worth two sentences rather than a puzzled email.
+depends on either string. It is recorded here because the archived artifact a
+reader downloads will disagree with the version they were told to expect.
 
 ## Where the speedups come from
 
@@ -271,8 +313,9 @@ accepted, cite the repository directly:
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
-acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5, 2026.
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.1, 2026.
 https://github.com/WarsawIQ/genesis-2.5
+Archived: https://doi.org/10.5281/zenodo.22032886
 ```
 
 ## About the base GENESIS 2.4 / PGENESIS 2.4
