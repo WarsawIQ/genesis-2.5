@@ -50,6 +50,23 @@ Verified byte-identical to the CPU reference over the full VAnet2 run.
 `inject`, including every benchmark under `genesis/Scripts/benchmark/`. The
 speedup figures below were measured on those and are not touched by this.
 
+
+## Cosmetic: the v2.5.1 tag reports 2.4 in its banner
+
+Binaries built from the `v2.5.1` tag — and from its Zenodo archive — print
+`Release Version: 2.4 / Release Date: May 2019` at startup. The release, the tag
+and the SoftwareX metadata table all say 2.5.1; only the banner disagreed.
+
+`VERSIONSTR` and `VERSIONDATESTR` live in `genesis/src/sim/sim_version.h` and
+had never been touched since the 2.4 May 2019 update. The Makefile's separate
+`VERSION` variable, which names the install directory and the tarball, was
+2.4 for the same reason. Both now say 2.5.1; fixed on `master` after the tag.
+
+**Nothing computational is affected** — no solver, kernel or model behaviour
+depends on either string. This is recorded here only because the archived
+artifact a reader downloads will disagree with the version they were told to
+expect, and that is worth two sentences rather than a puzzled email.
+
 ## Where the speedups come from
 
 Two numbers are worth separating, because they answer different questions.
