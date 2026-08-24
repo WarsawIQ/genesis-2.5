@@ -1,9 +1,13 @@
 # GENESIS 2.5.2
 
 A build-and-packaging release. No solver, kernel or model behaviour changes;
-every number the manuscript reports still stands. What changes is that the
-release can now be built from source into a binary that runs, and says which
-version it is.
+every number the manuscript reports still stands.
+
+What changes is that a binary built from this tree no longer refuses to start
+for want of a GPU runtime it never needed, and reports its own version rather
+than 2.4. What has *not* changed, and is documented under Known issues below,
+is that a clean checkout still does not build to completion — that is why this
+release ships source only.
 
 ## The documented CPU build produced a binary that would not start
 
