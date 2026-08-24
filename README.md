@@ -250,6 +250,49 @@ do not have either. If csh is unavailable, launch the binary directly with
 `mpirun -np <ranks> pgenesis/bin/Linux/nxpgenesis <script>.g`; the bare binary
 does not accept `-nodes`, which is the whole reason the wrapper exists.
 
+### If the build fails
+
+Three failures account for nearly every build problem reported on this tree, and
+all three are environment, not code. [`cluster_bringup/10_build.sh`](cluster_bringup/10_build.sh)
+is a worked example that handles all of them.
+
+**`cannot find -lfl` / `undefined reference to yywrap`.** Many distributions and
+most cluster images ship the `flex` binary without `libfl`. GENESIS links its own
+code generator `code_g` with `-lfl`, so the build dies before it can generate the
+`*_g@.c` sources everything else needs. `libfl` supplies one function here;
+build a stub and point `LEXLIB` at it:
+
+```sh
+mkdir -p locallib
+printf 'int yywrap(void){return 1;}\n' > locallib/yywrap.c
+gcc -c locallib/yywrap.c -o locallib/yywrap.o
+ar rcs locallib/libfl.a locallib/yywrap.o
+make LEXLIB="$PWD/locallib/libfl.a" nxgenesis
+```
+
+Pass the same `LEXLIB=` to every later `make`, including `bindist`. A `.a` is
+what the link expects — a bare `.o` is not a drop-in replacement here.
+
+**`make clean` makes it worse before it makes it better.** Some generated
+`*_g@.c` files are tracked and some are not, so an incremental build can succeed
+on a machine where a clean one fails: `clean` deletes the generated sources, and
+regenerating them needs `code_g`, which needs the fix above. If a build that
+worked yesterday fails today, check whether something ran `clean`.
+
+**`EXTRALIBS=` replaces, it does not append.** The default is
+`$(SPRNGLIB) $(TERMCAP) $(GPULIBS)`. Passing `EXTRALIBS=-lcudart` silently drops
+sprng and the terminal libraries with it. Pass the full set, as
+`10_build.sh` does.
+
+Two smaller ones worth knowing. `make clean` does not touch `hines/cuda/`, so a
+stale object built for a different GPU architecture links fine and fails at run
+time with *"no kernel image is available for execution on the device"* — remove
+`hines/cuda/*.o hines/hineslib.o` by hand when switching cards. And on very new
+toolchains (GCC 15 / glibc 2.42 seen here) the build completes but the binary
+segfaults during start-up inside `tset()`; GCC 8.5 on the cluster builds a
+working binary, so if you have a choice of compiler, prefer the older one until
+that is diagnosed.
+
 ## Using the accelerator backends
 
 Both backends kick in automatically for any `hsolve` element using

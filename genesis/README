@@ -11,6 +11,23 @@ nothing in it stops applying.
 The version banner in binaries built from the v2.5.1 tag says 2.4; that was a
 stale string, fixed on master after the tag. It has no effect on behaviour.
 
+BUILD TRAP, if you are compiling from source: most current distributions and
+cluster images ship the `flex` binary without `libfl`, and GENESIS links its own
+code generator with -lfl. The build then dies with "cannot find -lfl" or
+"undefined reference to yywrap" before it can generate the sources it needs.
+Build a one-function stub and override LEXLIB:
+
+    mkdir -p locallib
+    printf 'int yywrap(void){return 1;}\n' > locallib/yywrap.c
+    gcc -c locallib/yywrap.c -o locallib/yywrap.o
+    ar rcs locallib/libfl.a locallib/yywrap.o
+    make LEXLIB="$PWD/locallib/libfl.a" nxgenesis
+
+Pass the same LEXLIB= to every later make. Note also that `make clean` deletes
+generated sources that are only partly tracked, so a clean build can fail where
+an incremental one succeeded. cluster_bringup/10_build.sh in the repository
+handles this and two related traps.
+
 See the repository README for what 2.5 adds, how to build it, and the known
 issues in the v2.5 and v2.5.1 releases.
 ======================================================================
