@@ -2,7 +2,7 @@
 NOTE FROM THE GENESIS 2.5 DISTRIBUTION -- everything below this block is
 the original GENESIS 2.4 document, unmodified.
 
-You are holding GENESIS 2.5.1 (https://github.com/WarsawIQ/genesis-2.5), which
+You are holding GENESIS 2.5.2 (https://github.com/WarsawIQ/genesis-2.5), which
 is GENESIS 2.4 plus two optional accelerator backends for `hsolve` (OpenCL and
 CUDA), three Hines-solver fixes and the removal of five O(n^2) construction
 scans. The document below describes the 2.4 base and describes it correctly;
@@ -10,7 +10,7 @@ nothing in it stops applying.
 
 Two things specific to a GENESIS 2.5 binary tarball:
 
-  1. The archive is named genesis-2.5.1-<machine>-bin.tar.gz, not
+  1. The archive is named genesis-2.5.2-<machine>-bin.tar.gz, not
      genesis-2.4-<os>-bin.tar.gz as written below.
 
   2. IF THE BINARY WAS BUILT WITH AN ACCELERATOR BACKEND, it links its GPU
