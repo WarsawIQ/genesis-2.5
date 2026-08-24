@@ -134,6 +134,24 @@ Linux, x86_64, GCC, GNU Make. Beyond that:
 
 Neither GPU backend is required.
 
+**The accelerator builds link their runtime hard.** A binary built with
+`USE_OPENCL=1` needs `libOpenCL.so.1` at start-up and one built with
+`USE_CUDA=1` needs `libcudart.so.<major>`; without them it does not fall back
+to the CPU, it fails to start at all:
+
+```
+nxgenesis: error while loading shared libraries: libOpenCL.so.1:
+cannot open shared object file: No such file or directory
+```
+
+On a cluster this bites in a specific way: the login node usually has the
+driver libraries installed and the compute nodes often do not, so the same
+binary runs interactively and dies the moment it is submitted. Point
+`LD_LIBRARY_PATH` at a location visible from the nodes — e.g.
+`LD_LIBRARY_PATH=/opt/cuda/lib64` — or build the plain CPU target for the
+queue. If you never intend to use a GPU, build without either flag and the
+question does not arise.
+
 ## Building
 
 Plain CPU/MPI, same as GENESIS 2.4:
@@ -166,6 +184,29 @@ drop both instead of adding to them. See
 for the full invocation, or just use
 [`cluster_bringup/10_build.sh`](cluster_bringup/10_build.sh), which also
 picks the right `-arch` for whatever GPU it finds.
+
+PGENESIS (MPI), after building GENESIS above:
+```sh
+cd pgenesis/src
+make install
+```
+
+**Check that `pgenesis/bin/pgenesis` is not empty.** The stock install rule
+produces a 0-byte wrapper on this tree, and a 0-byte wrapper silently removes
+the `-nodes N` launch interface that the PGENESIS documentation and the
+benchmark protocol both assume. Regenerate it with:
+
+```sh
+sh pgenesis/regen_pgenesis_wrapper.sh
+```
+
+which reproduces the same substitution the Makefile intends, but leaves the
+path placeholders in so the wrapper self-locates instead of baking in the
+machine it was generated on. The generated wrapper is `#!/bin/csh -f`, so the
+host that *runs* it needs csh or tcsh installed — many current cluster images
+do not have either. If csh is unavailable, launch the binary directly with
+`mpirun -np <ranks> pgenesis/bin/Linux/nxpgenesis <script>.g`; the bare binary
+does not accept `-nodes`, which is the whole reason the wrapper exists.
 
 ## Using the accelerator backends
 

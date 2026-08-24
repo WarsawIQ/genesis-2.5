@@ -1,3 +1,28 @@
+======================================================================
+NOTE FROM THE GENESIS 2.5 DISTRIBUTION -- everything below this block is
+Goddard & Hood's original PGENESIS 2.4 document, unmodified.
+
+This copy of PGENESIS ships inside GENESIS 2.5
+(https://github.com/WarsawIQ/genesis-2.5). PGENESIS itself is unchanged: the
+accelerator backends added in 2.5 sit under the serial `hsolve` and do not
+touch the MPI layer.
+
+Two practical differences from the instructions below, both found while
+installing this tree:
+
+  1. `make install` under src/startup can leave bin/pgenesis EMPTY (0 bytes).
+     A 0-byte wrapper removes the `-nodes N` interface this document describes,
+     with no error at install time. Check the file size, and regenerate with
+     `sh pgenesis/regen_pgenesis_wrapper.sh` if it is empty.
+
+  2. The wrapper is a csh script, so the machine that RUNS it needs csh or
+     tcsh. Several current cluster images ship neither. Without csh, invoke
+     the binary directly under mpirun; note that the bare binary does not
+     accept `-nodes`, which is what the wrapper translates.
+
+See the repository README for the rest.
+======================================================================
+
                PGENESIS 2.4 Installation and Use
                --------------------------------
 
