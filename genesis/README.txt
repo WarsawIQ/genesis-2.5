@@ -1,3 +1,20 @@
+======================================================================
+NOTE FROM THE GENESIS 2.5 DISTRIBUTION -- everything below this block is
+the original GENESIS 2.4 document, unmodified.
+
+You are holding GENESIS 2.5.1 (https://github.com/WarsawIQ/genesis-2.5), which
+is GENESIS 2.4 plus two optional accelerator backends for `hsolve` (OpenCL and
+CUDA), three Hines-solver fixes and the removal of five O(n^2) construction
+scans. The document below describes the 2.4 base and describes it correctly;
+nothing in it stops applying.
+
+The version banner in binaries built from the v2.5.1 tag says 2.4; that was a
+stale string, fixed on master after the tag. It has no effect on behaviour.
+
+See the repository README for what 2.5 adds, how to build it, and the known
+issues in the v2.5 and v2.5.1 releases.
+======================================================================
+
 
 
                            G E N E S I S

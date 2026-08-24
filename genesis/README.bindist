@@ -1,3 +1,30 @@
+======================================================================
+NOTE FROM THE GENESIS 2.5 DISTRIBUTION -- everything below this block is
+the original GENESIS 2.4 document, unmodified.
+
+You are holding GENESIS 2.5.1 (https://github.com/WarsawIQ/genesis-2.5), which
+is GENESIS 2.4 plus two optional accelerator backends for `hsolve` (OpenCL and
+CUDA), three Hines-solver fixes and the removal of five O(n^2) construction
+scans. The document below describes the 2.4 base and describes it correctly;
+nothing in it stops applying.
+
+Two things specific to a GENESIS 2.5 binary tarball:
+
+  1. The archive is named genesis-2.5.1-<machine>-bin.tar.gz, not
+     genesis-2.4-<os>-bin.tar.gz as written below.
+
+  2. IF THE BINARY WAS BUILT WITH AN ACCELERATOR BACKEND, it links its GPU
+     runtime hard: USE_OPENCL needs libOpenCL.so.1 and USE_CUDA needs
+     libcudart, at start-up. Without them it does not fall back to the CPU --
+     it fails to start, with a loader error and no other output. On clusters
+     this shows up as "runs on the login node, dies in the queue", because the
+     driver libraries are often installed on one and not the other. A CPU-only
+     build has no such dependency.
+
+See the repository README for what 2.5 adds, how to build it, and the known
+issues in the v2.5 and v2.5.1 releases.
+======================================================================
+
 GENESIS 2.4 Binary Distribution README
 
 Binary distributions of GENESIS are typically released shortly after
