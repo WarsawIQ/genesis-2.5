@@ -273,6 +273,25 @@ make LEXLIB="$PWD/locallib/libfl.a" nxgenesis
 Pass the same `LEXLIB=` to every later `make`, including `bindist`. A `.a` is
 what the link expects — a bare `.o` is not a drop-in replacement here.
 
+**A fresh clone does not build as of 2026-08-24, and this is unresolved.**
+`make genesis` and `make nxgenesis` both stop with
+
+```
+No rule to make target 'diskio/interface/netcdf/netcdflib.o', needed by 'genesis'
+```
+
+The top-level `libs` step enters `diskio/` but never descends into
+`diskio/interface/netcdf/`, so that object is never built. Building it by hand
+works — `(cd diskio/interface/netcdf && make netcdflib.o)` — but the build then
+still fails, and the next cause has not been identified. A tree that has been
+built before does not hit this, which is why it went unnoticed: the objects
+survive from the earlier build. If you have a working tree, keep it.
+
+This is the reason the v2.5.2 release ships without a binary tarball. One was
+built and verified from `873af16` under the 2.5.1 version strings, so the
+procedure works on a tree with prior build state; it has not been reproduced
+from a clean checkout.
+
 **`make clean` makes it worse before it makes it better.** Some generated
 `*_g@.c` files are tracked and some are not, so an incremental build can succeed
 on a machine where a clean one fails: `clean` deletes the generated sources, and
