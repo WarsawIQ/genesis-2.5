@@ -13,8 +13,8 @@ authors:
     affiliation: "Maria Curie-Skłodowska University in Lublin"
 repository-code: "https://github.com/WarsawIQ/genesis-2.5"
 license: GPL-2.0-or-later
-version: "2.5.1"
-date-released: "2026-08-20"
+version: "2.5.2"
+date-released: "2026-08-24"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.22032886"

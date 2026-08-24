@@ -4,7 +4,7 @@
 #		    The General Neural Simulation System
 #			Version 2.4 (May 2019 update)
 #
-VERSION = 2.5.1
+VERSION = 2.5.2
 #
 # SYNOPSIS: This is the top-level Makefile for GENESIS.  
 #           YOU MUST EDIT THIS FILE BEFORE RUNNING "make".

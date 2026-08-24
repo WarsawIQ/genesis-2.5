@@ -1,6 +1,6 @@
 # GENESIS 2.5
 
-**Latest release: [v2.5.1](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.1)** ·
+**Latest release: [v2.5.2](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.2)** ·
 [archived on Zenodo](https://doi.org/10.5281/zenodo.22032886) ·
 [draft manuscript](paper/manuscript_softwarex_submission.pdf)
 
@@ -94,7 +94,7 @@ Verified byte-identical to the CPU reference over the full VAnet2 run.
 `inject`, including every benchmark under `genesis/Scripts/benchmark/`. The
 speedup figures below were measured on those and are not touched by this.
 
-### The `v2.5.1` tag reports 2.4 in its banner (cosmetic)
+### The `v2.5` and `v2.5.1` tags report 2.4 in their banner (cosmetic, fixed in 2.5.2)
 
 Binaries built from the `v2.5.1` tag — and from its Zenodo archive — print
 `Release Version: 2.4 / Release Date: May 2019` at startup. The release, the tag
@@ -103,7 +103,7 @@ and the SoftwareX metadata table all say 2.5.1; only the banner disagreed.
 `VERSIONSTR` and `VERSIONDATESTR` live in `genesis/src/sim/sim_version.h` and
 had never been touched since the 2.4 May 2019 update. The Makefile's separate
 `VERSION` variable, which names the install directory and the tarball, was 2.4
-for the same reason. Both now say 2.5.1; fixed on `master` after the tag.
+for the same reason. Both were corrected after the v2.5.1 tag, so **v2.5.2 is the first release whose binary reports its own version**.
 
 **Nothing computational is affected** — no solver, kernel or model behaviour
 depends on either string. It is recorded here because the archived artifact a
@@ -356,7 +356,7 @@ accepted, cite the repository directly:
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
-acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.1, 2026.
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.2, 2026.
 https://github.com/WarsawIQ/genesis-2.5
 Archived: https://doi.org/10.5281/zenodo.22032886
 ```
