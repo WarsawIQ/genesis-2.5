@@ -107,3 +107,8 @@ paper/_cleanbuild/
 
 # make srcdist / make bindist outputs
 genesis/distributions/
+
+# Znacznik ukonczenia rekurencji w diskio/interface. Jego OBECNOSC sprawia, ze
+# make uznaje cel fflibs za aktualny i nie wchodzi do netcdf ani FMT1, przez co
+# FMT1lib.o nigdy nie powstaje, a link nxgenesis sie wywala. Nie wersjonowac.
+genesis/src/diskio/interface/fflibs
