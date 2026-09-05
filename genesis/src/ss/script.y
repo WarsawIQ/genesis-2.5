@@ -436,10 +436,16 @@ include_stmnt	: include_hdr LITERAL WHITESPACE arg_list ws
 
 		    if (!IncludeScript(argc, argv))
 		      {
+			/* Report only.  Do NOT release $2 or $4 here: this
+			** action falls through to the code below, which either
+			** hands $2 to the parse tree or frees both exactly
+			** once.  Freeing here left a dangling pointer in the
+			** tree when compiling, and double-freed otherwise, so
+			** a missing include corrupted the heap and the process
+			** then either crashed or hung instead of reporting the
+			** error and carrying on.
+			*/
 			sprintf(argbuf, "Script '%s' not found", $2);
-			FreePTValues($4);
-			PTFree($4);
-			free($2);
 			yyerror(argbuf);
 		      }
 
@@ -471,8 +477,8 @@ include_stmnt	: include_hdr LITERAL WHITESPACE arg_list ws
 
 		    if (!IncludeScript(argc, argv))
 		      {
+			/* Report only -- see the note in the rule above. */
 			sprintf(argbuf, "Script '%s' not found", $2);
-			free($2);
 			yyerror(argbuf);
 		      }
 
