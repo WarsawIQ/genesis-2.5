@@ -5,5 +5,5 @@
    2.5.1. Note that the Makefile's own VERSION variable is a separate thing --
    it only drives INSTALLDIR and the tarball name, not this banner. */
 
-#define VERSIONSTR	"2.5.2"
-#define VERSIONDATESTR	"August 2026"
+#define VERSIONSTR	"2.5.3"
+#define VERSIONDATESTR	"September 2026"
