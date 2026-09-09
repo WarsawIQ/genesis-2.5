@@ -1,6 +1,6 @@
 # GENESIS 2.5
 
-**Latest release: [v2.5.2](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.2)** ·
+**Latest release: [v2.5.3](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.3)** ·
 [archived on Zenodo](https://doi.org/10.5281/zenodo.22032886) ·
 [draft manuscript](paper/manuscript_softwarex_submission.pdf)
 
@@ -108,6 +108,28 @@ for the same reason. Both were corrected after the v2.5.1 tag, so **v2.5.2 is th
 **Nothing computational is affected** — no solver, kernel or model behaviour
 depends on either string. It is recorded here because the archived artifact a
 reader downloads will disagree with the version they were told to expect.
+
+### A missing `include` corrupted the heap and never reported failure (fixed in 2.5.3)
+
+Both `include` rules released their operands inside the not-found branch and then
+fell through to code that used or released them again. `yyerror` reports; it does
+not unwind. So a script naming a file that is not on `SIMPATH` left either a
+dangling pointer in the parse tree, when compiling, or a double free otherwise,
+and the interpreter continued from there in undefined behaviour.
+
+What a user saw was never a clean error. With `-nox` and stdin on `/dev/null`, a
+missing include alone exited 139 with a segmentation fault after printing the
+message; the same after a successful include did likewise; and one followed only
+by `quit` hung in `select()` until killed.
+
+**The interpreter never exited with a usable non-zero status**, which in batch
+work is expensive: a hung process looks exactly like a working one to a
+scheduler, so a queue of simulations can spend its whole allocation on a script
+that failed in its first second.
+
+Fixed in `6fe3786`: the not-found branch now reports and frees nothing, and the
+code below it releases each operand exactly once or hands it to the parse tree,
+as it already did on the success path.
 
 ## Where the speedups come from
 
@@ -273,24 +295,25 @@ make LEXLIB="$PWD/locallib/libfl.a" nxgenesis
 Pass the same `LEXLIB=` to every later `make`, including `bindist`. A `.a` is
 what the link expects — a bare `.o` is not a drop-in replacement here.
 
-**A fresh clone does not build as of 2026-08-24, and this is unresolved.**
-`make genesis` and `make nxgenesis` both stop with
+**A fresh clone did not build between 2026-08-24 and v2.5.3. Fixed in v2.5.3.**
+`make genesis` and `make nxgenesis` stopped with
 
 ```
 No rule to make target 'diskio/interface/netcdf/netcdflib.o', needed by 'genesis'
 ```
 
-The top-level `libs` step enters `diskio/` but never descends into
-`diskio/interface/netcdf/`, so that object is never built. Building it by hand
-works — `(cd diskio/interface/netcdf && make netcdflib.o)` — but the build then
-still fails, and the next cause has not been identified. A tree that has been
-built before does not hit this, which is why it went unnoticed: the objects
-survive from the earlier build. If you have a working tree, keep it.
+The top-level `libs` step entered `diskio/` but never descended into
+`diskio/interface/netcdf/`. The cause was a tracked stamp file:
+`genesis/src/diskio/interface/fflibs` is the zero-length marker the `fflibs` rule
+touches after building its subdirectories, and it was committed to the
+repository — so a fresh clone arrived with the stamp already newer than its
+prerequisites and make skipped the rule that builds the subdirectories.
 
-This is the reason the v2.5.2 release ships without a binary tarball. One was
-built and verified from `873af16` under the 2.5.1 version strings, so the
-procedure works on a tree with prior build state; it has not been reproduced
-from a clean checkout.
+A tree that had been built before never hit this, because its objects survived
+from the earlier build. That is exactly why it went unnoticed for two months.
+
+Fixed in `aa163c5` by untracking the stamp. If you are on v2.5.2 or earlier and
+hit this, `rm genesis/src/diskio/interface/fflibs` before building.
 
 **`make clean` makes it worse before it makes it better.** Some generated
 `*_g@.c` files are tracked and some are not, so an incremental build can succeed
@@ -375,7 +398,7 @@ accepted, cite the repository directly:
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
-acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.2, 2026.
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.3, 2026.
 https://github.com/WarsawIQ/genesis-2.5
 Archived: https://doi.org/10.5281/zenodo.22032886
 ```
