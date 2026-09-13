@@ -210,7 +210,7 @@ int endline();
 */
 int AvailableCharacters()
 {
-int nc;
+int nc = 0;
 #if defined(i860) && !defined(paragon)
 nc = ioctl(fileno(stdin),FIORDCHK,0);
 /* printf("nc=%d\n",nc); */
@@ -237,8 +237,20 @@ nc = ioctl(fileno(stdin),FIORDCHK,0);
   nc = 0;  /* FIONREAD is unsupported so for now just assume no interactive
               input on XT3 */
 #else
-    ioctl(fileno(stdin),FIONREAD,&nc);
+    /*
+    ** ioctl() fails on anything that is not a character device: a script run
+    ** with stdin redirected from /dev/null, a pipe on some systems, a closed
+    ** descriptor. On failure it leaves nc UNTOUCHED, so before this check the
+    ** function returned an uninitialised stack slot, and every caller used it
+    ** as a character count. tset() copies that many bytes into a 1000 byte
+    ** stack buffer, so a large value smashes the stack and the simulator dies
+    ** in tset() before it reads a single line of the script.
+    */
+    if (ioctl(fileno(stdin),FIONREAD,&nc) < 0)
+	nc = 0;
 #endif
+    if (nc < 0)
+	nc = 0;
     return(nc);
 }
 

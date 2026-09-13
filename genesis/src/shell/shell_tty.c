@@ -630,7 +630,14 @@ tset()
      * state
      */
     nc = AvailableCharacters();
-    if (nc) {
+    /*
+    ** buffer holds 1000 bytes and nc comes from outside, so it is bounded here
+    ** as well as at the source. Belt and braces: a wrong count must not be able
+    ** to reach past the end of the frame.
+    */
+    if (nc > (int) sizeof(buffer))
+	nc = sizeof(buffer);
+    if (nc > 0) {
 	for (i = 0; i < nc; i++) {
 	    buffer[i] = getc(stdin);
 	}
