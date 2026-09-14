@@ -13,12 +13,15 @@ authors:
     affiliation: "Maria Curie-Skłodowska University in Lublin"
 repository-code: "https://github.com/WarsawIQ/genesis-2.5"
 license: GPL-2.0-or-later
-version: "2.5.2"
-date-released: "2026-08-24"
+version: "2.5.4"
+date-released: "2026-09-14"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.22032886"
     description: "Archived release (Zenodo, v2.5.1)"
+    # TODO po wydaniu: Zenodo wybija nowy DOI dla v2.5.4 - wpisac go tutaj
+    # jako kolejny wpis i poprawic opis powyzszego, ktory mowi v2.5.1, a
+    # towarzyszyl wydaniom az do v2.5.3.
   - type: doi
     value: "10.5281/zenodo.21716630"
     description: "Concept DOI, resolves to the latest version"
