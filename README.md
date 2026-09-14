@@ -1,6 +1,6 @@
 # GENESIS 2.5
 
-**Latest release: [v2.5.3](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.3)** ·
+**Latest release: [v2.5.4](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.4)** ·
 [archived on Zenodo](https://doi.org/10.5281/zenodo.22032886) ·
 [draft manuscript](paper/manuscript_softwarex_submission.pdf)
 
@@ -329,11 +329,14 @@ sprng and the terminal libraries with it. Pass the full set, as
 Two smaller ones worth knowing. `make clean` does not touch `hines/cuda/`, so a
 stale object built for a different GPU architecture links fine and fails at run
 time with *"no kernel image is available for execution on the device"* — remove
-`hines/cuda/*.o hines/hineslib.o` by hand when switching cards. And on very new
-toolchains (GCC 15 / glibc 2.42 seen here) the build completes but the binary
-segfaults during start-up inside `tset()`; GCC 8.5 on the cluster builds a
-working binary, so if you have a choice of compiler, prefer the older one until
-that is diagnosed.
+`hines/cuda/*.o hines/hineslib.o` by hand when switching cards. The start-up segfault inside `tset()` is **fixed in 2.5.4**, and the advice
+that used to stand here — prefer an older compiler — was wrong. The toolchain
+had nothing to do with it: `AvailableCharacters()` returned an uninitialised
+stack slot whenever `ioctl(FIONREAD)` failed, which it does on any stdin that
+is not a character device, `/dev/null` included. Whether that garbage was large
+enough to walk off the end of `tset()`'s 1000-byte buffer depended on the size
+of the environment block, which is why the same source crashed on one machine
+and ran on the next.
 
 ## Using the accelerator backends
 
@@ -398,7 +401,7 @@ accepted, cite the repository directly:
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
-acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.3, 2026.
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.4, 2026.
 https://github.com/WarsawIQ/genesis-2.5
 Archived: https://doi.org/10.5281/zenodo.22032886
 ```
