@@ -43,12 +43,14 @@ if (nc) {
 Any large garbage value walks off the end of the frame.
 
 Redirecting a batch run from `/dev/null` is enough to trigger it, which is what
-every job script does. Whether it triggers at all depends on the size of the
-environment block, because that is what decides the contents of the
-uninitialised slot — so the same source crashed on one machine and ran on the
-next, and the same binary crashed under one `TERM` value and ran under another
-two bytes longer. That is why it looked like a compiler or libc problem for
-three releases.
+every job script does. Whether it triggers at all depends on what happens to be
+in that stack slot, which the environment block decides — so the same source
+crashed on one machine and ran on the next, and one unpatched binary crashed
+under `TERM=linux` and `TERM=dumb` while running cleanly under `TERM=xterm` and
+`TERM=vt100`. Note that `linux` and `xterm` are the same length: it is the
+contents of the environment that move the stack, not any property of the
+terminal. That is what made it look like a compiler or libc problem, and it was
+carried as a toolchain Known issue in both v2.5.2 and v2.5.3.
 
 The fix initialises `nc`, checks the `ioctl` return, clamps a negative result to
 zero, and bounds the copy in `tset()` against the size of its own buffer — the
