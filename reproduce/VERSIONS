@@ -1,17 +1,21 @@
 # Exact versions of every external tool the paper's measurements used.
-# Checked on the UMCS cluster on 2026-09-29. The toolchain recipes in
+# Checked on the UMCS cluster on 2026-09-29, from the installed tools and their
+# build caches rather than from comments. The toolchain recipes in
 # cluster_bringup/toolchains/ install these versions and no others.
 #
 # tool | version | pinned by | source | checksum or check
 
 GENESIS CUDA toolkit | 12.8 | cluster install | /storage/opt/cuda/cuda-12.8 on UMCS | nvcc --version
 OpenCL headers | CUDA 13.0 toolkit | cluster install | /storage/opt/cuda/cuda-13.0 on UMCS | -
-Host compiler (GENESIS) | GCC 8.5.0 | cluster system | RHEL-derived system compiler | gcc --version
-NEURON, CPU arms | 9.0.2 | commit ba5783378c0aa1d9ac95b4454bea94b15c63f75d | pip wheel "neuron==9.0.2" | nrniv --version
-NEURON and CoreNEURON, GPU arm | 9.0.2 | commit ba5783378c0aa1d9ac95b4454bea94b15c63f75d | https://github.com/neuronsimulator/nrn | git describe
-NVHPC SDK | 24.11 | nvhpc_2024_2411_Linux_x86_64_cuda_12.6 | https://developer.download.nvidia.com/hpc-sdk/24.11/ | nvc++ --version
-Arbor, all arms | 0.10.0 | commit 6b6cc900b85fbf833fae94817b9406a0d690dc28 | https://github.com/arbor-sim/arbor | arbor.__version__ and arbor.config()["gpu"] == "cuda"
-Python for Arbor and the NEURON GPU build | 3.13 | miniforge | https://github.com/conda-forge/miniforge | python3 --version
+Host compiler, GENESIS | GCC 8.5.0 (Red Hat 8.5.0-28) | cluster system | RHEL-derived system compiler | gcc --version on miranda, inf02, inf03
+Host compiler, NEURON host tools and Arbor | GCC 13.3.1 | gcc-toolset-13 | /opt/rh/gcc-toolset-13 | CMAKE_CXX_COMPILER in the build caches
+CMake, NEURON and Arbor builds | 3.26.5 | cluster system /usr/bin/cmake | RHEL package | CMAKE_COMMAND in the build caches
+NEURON, CPU arms | 9.0.2 | commit ba5783378c0aa1d9ac95b4454bea94b15c63f75d | pip install --user neuron==9.0.2 (python3.12) | pip show neuron
+NEURON and CoreNEURON, GPU arm | 9.0.2 | tag 9.0.2, commit ba5783378c0aa1d9ac95b4454bea94b15c63f75d | https://github.com/neuronsimulator/nrn | git describe
+NVHPC SDK | 24.11 | nvhpc_2024_2411_Linux_x86_64_cuda_12.6.tar.gz | https://developer.download.nvidia.com/hpc-sdk/24.11/ | sha256 39408ac062573936e0d41f34530ab065998ef4b85b6bcccb59287d71135a1920 (computed from the copy downloaded 2026-08-16; NVIDIA publishes none)
+Arbor, all arms | 0.10.0 | tag v0.10.0, commit 6b6cc900b85fbf833fae94817b9406a0d690dc28 | https://github.com/arbor-sim/arbor | arbor.__version__ == "0.10.0" and arbor.config()["gpu"] == "cuda"
+Miniforge (Python for Arbor and the NEURON GPU build) | 26.3.2-3, Python 3.13.13 | Miniforge3-26.3.2-3-Linux-x86_64.sh | https://github.com/conda-forge/miniforge/releases/tag/26.3.2-3 | sha256 848194851a98903134187fbb4ab50efe87b003e0c0f808f97644b7524a62bf2c (matches the release's published .sha256)
+Python packages for the NEURON GPU build | Jinja2 3.1.6, PyYAML 6.0.3, setuptools 82.0.1, packaging 26.2, numpy 2.5.2, sympy 1.14.0 | pip, in the miniforge environment | PyPI | pip list
 ModelDB 83319 | archive of 2008 | sha256 5eeb6188cf49212a299b10c820878a907b9822f3024fdac545a4c6a2b5f50519 | https://modeldb.science/download/83319 | 1455789 bytes
 ROCm (Radeon 890M runs) | 6.3.1 | laptop install | https://rocm.docs.amd.com | recorded, not built by the recipes
 Mesa rusticl (Radeon 890M runs) | recorded at measurement time | laptop install | distribution package | recorded, not built by the recipes

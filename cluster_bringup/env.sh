@@ -29,6 +29,14 @@ SCRATCH=${SCRATCH:-${TMPDIR:-/tmp}}
 CUDA_HOME=${CUDA_HOME:-/storage/opt/cuda/cuda-12.8}
 OPENCL_CUDA_HOME=${OPENCL_CUDA_HOME:-/storage/opt/cuda/cuda-13.0}
 
+# Build tools for NEURON and Arbor. Every such build used the system CMake
+# 3.26: the pip-installed CMake 4 that comes first on PATH on miranda cannot
+# build Arbor 0.10 (CMake 4 removed find_package(CUDA)). The host-side NEURON
+# tools and Arbor were compiled with gcc-toolset-13; the system GCC 8.5 needs
+# -lstdc++fs for std::filesystem and fails to link them.
+CMAKE=${CMAKE:-/usr/bin/cmake}
+GCC_TOOLSET=${GCC_TOOLSET:-/opt/rh/gcc-toolset-13/root/usr}
+
 # Python 3.13 with development headers, for Arbor and the NEURON GPU build.
 MINIFORGE=${MINIFORGE:-$WORK_DIR/opt/miniforge}
 ARBOR_PYTHON=${ARBOR_PYTHON:-$MINIFORGE/bin/python3}
@@ -60,6 +68,6 @@ COBAHH_GPU_MECH=${COBAHH_GPU_MECH:-$COBAHH_DIR/x86_64_gpu2}
 MPIRUN=${MPIRUN:-mpirun}
 
 export GENESIS_ROOT WORK_DIR RUN_DIR SCRATCH CUDA_HOME OPENCL_CUDA_HOME
-export MINIFORGE ARBOR_PYTHON NRN_PYTHON NRN_PIP_BIN NVHPC_ROOT NRN_GPU_SRC
+export CMAKE GCC_TOOLSET MINIFORGE ARBOR_PYTHON NRN_PYTHON NRN_PIP_BIN NVHPC_ROOT NRN_GPU_SRC
 export NRN_GPU_BUILD ARBOR_PREFIX ARBOR_PY MODELDB_DIR COBAHH_DIR
 export COBAHH_GPU_MECH MPIRUN
