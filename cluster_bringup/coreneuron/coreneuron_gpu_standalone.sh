@@ -12,12 +12,20 @@
 # the process before anything after load_file() executes. A copy with the run
 # and teardown calls commented out builds the model and stops there, which is
 # all nrncore_write needs.
+#
+# Needs toolchains/fetch_modeldb_83319.sh, toolchains/30_neuron_gpu.sh and
+# build_mechanisms.sh to have run. special-core comes from $COBAHH_GPU_MECH,
+# the build linked with -lstdc++fs; the earlier build without it does not load,
+# and this script used to point at that one.
 set -u
-SRC="$HOME/coreneuron_cmp/destexhe_benchmarks"
-W="$HOME/cobahh_dumponly"
-DUMP="$HOME/cobahh_coredat"
-CORE="$SRC/NEURON/cobahh/x86_64_gpu2/x86_64/special-core"
-V="$HOME/opt/nvhpc24/Linux_x86_64/24.11"
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+. "$ROOT/cluster_bringup/env.sh"
+SRC="$MODELDB_DIR/destexhe_benchmarks"
+W="$RUN_DIR/cobahh_dumponly"
+DUMP="$RUN_DIR/cobahh_coredat"
+CORE="$COBAHH_GPU_MECH/x86_64/special-core"
+V="$NVHPC_ROOT"
+mkdir -p "$RUN_DIR"
 
 [ -x "$CORE" ] || { echo "no special-core at $CORE" >&2; exit 1; }
 
@@ -46,7 +54,7 @@ h.finitialize(-70)
 pc.nrncore_write(os.environ["DUMP"])
 print("DUMP_OK")
 PY
-DUMP="$DUMP" timeout 1800 python3.12 dump_core.py > dump.log 2>&1
+DUMP="$DUMP" timeout 1800 "$NRN_PYTHON" dump_core.py > dump.log 2>&1
 if ! grep -q DUMP_OK dump.log; then
     echo "dump FAILED"; tail -12 dump.log; exit 1
 fi
@@ -54,14 +62,14 @@ echo "files written: $(ls "$DUMP" | wc -l)"
 
 echo
 echo "== 3. CoreNEURON standalone on the GPU =="
-export LD_LIBRARY_PATH="$HOME/nrn_src/build-gpu/lib:$V/compilers/lib:$V/cuda/12.6/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$NRN_GPU_BUILD/lib:$V/compilers/lib:$V/cuda/12.6/lib64:${LD_LIBRARY_PATH:-}"
 nvidia-smi --query-gpu=name,memory.used --format=csv,noheader
 for r in 1 2 3; do
     S=$(date +%s%N)
-    timeout 1800 "$CORE" --datpath "$DUMP" --gpu --tstop 5000 --dt 0.05 > "$HOME/cn_gpu_run_$r.log" 2>&1
+    timeout 1800 "$CORE" --datpath "$DUMP" --gpu --tstop 5000 --dt 0.05 > "$RUN_DIR/cn_gpu_run_$r.log" 2>&1
     RC=$?
     E=$(date +%s%N)
     awk "BEGIN{printf \"  gpu rep $r wall=%.2f s rc=$RC\n\", ($E-$S)/1e9}"
-    grep -iE "Solver Time|Setup Time" "$HOME/cn_gpu_run_$r.log" | head -2
-    [ "$RC" -eq 0 ] || { echo "--- failure ---"; tail -12 "$HOME/cn_gpu_run_$r.log"; break; }
+    grep -iE "Solver Time|Setup Time" "$RUN_DIR/cn_gpu_run_$r.log" | head -2
+    [ "$RC" -eq 0 ] || { echo "--- failure ---"; tail -12 "$RUN_DIR/cn_gpu_run_$r.log"; break; }
 done
