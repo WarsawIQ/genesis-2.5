@@ -1,0 +1,35 @@
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Created 4000 cells; 4000 on host 0
+Created 320000 connections to targets on host 0
+SetupTime: 0.95711565 
+RunTime: 94.191937 
+id	 nsmax	 nsend	 nrecv	 nrused	 wait
+0	 0	 0	 0	 0	 0
+end of prstat
+histogram of #spikes vs #exchanges
+0	 0
+end of histogram
+                   total        min        max    idmin   idmax
+eqn                    0          0          0        0       0
+NetCon            320160     320160     320160        0       0
+deliver                0          0          0        0       0
+NC deliv               0          0          0        0       0
+PS send                0          0          0        0       0
+S deliv                0          0          0        0       0
+S send                 0          0          0        0       0
+S move                 0          0          0        0       0
+Q insert          559236     559236     559236        0       0
+Q move                 0          0          0        0       0
+Q remove          559236     559236     559236        0       0
+max sent               0          0          0        0       0
+sent                   0          0          0        0       0
+received               0          0          0        0       0
+used                   0          0          0        0       0
+
+setup        run          avgspkxfr    avgcomp      avgx2q       avgvxfr     
+0.9571       94.19        0            94.16        0           
+
+      id   spkxfr     id   comp       id   x2q        id   vxfr      
+min   0    0          0    94.16      0    0         
+max   0    0          0    94.16      0    0         

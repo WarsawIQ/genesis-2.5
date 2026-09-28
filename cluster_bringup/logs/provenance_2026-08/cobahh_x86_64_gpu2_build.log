@@ -1,0 +1,26 @@
+/storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2
+cfiles =
+Mod files: "../mechanisms/khh.mod" "../mechanisms/nahh.mod"
+
+Creating 'x86_64' directory for .o files.
+
+MODOBJS= ./khh.o ./nahh.o
+[INFO] Running: make -j4 -f /storage2/home/kchlasta/nrn_src/build-gpu/share/coreneuron/nrnivmodl_core_makefile ROOT=/storage2/home/kchlasta/nrn_src/build-gpu LINKFLAGS=-lstdc++fs MODS_PATH=x86_64/corenrn/mod2c BUILD_TYPE=SHARED NRN_PRCELLSTATE=0
+Default NMODL flags: 
+diff: x86_64/corenrn/mod2c/_mod_func.cpp: No such file or directory
+[NMODL] [warning] :: SemanticAnalysisVisitor :: FUNCTION initps does not have an explicit return statement, but VERBATIM block detected (possible return statement in VERBATIM block?)
+[NMODL] [warning] :: SemanticAnalysisVisitor :: FUNCTION sendgroup does not have an explicit return statement, but VERBATIM block detected (possible return statement in VERBATIM block?)
+ => [32mBinary[0m creating x86_64/special-core
+[INFO] MOD files built successfully for CoreNEURON
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../../mechanisms/khh.mod
+ -> [32mNMODL[0m ../../mechanisms/nahh.mod
+Translating khh.mod into /storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/x86_64/khh.cpp
+Translating nahh.mod into /storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/x86_64/nahh.cpp
+Thread Safe
+Thread Safe
+ -> [32mCompiling[0m /storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/x86_64/khh.cpp
+ -> [32mCompiling[0m /storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/x86_64/nahh.cpp
+ => [32mLINKING[0m shared library "/storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/x86_64/./libnrnmech.so"
+ => [32mLINKING[0m executable "/storage2/home/kchlasta/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/x86_64/./special" LDFLAGS are:    -lstdc++fs 
+Successfully created x86_64/special
