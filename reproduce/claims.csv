@@ -235,3 +235,19 @@ fp32_single_ap_v,sec:3,prose,V,%.0e,,,,,,,,,,,none,,25,2e-7,hh1952_ap_verify.g; 
 single_morphology_slower_x,sec:3;sec:5,prose,x,%.0f,,,,,,,,,,,none,,25,20,"NCOMP 2000 and 8000, N=1; data file not located; superseded by feature 004 E1"
 multicomp_build_n50000_s,sec:3,prose,s,%.1f,,,,,,,,,,,none,,25,23.8,construction time at N=50000 in the createmap sweep; column not located; superseded by feature 004 E1
 ksweep_step_k5000,sec:3,prose,x,%.1f,,,,,,,,,,,none,,25,116.2,step-phase at K=5000; data file not located; superseded by feature 004 E1
+ocl_trails_cuda_pct_a40,sec:3,derived,pct,%.0f,100 * (1 - singlecomp_ocl_a40_n50000 / singlecomp_cuda_a40_n50000),,,,,,,singlecomp_ocl_a40_n50000;singlecomp_cuda_a40_n50000,,,a40,,50,,cross-session-ok: OpenCL (2026-08-18) and CUDA (2026-08-15) arms were measured in different sessions on the same node; feature 004 measures them together
+ocl_trails_cuda_pct_a100,sec:3,derived,pct,%.0f,100 * (1 - singlecomp_ocl_a100_n50000 / singlecomp_cuda_a100_n50000),,,,,,,singlecomp_ocl_a100_n50000;singlecomp_cuda_a100_n50000,,,a100,,50,,cross-session-ok: OpenCL (2026-08-18) and CUDA (2026-08-15) arms were measured in different sessions on the same node; feature 004 measures them together
+multicomp_gpu_phase_a40_s,sec:3,prose,s,%.2f,,,,,,,,,,,a40,,25,7.83,GPU phase time at N=50000; data file not located; superseded by feature 004
+multicomp_gpu_phase_a100_s,sec:3,prose,s,%.2f,,,,,,,,,,,a100,,25,8.06,as above; superseded by feature 004
+crossover_setup_overhead_s,sec:3,prose,s,%.2f,,,,,,,,,,,a100,,25,0.21,step phase minus kernel time from the device profile; profile output not kept; superseded by feature 004
+vanet2_rate_hz,sec:3,prose,Hz,%.0f,,,,,,,,,,,none,,25,27,firing-rate regime; per-arm rates not kept; superseded by feature 004
+vanet2_rate_min_hz,tab:coreneuron,prose,Hz,%.1f,,,,,,,,,,,none,,25,26.8,as above; superseded by feature 004
+vanet2_rate_max_hz,tab:coreneuron,prose,Hz,%.1f,,,,,,,,,,,none,,25,30.1,as above; superseded by feature 004
+vanet2_spikes_genesis_published,tab:coreneuron,prose,spikes,",",,,,,,,,,,,none,,25,536600,"spike count of the published build, not kept; superseded by feature 004"
+vanet2_spikes_coreneuron_cpu,tab:coreneuron,prose,spikes,",",,,,,,,,,,,none,,25,558824,in provenance_2026-08/rep_core_*.log; extractor still to write; superseded by feature 004
+vanet2_spikes_neuron_channelbuilder,tab:coreneuron,prose,spikes,",",,,,,,,,,,,none,,25,574138,"single run, not kept; superseded by feature 004"
+vanet2_spikes_arbor_a100,tab:coreneuron,prose,spikes,",",,,,,,,,,,,arbor-gpu,,25,602720,not kept; superseded by feature 004
+vanet2_level_at_12500_ratio,sec:5,prose,x,%.2f,,,,,,,,,,,a40+a100,,25,1.0,spiking_accel/replicates_12500_*.txt; extractor still to write; superseded by feature 004
+spiking_speedup_ceiling,sec:5,derived,x,%.1f,1 / (1 - spiking_accelerable_fraction_pct / 100),,,,,,,spiking_accelerable_fraction_pct,,,none,,25,,Amdahl ceiling
+harness_fix_walltime_change_pct,sec:3,prose,pct,%.1f,,,,,,,,,,,arbor-gpu,,25,1.3,largest wall-time change after the vmcross harness corrections; before/after table not kept; superseded by feature 004
+igpu_tree_limit_compartments,sec:3,prose,compartments,",",,,,,,,,,,,amd-890m,,25,22000,driver reset threshold on the Radeon 890M; measured by hand; superseded by feature 004

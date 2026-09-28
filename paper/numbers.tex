@@ -236,4 +236,20 @@
 \expandafter\def\csname claim@single_morphology_slower_x\endcsname{20}
 \expandafter\def\csname claim@multicomp_build_n50000_s\endcsname{23.8}
 \expandafter\def\csname claim@ksweep_step_k5000\endcsname{116.2}
+\expandafter\def\csname claim@ocl_trails_cuda_pct_a40\endcsname{8}
+\expandafter\def\csname claim@ocl_trails_cuda_pct_a100\endcsname{7}
+\expandafter\def\csname claim@multicomp_gpu_phase_a40_s\endcsname{7.83}
+\expandafter\def\csname claim@multicomp_gpu_phase_a100_s\endcsname{8.06}
+\expandafter\def\csname claim@crossover_setup_overhead_s\endcsname{0.21}
+\expandafter\def\csname claim@vanet2_rate_hz\endcsname{27}
+\expandafter\def\csname claim@vanet2_rate_min_hz\endcsname{26.8}
+\expandafter\def\csname claim@vanet2_rate_max_hz\endcsname{30.1}
+\expandafter\def\csname claim@vanet2_spikes_genesis_published\endcsname{536\,600}
+\expandafter\def\csname claim@vanet2_spikes_coreneuron_cpu\endcsname{558\,824}
+\expandafter\def\csname claim@vanet2_spikes_neuron_channelbuilder\endcsname{574\,138}
+\expandafter\def\csname claim@vanet2_spikes_arbor_a100\endcsname{602\,720}
+\expandafter\def\csname claim@vanet2_level_at_12500_ratio\endcsname{1.00}
+\expandafter\def\csname claim@spiking_speedup_ceiling\endcsname{2.4}
+\expandafter\def\csname claim@harness_fix_walltime_change_pct\endcsname{1.3}
+\expandafter\def\csname claim@igpu_tree_limit_compartments\endcsname{22\,000}
 \providecommand{\claim}[1]{\ifcsname claim@#1\endcsname\csname claim@#1\endcsname\else\errmessage{claim #1 undefined}\fi}
