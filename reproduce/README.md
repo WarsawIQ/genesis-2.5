@@ -54,7 +54,7 @@ procedure, the two failures it runs into, and the raw logs are in
 ## What is checked, and what merely follows
 
 **The numbers are the claims**, so those are what `compare.py` checks against
-`expected.csv`. **The figures follow from them** -- the plotting scripts under
+`published.csv`, computed from the raw data by `make_numbers.py`. **The figures follow from them** -- the plotting scripts under
 `paper/scripts/` read the CSVs this pack writes, so you get the paper's figures
 drawn from your own hardware rather than ours. That is a stronger check than
 matching numbers alone, because it shows the same shape, not just the same
@@ -63,7 +63,7 @@ endpoint.
 ## Your numbers will differ, and that is expected
 
 Absolute timings track the host CPU, the card model, and how warm the card is.
-Tolerances in `expected.csv` are set accordingly, and what should reproduce is
+Tolerances in `claims.csv` are set accordingly, and what should reproduce is
 the shape of each result: which arm wins, and roughly by how much.
 
 Four things move results enough to be worth knowing about, all of them found the
@@ -115,7 +115,8 @@ at large N, say -- that is worth reporting to karol@chlasta.pl.
 |---|---|
 | `run_all.sh` | the entry point |
 | `stages/` | one script per claim group, runnable on their own |
-| `expected.csv` | published values and tolerances |
+| `claims.csv` | every published number: where it comes from, how it is computed, what it needs |
+| `published.csv` | the published values, generated from `claims.csv` and the data |
 | `compare.py` | measured against published, with a verdict |
 | `results/` | written by the run: CSVs, logs, `summary.csv` |
 

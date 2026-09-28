@@ -81,8 +81,8 @@ t_pub=$(arm cpu_published "$BIN_CPU" VAnet2-batch.g) || t_pub=""
 t_one=$(arm cpu_1solver   "$BIN_CPU" VAnet2-batch-1solver.g) || t_one=""
 t_gpu=$(arm gpu_1solver   "$BIN_GPU" VAnet2-batch-1solver.g) || t_gpu=""
 
-[ -n "$t_pub" ] && echo "vanet2_genesis,$t_pub,s" >> "$RESULTS/summary.csv"
-[ -n "$t_one" ] && echo "vanet2_genesis_1solver,$t_one,s" >> "$RESULTS/summary.csv"
+[ -n "$t_pub" ] && echo "vanet2_genesis_published_s,$t_pub,s" >> "$RESULTS/summary.csv"
+[ -n "$t_one" ] && echo "vanet2_genesis_1solver_s,$t_one,s" >> "$RESULTS/summary.csv"
 if [ -n "$t_pub" ] && [ -n "$t_one" ]; then
     awk -v a="$t_pub" -v b="$t_one" \
         'BEGIN{printf "vanet2_1solver_speedup,%.2f,x\n", a/b}' >> "$RESULTS/summary.csv"

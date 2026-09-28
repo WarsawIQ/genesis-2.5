@@ -35,6 +35,11 @@ for N in $NLIST; do
     done
     awk -v c="$ctot" -v g="$gtot" -v n="$REPS" -v N="$N" -v K="$K" \
         'BEGIN{printf "N=%s K=%s  CPU %.2fs  GPU %.2fs  speedup %.1fx\n", N, K, c/n, g/n, c/g}'
-    [ "$N" = 10000 ] && [ "$K" = 5000 ] && \
-        awk -v c="$ctot" -v g="$gtot" 'BEGIN{printf "ksweep_k5000,%.2f,x\n", c/g}' >> "$RESULTS/summary.csv"
+    # The published K=5000 figure was measured on an A40; on another card the
+    # number is printed above but not checked against it.
+    card=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
+    case "$card" in *A40*)
+        [ "$N" = 10000 ] && [ "$K" = 5000 ] && \
+            awk -v c="$ctot" -v g="$gtot" 'BEGIN{printf "ksweep_e2e_k5000,%.2f,x\n", c/g}' >> "$RESULTS/summary.csv" ;;
+    esac
 done

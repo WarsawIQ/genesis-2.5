@@ -5,7 +5,9 @@ The numbers are the claims, so these are what get checked. Figures follow from
 them: the plotting scripts in paper/scripts/ read the same CSVs, so a reviewer
 who runs this pack can regenerate the paper's figures from their own hardware.
 
-Tolerances live in expected.csv and are deliberately loose. GPU clock state,
+Published values come from published.csv, which make_numbers.py computes from
+the raw data, and tolerances from claims.csv; nothing here is typed by hand.
+Tolerances are deliberately loose. GPU clock state,
 card model and host CPU all move absolute timings; what should reproduce is the
 shape of each result -- which arm wins, and roughly by how much. A run that
 lands outside tolerance is worth looking into, not automatically a failure of
@@ -33,36 +35,52 @@ def load_measured(path):
     return out
 
 
+def load_published(here):
+    pub, meta = {}, {}
+    with open(os.path.join(here, "published.csv"), newline="") as f:
+        for r in csv.DictReader(f):
+            pub[r["id"]] = float(r["value"])
+    with open(os.path.join(here, "claims.csv"), newline="") as f:
+        for r in csv.DictReader(l for l in f if not l.startswith("#")):
+            meta[r["id"]] = r
+    return pub, meta
+
+
 def main():
-    if len(sys.argv) != 3:
-        print("usage: compare.py <summary.csv> <expected.csv>", file=sys.stderr)
+    if len(sys.argv) != 2:
+        print("usage: compare.py <summary.csv>", file=sys.stderr)
         return 2
     measured = load_measured(sys.argv[1])
-    expected_path = sys.argv[2]
+    pub, meta = load_published(os.path.dirname(os.path.abspath(__file__)))
 
-    rows, checked, passed, missing = [], 0, 0, 0
-    with open(expected_path, newline="") as f:
-        for e in csv.DictReader(f):
-            claim = e["claim"]
-            exp = float(e["expected"])
-            tol = float(e["tolerance_pct"])
-            got = measured.get(claim)
-            if got is None:
-                rows.append((claim, e["table"], f"{exp:g}", "not run", "-", ""))
-                missing += 1
-                continue
-            val = got[0]
-            checked += 1
-            # The correctness claim is an order of magnitude, not a value.
-            if claim == "correctness_fp32":
-                ok = val <= exp * 10
-                delta = f"{val:.1e}"
-            else:
-                ok = abs(val - exp) <= exp * tol / 100.0
-                delta = f"{(val - exp) / exp * 100:+.0f}%"
-            passed += ok
-            rows.append((claim, e["table"], f"{exp:g}", f"{val:g}", delta,
-                         "ok" if ok else "OUTSIDE"))
+    rows, checked, passed, unknown = [], 0, 0, []
+    for claim, (val, _units) in measured.items():
+        if claim not in pub:
+            unknown.append(claim)
+            continue
+        exp = pub[claim]
+        tol = float(meta[claim]["tolerance_pct"] or 25)
+        table = meta[claim]["where"].split(";")[0]
+        checked += 1
+        # The correctness claim is an order of magnitude, not a value.
+        if claim == "cuda_parity_v":
+            ok = val <= exp * 10
+            delta = f"{val:.1e}"
+        else:
+            ok = abs(val - exp) <= abs(exp) * tol / 100.0
+            delta = f"{(val - exp) / exp * 100:+.0f}%"
+        passed += ok
+        rows.append((claim, table, f"{exp:.3g}", f"{val:g}", delta,
+                     "ok" if ok else "OUTSIDE"))
+    missing = len(pub) - checked
+    if unknown:
+        print("measured but not in the claim map (a stage and claims.csv disagree):")
+        for u in unknown:
+            print("  " + u)
+        print()
+    if not rows:
+        print("nothing measured -- did a stage fail?")
+        return 1
 
     w = max(len(r[0]) for r in rows) + 2
     print(f"{'claim':<{w}}{'table':<16}{'published':>10}{'measured':>12}{'delta':>9}  verdict")
@@ -71,11 +89,8 @@ def main():
         print(f"{claim:<{w}}{table:<16}{exp:>10}{got:>12}{delta:>9}  {verdict}")
 
     print()
-    if checked:
-        print(f"{passed}/{checked} claims reproduced within tolerance", end="")
-        print(f"; {missing} not run in this mode" if missing else "")
-    else:
-        print("nothing measured -- did a stage fail?")
+    print(f"{passed}/{checked} claims reproduced within tolerance", end="")
+    print(f"; {missing} of the paper's {len(pub)} not covered by this run" if missing else "")
 
     if checked and passed < checked:
         print()

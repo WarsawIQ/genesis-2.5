@@ -23,6 +23,9 @@ N=10000
 OUT="$RESULTS/crossover.csv"
 echo "simulator,n_steps,rep,wall_s" > "$OUT"
 
+# Every claim here is per card: published for the A100 and the A40.
+card=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
+cs=a100; case "$card" in *A40*) cs=a40 ;; esac
 for K in 5000 50000; do
     r=1; tot=0
     while [ "$r" -le 3 ]; do
@@ -36,7 +39,7 @@ for K in 5000 50000; do
         r=$((r+1))
     done
     awk -v t="$tot" -v K="$K" 'BEGIN{printf "K=%s  GENESIS GPU %.2fs\n", K, t/3}'
-    awk -v t="$tot" -v K="$K" 'BEGIN{printf "crossover_genesis_k%s,%.2f,s\n", K, t/3}' >> "$RESULTS/summary.csv"
+    awk -v t="$tot" -v K="$K" -v cs="$cs" 'BEGIN{printf "crossover_genesis_%s_k%s,%.2f,s\n", cs, K, t/3}' >> "$RESULTS/summary.csv"
 done
 # The Arbor arm, when the reviewer has one. Without it the GENESIS times above
 # still stand on their own; with it the crossing itself is measurable, and the
@@ -54,7 +57,7 @@ if [ -f "$ARB" ] && python3 -c "import arbor" 2>/dev/null; then
             r=$((r+1))
         done
         [ "$r" -gt 3 ] && awk -v t="$tot" -v K="$K" \
-            'BEGIN{printf "crossover_arbor_k%s,%.2f,s\n", K, t/3}' >> "$RESULTS/summary.csv"
+            -v cs="$cs" 'BEGIN{printf "crossover_arbor_%s_k%s,%.2f,s\n", cs, K, t/3}' >> "$RESULTS/summary.csv"
     done
 
     # Two points per simulator give the intercept and slope, and the crossing
@@ -62,8 +65,7 @@ if [ -f "$ARB" ] && python3 -c "import arbor" 2>/dev/null; then
     # A100 at K ~ 6,400, because our kernel is fp32 where Arbor computes in
     # double. A crossing checked against the wrong card would look like a
     # failed reproduction when nothing had gone wrong.
-    card=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
-    key=crossover_k; case "$card" in *A40*) key=crossover_k_a40 ;; esac
+    key=crossover_k_$cs
     awk -F, -v key="$key" '
         $1 ~ /GENESIS/ { g[$2] += $4; gn[$2]++ }
         $1 ~ /Arbor/   { a[$2] += $4; an[$2]++ }

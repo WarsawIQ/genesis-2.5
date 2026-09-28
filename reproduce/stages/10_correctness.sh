@@ -29,4 +29,4 @@ fi
 # rejects, and the difference comes out empty.
 d=$(awk -v a="$cpu" -v b="$gpu" 'BEGIN{d=a-b; print (d<0?-d:d)}')
 printf 'CPU fp64 Vm = %s\nGPU fp32 Vm = %s\n|difference| = %s V\n' "$cpu" "$gpu" "$d"
-echo "correctness_fp32,$d,V" >> "$RESULTS/summary.csv"
+echo "cuda_parity_v,$d,V" >> "$RESULTS/summary.csv"

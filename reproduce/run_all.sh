@@ -17,7 +17,7 @@
 # GENESIS claims, which are the ones this paper makes.
 #
 # Numbers will not match to the last digit. GPU clock state, card model and
-# host CPU all move them; the tolerances in expected.csv are set accordingly,
+# host CPU all move them; the tolerances in claims.csv are set accordingly,
 # and the shape of each result -- which arm wins, and by roughly how much --
 # is what should reproduce.
 set -u
@@ -163,7 +163,7 @@ fi
 
 # ----------------------------------------------------------------- verdict
 say "measured against published"
-python3 "$HERE/compare.py" "$SUMMARY" "$HERE/expected.csv"
+python3 "$HERE/compare.py" "$SUMMARY"
 echo
 echo "Raw results: $RESULTS"
 echo "Figures:     paper/figures/"
