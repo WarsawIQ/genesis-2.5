@@ -21,6 +21,8 @@
 # and the shape of each result -- which arm wins, and by roughly how much --
 # is what should reproduce.
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
@@ -75,7 +77,7 @@ else
 fi
 
 # CUDA is not always on PATH; the build needs nvcc.
-[ -n "${CUDA_HOME:-}" ] || CUDA_HOME=$(ls -d /usr/local/cuda* /storage/opt/cuda/cuda-12.8 2>/dev/null | head -1)
+# CUDA_HOME comes from cluster_bringup/env.sh
 [ -x "$CUDA_HOME/bin/nvcc" ] && PATH="$CUDA_HOME/bin:$PATH" && export PATH CUDA_HOME
 command -v nvcc >/dev/null 2>&1 || { echo "nvcc not found; set CUDA_HOME" >&2; exit 1; }
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"

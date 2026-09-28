@@ -15,10 +15,12 @@
 # to CSV so partial results survive an interruption.
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 cd "$ROOT"
-: "${CUDA_HOME:=/storage/opt/cuda/cuda-12.8}"
+# CUDA_HOME comes from cluster_bringup/env.sh
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 B=genesis/Scripts/benchmark/hh1952_squid_multiloop_benchmark.g

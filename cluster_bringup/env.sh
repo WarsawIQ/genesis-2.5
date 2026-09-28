@@ -25,8 +25,15 @@ RUN_DIR=${RUN_DIR:-$WORK_DIR/runs}
 SCRATCH=${SCRATCH:-${TMPDIR:-/tmp}}
 
 # CUDA. The GENESIS CUDA backend is built and measured with 12.8; the OpenCL
-# build takes its CL headers from the 13.0 toolkit on this cluster.
-CUDA_HOME=${CUDA_HOME:-/storage/opt/cuda/cuda-12.8}
+# build takes its CL headers from the 13.0 toolkit on this cluster. Off the
+# cluster the usual /usr/local/cuda is taken if it exists.
+if [ -z "${CUDA_HOME:-}" ]; then
+    for _d in /storage/opt/cuda/cuda-12.8 /usr/local/cuda; do
+        [ -d "$_d" ] && { CUDA_HOME=$_d; break; }
+    done
+    unset _d
+fi
+CUDA_HOME=${CUDA_HOME:-/usr/local/cuda}
 OPENCL_CUDA_HOME=${OPENCL_CUDA_HOME:-/storage/opt/cuda/cuda-13.0}
 
 # Build tools for NEURON and Arbor. Every such build used the system CMake

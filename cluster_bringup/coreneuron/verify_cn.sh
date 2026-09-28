@@ -5,8 +5,10 @@
 #   B  NEURON CPU, original ChannelBuilder channels (x86_64 hidden)
 #   C  CoreNEURON CPU, compiled mod channels
 # A vs B is the correctness check; A vs C is the CoreNEURON speedup.
-export PATH="$HOME/.local/bin:$PATH"
-D="$HOME/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+export PATH="$NRN_PIP_BIN:$PATH"
+D="$COBAHH_DIR"
 cd "$D" || exit 1
 
 cat > run_plain.py <<'EOF'

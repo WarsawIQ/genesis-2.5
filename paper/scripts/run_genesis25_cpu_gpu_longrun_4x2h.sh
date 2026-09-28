@@ -15,6 +15,8 @@
 # The raw CSV is appended across invocations, so reruns of individual sessions
 # will add rows. Use session= and mode= columns to filter when aggregating.
 set -euo pipefail
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
@@ -47,13 +49,13 @@ run_one() {
   t0=$(date +%s%N)
   set +e
   timeout "$TIMEOUT_SINGLE" "$exe" -nosimrc -notty -batch "$SCRIPT" "$NEURONS" "$STEPS" \
-    >/tmp/gen25_longrun.log 2>&1
+    >$SCRATCH/gen25_longrun.log 2>&1
   ec=$?
   set -e
   t1=$(date +%s%N)
 
   dt=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.6f", (b-a)/1e9}')
-  err=$(grep -c '\*\* Error' /tmp/gen25_longrun.log || true)
+  err=$(grep -c '\*\* Error' $SCRATCH/gen25_longrun.log || true)
 
   echo "$session,$mode,$phase,$iter,$NEURONS,$STEPS,$dt,$err,$ec" >> "$RAW"
   echo "[$(date +%T)] session=$session $mode $phase iter=$iter wall=${dt}s err=$err rc=$ec"

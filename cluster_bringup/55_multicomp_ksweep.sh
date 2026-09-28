@@ -11,6 +11,8 @@
 # regime real modelling studies work in. N=10000 (160000 compartments) is large
 # enough to be past the crossover and small enough that K=5000 finishes.
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 R=$(cd "$HERE/.." && pwd)
@@ -18,7 +20,7 @@ NODE=$(hostname)
 GPU=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
 [ -n "$GPU" ] || GPU="no-gpu"
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 # Without this the tree multiloop declines any hsolve over 20000 compartments
 # and falls back to per-step dispatch -- a different measurement entirely.
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0

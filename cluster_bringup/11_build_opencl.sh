@@ -16,11 +16,13 @@
 #
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 SRC="$ROOT/genesis/src"
 
-: "${CUDA_HOME:=/storage/opt/cuda/cuda-13.0}"
+CUDA_HOME=$OPENCL_CUDA_HOME   # the CL headers come from the 13.0 toolkit
 export CPATH="$CUDA_HOME/targets/x86_64-linux/include${CPATH:+:$CPATH}"
 CC=${CC:-$(command -v gcc)}
 

@@ -10,11 +10,13 @@
 #   * stdin from /dev/null so the batch binary can't block waiting for input.
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 cd "$ROOT"
 
-: "${CUDA_HOME:=/storage/opt/cuda/cuda-12.8}"
+# CUDA_HOME comes from cluster_bringup/env.sh
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 V=genesis/Scripts/benchmark/hh1952_ap_verify.g
 BIN_CPU=./genesis/src/nxgenesis_nocl

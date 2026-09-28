@@ -16,6 +16,8 @@
 # Usage: ./52_cuda_singlecomp_campaign.sh [NODE_LABEL]
 # Prepared by Karol Chlasta (karol@chlasta.pl), 2026-07-25.
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 cd "$ROOT"
@@ -29,7 +31,7 @@ CPU_BIN="./genesis/src/nxgenesis_nocl"
 GPU_BIN="./genesis/src/nxgenesis"
 BENCH="genesis/Scripts/benchmark/hh_spiking_benchmark.g"
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 echo "node,gpu,n_neurons,n_steps,mode,rep,t_total_s" > "$OUT"
 echo "CUDA single-compartment campaign on $NODE ($GPU) -> $OUT"

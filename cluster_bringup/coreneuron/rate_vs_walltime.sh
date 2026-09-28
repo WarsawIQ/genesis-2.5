@@ -15,14 +15,16 @@
 #
 # If the two arms of a simulator agree, firing rate is not in the measurement.
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 N=${N:-10000}
 K=${K:-5000}
 REPS=${REPS:-3}
-OUT="$HOME/genesis-2.5/cluster_bringup/logs/rate_vs_walltime_$(hostname)_$(date +%Y%m%d_%H%M%S).csv"
+OUT="$GENESIS_ROOT/cluster_bringup/logs/rate_vs_walltime_$(hostname)_$(date +%Y%m%d_%H%M%S).csv"
 
-GEN_LD="/storage/opt/cuda/cuda-12.8/lib64"
-ARB_P="$HOME/opt/arbor-gpu/lib/python3.13/site-packages"
-PY="$HOME/opt/miniforge/bin/python3"
+GEN_LD="$CUDA_HOME/lib64"
+ARB_P="$ARBOR_PY"
+PY="$ARBOR_PYTHON"
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0
 
 USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)
@@ -34,7 +36,7 @@ echo "== firing rate vs wall time, N=$N K=$K on $(hostname) =="
 
 for driven in 1 0; do
     # ---- GENESIS GPU ----
-    cd "$HOME/genesis-2.5" || exit 1
+    cd "$GENESIS_ROOT" || exit 1
     for r in $(seq 1 "$REPS"); do
         NOINJ=0; [ "$driven" = 0 ] && NOINJ=1
         S=$(date +%s%N)
@@ -47,17 +49,17 @@ for driven in 1 0; do
     done
 
     # ---- Arbor GPU ----
-    cd "$HOME" || exit 1
+    cd "$GENESIS_ROOT/cluster_bringup/coreneuron" || exit 1
     AMP=0.5; [ "$driven" = 0 ] && AMP=0.0
     for r in $(seq 1 "$REPS"); do
-        w=$(PYTHONPATH="$ARB_P" LD_LIBRARY_PATH="$GEN_LD:$HOME/opt/arbor-gpu/lib" \
+        w=$(PYTHONPATH="$ARB_P" LD_LIBRARY_PATH="$GEN_LD:$ARBOR_PREFIX/lib" \
             USE_GPU=1 INJECT_NA=$AMP timeout 3600 "$PY" hh_multicomp_arbor.py "$N" "$K" 2>&1 \
             | sed -n 's/^RESULT_WALL_S=//p')
         echo "Arbor 0.10.0,GPU,$driven,$r,${w:-NA}" >> "$OUT"
     done
 
     # ---- NEURON CPU ----
-    cd "$HOME/nrn_multicomp" 2>/dev/null || { echo "no nrn_multicomp"; exit 1; }
+    cd "$RUN_DIR/nrn_multicomp" 2>/dev/null || { echo "no nrn_multicomp"; exit 1; }
     for r in $(seq 1 "$REPS"); do
         w=$(INJECT_NA=$AMP USE_CORENEURON=0 timeout 3600 python3.12 \
             hh_multicomp_neuron.py "$N" "$K" 2>&1 | sed -n 's/^RESULT_WALL_S=//p')

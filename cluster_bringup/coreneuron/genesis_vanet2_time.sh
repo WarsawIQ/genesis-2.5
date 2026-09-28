@@ -2,13 +2,15 @@
 # Re-confirm the GENESIS VAnet2 wall time on the node that ran CoreNEURON,
 # uninstrumented, so the head-to-head rests on same-node measurements.
 set -u
-R="$HOME/genesis-2.5"
-W="$HOME/vanet2_timing"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+R="$GENESIS_ROOT"
+W="$RUN_DIR/vanet2_timing"
 rm -rf "$W"; mkdir -p "$W"
 cp "$R"/genesis/Scripts/VAnet2/*.g "$R"/genesis/Scripts/VAnet2/*.p "$W"/ 2>/dev/null
 cd "$W" || exit 1
 printf 'setenv SIMPATH . %s/genesis/startup %s/genesis/Scripts/neurokit %s/genesis/Scripts/neurokit/prototypes\nsetenv SIMNOTES %s/.notes\nsetenv GENESIS_HELP %s/genesis/Doc\nschedule\n' \
-    "$R" "$R" "$R" "$HOME" "$R" > .simrc
+    "$R" "$R" "$R" "$RUN_DIR" "$R" > .simrc
 
 echo "node=$(hostname)"
 for r in 1 2 3; do

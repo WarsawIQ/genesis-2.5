@@ -8,14 +8,16 @@
 # not from the context in use, so the arm has to be identified by which context
 # was constructed -- the same silent-substitution risk CoreNEURON had.
 set -u
-P="$HOME/opt/arbor-gpu/lib/python3.13/site-packages"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+P="$ARBOR_PY"
 export PYTHONPATH="$P"
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:$HOME/opt/arbor-gpu/lib:${LD_LIBRARY_PATH:-}"
-PY="$HOME/opt/miniforge/bin/python3"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:${LD_LIBRARY_PATH:-}"
+PY="$ARBOR_PYTHON"
 N=${N:-10000}
 K=${K:-5000}
 REPS=${REPS:-3}
-cd "$HOME" || exit 1
+cd "$GENESIS_ROOT/cluster_bringup/coreneuron" || exit 1
 
 echo "== Arbor N=$N NCOMP=16 K=$K on $(hostname) =="
 nvidia-smi --query-gpu=name,memory.used --format=csv,noheader

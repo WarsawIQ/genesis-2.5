@@ -14,6 +14,8 @@
 #
 # Overridable: REPS (default 10), STEPS (default 200), NLIST.
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 R=$(cd "$HERE/.." && pwd)
@@ -21,7 +23,7 @@ NODE=$(hostname)
 GPU=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
 [ -n "$GPU" ] || GPU="no-gpu"
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 # Which construction method to measure. The default is the explicit SLI loop
 # the original benchmark uses; hh_multicompartment_createmap.g builds the

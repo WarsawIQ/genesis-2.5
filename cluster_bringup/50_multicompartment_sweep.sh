@@ -10,6 +10,8 @@
 #
 # Prepared by Karol Chlasta (karol@chlasta.pl), 2026-07-25.
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 cd "$ROOT"
@@ -23,7 +25,7 @@ B="genesis/Scripts/benchmark/hh_multicompartment_benchmark.g"
 CPU_BIN="./genesis/src/nxgenesis_nocl"
 GPU_BIN="./genesis/src/nxgenesis"
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0   # this is real cluster HW, no iGPU cap needed
 
 echo "node,gpu,ncomp,n_neurons,total_comps,mode,t_per_step_s" > "$OUT"

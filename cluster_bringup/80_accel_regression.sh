@@ -24,6 +24,8 @@
 #
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
@@ -40,7 +42,7 @@ trap 'rm -f "$OUT"' EXIT
 BIN_CPU=./genesis/src/nxgenesis_nocl
 BIN_GPU=./genesis/src/nxgenesis
 BENCH=genesis/Scripts/benchmark
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 for b in "$BIN_CPU" "$BIN_GPU"; do
     [ -x "$b" ] || { echo "ERROR: missing $b -- build first" >&2; exit 1; }
@@ -89,7 +91,7 @@ run() {
 # and with one solver per cell it needs hours, not the seconds the rest of this
 # harness takes. Set ACCEL_VANET2_GPU=1 to include it once cross-solver dispatch
 # is cheap enough for that to be reasonable.
-VA=$HOME/vanet2_regression
+VA=$RUN_DIR/vanet2_regression
 VA_ARMS="cpu"
 [ "${ACCEL_VANET2_GPU:-0}" = "1" ] && VA_ARMS="cpu gpu"
 if [ -d genesis/Scripts/VAnet2 ]; then
@@ -101,7 +103,7 @@ if [ -d genesis/Scripts/VAnet2 ]; then
         # Without `schedule` nothing is attached to the clocks, `step` returns
         # immediately and the run silently produces no output at all.
         printf 'setenv SIMPATH . %s/genesis/startup %s/genesis/Scripts/neurokit %s/genesis/Scripts/neurokit/prototypes\nsetenv SIMNOTES %s/.notes\nsetenv GENESIS_HELP %s/genesis/Doc\nschedule\n' \
-            "$ROOT" "$ROOT" "$ROOT" "$HOME" "$ROOT" > "$VA-$arm/.simrc"
+            "$ROOT" "$ROOT" "$ROOT" "$RUN_DIR" "$ROOT" > "$VA-$arm/.simrc"
         ( cd "$VA-$arm" && timeout 900 "$ROOT/$bin" -notty -batch VAnet2-batch.g \
             > out.log 2>&1 )
         if [ -s "$VA-$arm/Vm_out_1000.txt" ]; then

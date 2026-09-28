@@ -7,9 +7,11 @@
 # not directly comparable. This repeats the GENESIS arms on inf03 so every
 # figure in the comparison comes from one machine.
 set -u
-R="$HOME/genesis-2.5"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+R="$GENESIS_ROOT"
 cd "$R" || exit 1
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 # Above 20000 compartments the tree multiloop declines the model and falls back
 # to per-step dispatch; 10000 x 16 is well past that.
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0

@@ -10,11 +10,13 @@
 # Output: paper/data/genesis25_pgenesis_mpi_scaling.csv
 
 set -euo pipefail
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 PGEN="$REPO/pgenesis/bin/Linux/nxpgenesis"
 BENCH="$REPO/genesis/Scripts/benchmark/hh1952_mpi_scaling.g"
-MPIRUN="/home/griffi/.local/bin/mpirun"
+# MPIRUN comes from cluster_bringup/env.sh
 CSV="$REPO/paper/data/genesis25_pgenesis_mpi_scaling.csv"
 
 N_TOTAL=2400

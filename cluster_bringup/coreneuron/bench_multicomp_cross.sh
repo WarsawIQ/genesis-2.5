@@ -11,21 +11,23 @@
 # cluster_bringup/logs/multicomp_ksweep_inf02_A40_20260816.csv (N=10000,
 # K=5000): CPU 116.75 s, GPU 2.05 s, both end-to-end.
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 N=${N:-10000}
 STEPS=${STEPS:-5000}
 REPS=${REPS:-3}
-cd "$HOME" || exit 1
+cd "$GENESIS_ROOT/cluster_bringup/coreneuron" || exit 1
 
 echo "== NEURON multi-compartment HH, N=$N NCOMP=16 K=$STEPS on $(hostname) =="
 
 # CoreNEURON needs a mechanism library even when the model uses only built-ins.
-W="$HOME/nrn_multicomp"
+W="$RUN_DIR/nrn_multicomp"
 mkdir -p "$W" && cd "$W"
 if [ ! -f x86_64/libcorenrnmech.so ]; then
     nrnivmodl -coreneuron . > build.log 2>&1
     ls x86_64/libcorenrnmech.so >/dev/null 2>&1 || echo "WARN: no coreneuron lib; CPU arm only"
 fi
-cp -f "$HOME/hh_multicomp_neuron.py" .
+cp -f "$GENESIS_ROOT/cluster_bringup/coreneuron/hh_multicomp_neuron.py" .
 
 run_arm() {
     label=$1; env_str=$2

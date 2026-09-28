@@ -6,15 +6,17 @@
 # an extrapolation between two measurements into a curve, and shows the reader
 # where each simulator wins instead of asking them to trust a fit.
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 N=${N:-10000}
 REPS=${REPS:-3}
 KLIST=${KLIST:-"1000 2500 5000 10000 20000 50000"}
-OUT="$HOME/genesis-2.5/cluster_bringup/logs/crossover_$(hostname)_$(date +%Y%m%d_%H%M%S).csv"
+OUT="$GENESIS_ROOT/cluster_bringup/logs/crossover_$(hostname)_$(date +%Y%m%d_%H%M%S).csv"
 
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0
-GEN_LD="/storage/opt/cuda/cuda-12.8/lib64"
-ARB_P="$HOME/opt/arbor-gpu/lib/python3.13/site-packages"
-PY="$HOME/opt/miniforge/bin/python3"
+GEN_LD="$CUDA_HOME/lib64"
+ARB_P="$ARBOR_PY"
+PY="$ARBOR_PYTHON"
 
 USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)
 [ "$USED" -gt 500 ] && { echo "ABORT: $USED MiB already on the card" >&2; exit 1; }
@@ -30,10 +32,10 @@ esac
 
 # A binary carrying no SASS for this card would either fail to launch or fall
 # back to the CPU while still being timed as "GPU". Checked, not trusted.
-CUOBJ="${CUDA_HOME:-/storage/opt/cuda/cuda-12.8}/bin/cuobjdump"
+CUOBJ="$CUDA_HOME/bin/cuobjdump"
 CC_SM=sm_$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -1 | tr -d '. ')
 if [ -x "$CUOBJ" ]; then
-    "$CUOBJ" --list-elf "$HOME/genesis-2.5/genesis/src/nxgenesis" 2>/dev/null \
+    "$CUOBJ" --list-elf "$GENESIS_ROOT/genesis/src/nxgenesis" 2>/dev/null \
         | grep -q "$CC_SM" || {
         echo "ABORT: nxgenesis has no $CC_SM code for this $GPU" >&2; exit 1; }
 fi
@@ -43,7 +45,7 @@ echo "simulator,node,gpu,n_neurons,ncomp,n_steps,rep,wall_s" > "$OUT"
 echo "== crossover sweep, N=$N on $(hostname) =="
 
 for K in $KLIST; do
-    cd "$HOME/genesis-2.5" || exit 1
+    cd "$GENESIS_ROOT" || exit 1
     for r in $(seq 1 "$REPS"); do
         S1=$(date +%s%N)
         LD_LIBRARY_PATH="$GEN_LD" env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 \
@@ -54,9 +56,9 @@ for K in $KLIST; do
         echo "GENESIS 2.5,$(hostname),$GPU,$N,16,$K,$r,$(awk "BEGIN{printf \"%.4f\", ($E1-$S1)/1e9}")" >> "$OUT"
     done
 
-    cd "$HOME" || exit 1
+    cd "$GENESIS_ROOT/cluster_bringup/coreneuron" || exit 1
     for r in $(seq 1 "$REPS"); do
-        w=$(PYTHONPATH="$ARB_P" LD_LIBRARY_PATH="$GEN_LD:$HOME/opt/arbor-gpu/lib" \
+        w=$(PYTHONPATH="$ARB_P" LD_LIBRARY_PATH="$GEN_LD:$ARBOR_PREFIX/lib" \
             USE_GPU=1 timeout 3600 "$PY" hh_multicomp_arbor.py "$N" "$K" 2>&1 \
             | sed -n 's/^RESULT_WALL_S=//p')
         echo "Arbor 0.10.0,$(hostname),$GPU,$N,16,$K,$r,${w:-NA}" >> "$OUT"

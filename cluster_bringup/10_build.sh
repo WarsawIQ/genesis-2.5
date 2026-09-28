@@ -15,12 +15,14 @@
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 # Overridable: CUDA_HOME, CC, ARCH.
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 SRC="$ROOT/genesis/src"
 
 # CUDA (no module on this cluster; pinned 12.8). nvcc is not on PATH by default.
-: "${CUDA_HOME:=/storage/opt/cuda/cuda-12.8}"
+# CUDA_HOME comes from cluster_bringup/env.sh
 [ -x "$CUDA_HOME/bin/nvcc" ] && export PATH="$CUDA_HOME/bin:$PATH"
 command -v nvcc >/dev/null 2>&1 || { echo "ERROR: nvcc not found (CUDA_HOME=$CUDA_HOME)"; exit 1; }
 CC=${CC:-$(command -v gcc)}

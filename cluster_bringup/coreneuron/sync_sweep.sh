@@ -8,9 +8,11 @@
 # interval; 0 disables it. Correctness is checked at every setting, not just
 # the timing: the recorded voltages must not move.
 set -u
-R="$HOME/genesis-2.5"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+R="$GENESIS_ROOT"
 cd "$R" || exit 1
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 export GENESIS_OCL_TREE_MAX_NCOMPTS=0
 S="genesis/Scripts/benchmark/hh_multicompartment_createmap.g"
 N=${N:-10000}

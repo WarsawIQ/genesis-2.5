@@ -8,10 +8,12 @@
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 # Env: N_NEURONS (2000), N_STEPS (5000), N_REPS (5 measured, +1 warm-up).
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 cd "$ROOT"
-: "${CUDA_HOME:=/storage/opt/cuda/cuda-12.8}"
+# CUDA_HOME comes from cluster_bringup/env.sh
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 N_NEURONS=${N_NEURONS:-2000}

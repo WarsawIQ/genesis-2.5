@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
@@ -28,12 +30,12 @@ run_one() {
   local t0 t1 dt err ec
   t0=$(date +%s%N)
   set +e
-  timeout 1800 "$exe" -nosimrc -notty -batch "$script" "${args[@]}" >/tmp/gen25_extreme.log 2>&1
+  timeout 1800 "$exe" -nosimrc -notty -batch "$script" "${args[@]}" >$SCRATCH/gen25_extreme.log 2>&1
   ec=$?
   set -e
   t1=$(date +%s%N)
   dt=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.6f", (b-a)/1e9}')
-  err=$(grep -c '\*\* Error' /tmp/gen25_extreme.log || true)
+  err=$(grep -c '\*\* Error' $SCRATCH/gen25_extreme.log || true)
 
   echo "$benchmark,$size_key,$size_value,$config,$steps,$rep,$mode,$dt,$err,$ec" >> "$OUT"
   echo "[$(date +%H:%M:%S)] $benchmark $config rep=$rep mode=$mode wall=$dt err=$err rc=$ec"
@@ -46,8 +48,8 @@ run_case_neurons() {
   local script="$4"
   local config="N${neurons}_S${steps}"
 
-  timeout 1800 "$CPU" -nosimrc -notty -batch "$script" "$neurons" "$steps" >/tmp/gen25_extreme_warmup.log 2>&1 || true
-  timeout 1800 "$GPU" -nosimrc -notty -batch "$script" "$neurons" "$steps" >/tmp/gen25_extreme_warmup.log 2>&1 || true
+  timeout 1800 "$CPU" -nosimrc -notty -batch "$script" "$neurons" "$steps" >$SCRATCH/gen25_extreme_warmup.log 2>&1 || true
+  timeout 1800 "$GPU" -nosimrc -notty -batch "$script" "$neurons" "$steps" >$SCRATCH/gen25_extreme_warmup.log 2>&1 || true
 
   for rep in $(seq 1 5); do
     run_one CPU "$CPU" "$benchmark" neurons "$neurons" "$config" "$steps" "$rep" "$script" "$neurons" "$steps"
@@ -64,8 +66,8 @@ run_case_region() {
   local config="EX${exn}x${exn}_INH${inh}x${inh}_S${steps}"
   local script="genesis/Scripts/benchmark/region_proxy_microcircuit_benchmark.g"
 
-  timeout 1800 "$CPU" -nosimrc -notty -batch "$script" "$steps" "$exn" "$exn" "$inh" "$inh" >/tmp/gen25_extreme_warmup.log 2>&1 || true
-  timeout 1800 "$GPU" -nosimrc -notty -batch "$script" "$steps" "$exn" "$exn" "$inh" "$inh" >/tmp/gen25_extreme_warmup.log 2>&1 || true
+  timeout 1800 "$CPU" -nosimrc -notty -batch "$script" "$steps" "$exn" "$exn" "$inh" "$inh" >$SCRATCH/gen25_extreme_warmup.log 2>&1 || true
+  timeout 1800 "$GPU" -nosimrc -notty -batch "$script" "$steps" "$exn" "$exn" "$inh" "$inh" >$SCRATCH/gen25_extreme_warmup.log 2>&1 || true
 
   for rep in $(seq 1 5); do
     run_one CPU "$CPU" "$benchmark" region_cells "$total" "$config" "$steps" "$rep" "$script" "$steps" "$exn" "$exn" "$inh" "$inh"

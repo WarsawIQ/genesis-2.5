@@ -3,6 +3,8 @@
 # Gathers everything needed to fill in the build/benchmark steps. Changes nothing.
 # Prepared by Karol Chlasta (karol@chlasta.pl).
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 echo "=================================================================="
 echo " Recon: $(hostname)   $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=================================================================="
@@ -33,8 +35,8 @@ for t in gcc g++ make flex bison mpirun mpicc git; do
   printf "  %-8s " "$t"; command -v "$t" 2>/dev/null || echo "MISSING"
 done
 
-echo "-- Tools in /storage/opt --"
-ls -1 /storage/opt 2>/dev/null | sed 's/^/  /' | head -40 || echo "  (no /storage/opt)"
+echo "-- Tools in /storage/opt --"   # path-ok: surveys the cluster
+ls -1 /storage/opt 2>/dev/null | sed 's/^/  /' | head -40 || echo "  (no /storage/opt)"   # path-ok: surveys the cluster
 
 echo "-- Suggested nvcc -arch (from GPU compute capability) --"
 if command -v nvidia-smi >/dev/null 2>&1; then

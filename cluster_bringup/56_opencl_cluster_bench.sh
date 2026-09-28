@@ -12,17 +12,19 @@
 # with checksums before anything is built, and an EXIT/INT/TERM trap restores
 # them however the script ends, including a dropped connection.
 #
-# $HOME is shared between the nodes, so the build must happen exactly once.
+# $HOME is shared between the nodes, so the build must happen exactly once.   # path-ok: comment
 # Building on inf02 and inf03 together would have them overwriting each other's
 # objects in the same tree. This builds here, then benchmarks over ssh on each
 # node in turn with BENCH_ONLY=1.
 set -u
-R="$HOME/genesis-2.5"
-SELF="$HOME/$(basename "$0")"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+R="$GENESIS_ROOT"
+SELF="$GENESIS_ROOT/cluster_bringup/$(basename "$0")"
 cd "$R" || exit 1
 
 bench_here() {
-    export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+    export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
     export GENESIS_OCL_TREE_MAX_NCOMPTS=0
     cd "$R" || exit 1
     S=genesis/Scripts/benchmark/hh_spiking_benchmark.g
@@ -50,7 +52,7 @@ bench_here() {
 if [ "${BENCH_ONLY:-0}" = 1 ]; then bench_here; exit 0; fi
 
 echo "== backing up the CUDA build =="
-BK="$HOME/backup_cuda_$(date +%Y%m%d_%H%M%S)"
+BK="$WORK_DIR/backup_cuda_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BK"
 for f in genesis/src/nxgenesis genesis/src/nxgenesis_nocl; do
     [ -f "$f" ] || { echo "missing $f -- nothing to protect, aborting" >&2; exit 1; }
@@ -71,9 +73,9 @@ restore() {
 trap restore EXIT INT TERM
 
 echo
-echo "== building the OpenCL backend (once; \$HOME is shared) =="
-if ! sh cluster_bringup/11_build_opencl.sh > /tmp/ocl_build.log 2>&1 || [ ! -x genesis/src/nxgenesis ]; then
-    echo "OpenCL build FAILED"; grep -iE "error" /tmp/ocl_build.log | head -8; exit 1
+echo "== building the OpenCL backend (once; the home directory is shared) =="
+if ! sh cluster_bringup/11_build_opencl.sh > $SCRATCH/ocl_build.log 2>&1 || [ ! -x genesis/src/nxgenesis ]; then
+    echo "OpenCL build FAILED"; grep -iE "error" $SCRATCH/ocl_build.log | head -8; exit 1
 fi
 ldd genesis/src/nxgenesis | grep -i opencl || echo "WARN: libOpenCL not linked"
 

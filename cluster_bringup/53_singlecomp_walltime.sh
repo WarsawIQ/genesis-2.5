@@ -15,6 +15,8 @@
 #
 # Overridable: REPS (default 10), STEPS (default 50000).
 set -u
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 R=$(cd "$HERE/.." && pwd)
@@ -22,7 +24,7 @@ NODE=$(hostname)
 GPU=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
 [ -n "$GPU" ] || GPU="no-gpu"
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 mkdir -p "$HERE/logs"
 OUT="$HERE/logs/singlecomp_walltime_${NODE}_$(date +%Y%m%d_%H%M%S).csv"

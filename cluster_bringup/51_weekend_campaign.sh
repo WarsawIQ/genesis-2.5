@@ -9,6 +9,8 @@
 #
 # Prepared by Karol Chlasta (karol@chlasta.pl), 2026-07-25.
 set -eu
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
 cd "$ROOT"
@@ -23,7 +25,7 @@ GPU_BIN="./genesis/src/nxgenesis"
 LC_SCRIPT="genesis/Scripts/benchmark/hh_multicompartment_benchmark.g"
 BR_SCRIPT="genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g"
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 # Without this the tree multiloop refuses any hsolve over 20000 compartments
 # and silently falls back to per-step dispatch, which measures a different code
 # path entirely -- at N=50000 that alone looks like a 3-7x GPU slowdown.

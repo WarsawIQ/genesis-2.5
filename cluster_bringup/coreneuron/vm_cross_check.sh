@@ -19,16 +19,18 @@
 # The far-end probe is the one that exercises axial coupling, which is the part
 # hines_tree_eliminate moves onto the GPU.
 set -u
-R="$HOME/genesis-2.5"
-OUT="${OUT:-$HOME/vmcross}"
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+R="$GENESIS_ROOT"
+OUT="${OUT:-$RUN_DIR/vmcross}"
 K=${K:-50000}
 N=1
 mkdir -p "$OUT"
-cd "$HOME" || exit 1
+cd "$GENESIS_ROOT/cluster_bringup/coreneuron" || exit 1
 
-export LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}"
-ARB_PY="$HOME/opt/miniforge/bin/python3"
-ARB_PP="$HOME/opt/arbor-gpu/lib/python3.13/site-packages"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
+ARB_PY="$ARBOR_PYTHON"
+ARB_PP="$ARBOR_PY"
 
 echo "== Vm cross-check: N=$N, K=$K steps (dt=0.01 ms => $(awk "BEGIN{print $K*0.01}") ms) on $(hostname) =="
 nvidia-smi --query-gpu=name --format=csv,noheader | head -1
@@ -57,19 +59,19 @@ run_genesis gpu 4
 
 # ----------------------------------------------------------------- NEURON ----
 echo "-- NEURON --"
-cd "$HOME/nrn_multicomp" 2>/dev/null || { echo "   no nrn_multicomp dir"; exit 1; }
-cp -f "$HOME/hh_multicomp_neuron.py" .
+cd "$RUN_DIR/nrn_multicomp" 2>/dev/null || { echo "   no nrn_multicomp dir"; exit 1; }
+cp -f "$GENESIS_ROOT/cluster_bringup/coreneuron/hh_multicomp_neuron.py" .
 out=$(TRACE=1 TRACE_CSV="$OUT/neuron.csv" USE_CORENEURON=0 \
       timeout 3600 python3.12 hh_multicomp_neuron.py $N $K 2>&1)
 echo "$out" | sed -n 's/^RESULT_\(TRACE_SAMPLES\|SPIKES_CELL0\|RATE_HZ\|VM_SOMA\|VM_FAR\)=/   \1=/p'
 echo "$out" | grep -q RESULT_TRACE_CSV || { echo "   FAILED"; echo "$out" | tail -5; }
 
 # ------------------------------------------------------------------ ARBOR ----
-cd "$HOME" || exit 1
+cd "$GENESIS_ROOT/cluster_bringup/coreneuron" || exit 1
 for arm in cpu gpu; do
     g=0; [ "$arm" = gpu ] && g=1
     echo "-- Arbor $arm --"
-    out=$(PYTHONPATH="$ARB_PP" LD_LIBRARY_PATH="/storage/opt/cuda/cuda-12.8/lib64:$HOME/opt/arbor-gpu/lib:$LD_LIBRARY_PATH" \
+    out=$(PYTHONPATH="$ARB_PP" LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:$LD_LIBRARY_PATH" \
           TRACE=1 TRACE_CSV="$OUT/arbor_$arm.csv" USE_GPU=$g \
           timeout 3600 "$ARB_PY" hh_multicomp_arbor.py $N $K 2>&1)
     echo "$out" | sed -n 's/^RESULT_\(TRACE_SAMPLES\|SPIKES_CELL0\|RATE_HZ\|VM_SOMA\|VM_FAR\|CTX\)=/   \1=/p'
