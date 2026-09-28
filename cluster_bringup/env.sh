@@ -59,8 +59,10 @@ NVHPC_ROOT=${NVHPC_ROOT:-$WORK_DIR/opt/nvhpc24/Linux_x86_64/24.11}
 NRN_GPU_SRC=${NRN_GPU_SRC:-$WORK_DIR/nrn_src}
 NRN_GPU_BUILD=${NRN_GPU_BUILD:-$NRN_GPU_SRC/build-gpu}
 
-# Arbor v0.10.0 built with CUDA.
+# Arbor v0.10.0 built with CUDA, for the Ice Lake CPUs of the GPU nodes (the
+# paper's build was -march=native on one of them).
 ARBOR_PREFIX=${ARBOR_PREFIX:-$WORK_DIR/opt/arbor-gpu}
+ARB_ARCH=${ARB_ARCH:-icelake-server}
 ARBOR_PY=${ARBOR_PY:-$ARBOR_PREFIX/lib/python3.13/site-packages}
 
 # ModelDB 83319 (Brette et al. 2007), unpacked, and the Vogels-Abbott COBAHH
@@ -76,5 +78,5 @@ MPIRUN=${MPIRUN:-mpirun}
 
 export GENESIS_ROOT WORK_DIR RUN_DIR SCRATCH CUDA_HOME OPENCL_CUDA_HOME
 export CMAKE GCC_TOOLSET MINIFORGE ARBOR_PYTHON NRN_PYTHON NRN_PIP_BIN NVHPC_ROOT NRN_GPU_SRC
-export NRN_GPU_BUILD ARBOR_PREFIX ARBOR_PY MODELDB_DIR COBAHH_DIR
+export NRN_GPU_BUILD ARBOR_PREFIX ARB_ARCH ARBOR_PY MODELDB_DIR COBAHH_DIR
 export COBAHH_GPU_MECH MPIRUN

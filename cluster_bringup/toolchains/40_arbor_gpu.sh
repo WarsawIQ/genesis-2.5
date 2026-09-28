@@ -7,6 +7,13 @@
 # removed, so the two cannot both be satisfied. 0.10.0 builds with the system
 # CMake 3.26, which still has it.
 #
+# The CPU target is pinned too. Arbor defaults to -march=native, and the
+# paper's build was made on a GPU node (Ice Lake, AVX-512): it runs on inf02 and
+# inf03 and dies with "Illegal instruction" on the Haswell login node. Built
+# natively on the login node instead, it would run everywhere but lose the
+# AVX-512 paths, which would move the Arbor CPU arm of Table 7. ARB_ARCH makes
+# the result independent of where the recipe happens to run.
+#
 # From as-found/build_arbor_gpu.sh. That script fell back to the default branch
 # if the tag could not be cloned; this one refuses instead, since a different
 # Arbor would silently change the comparison.
@@ -46,6 +53,7 @@ rm -rf "$B"; mkdir -p "$B"; cd "$B"
 "$CMAKE" .. \
     -DCMAKE_INSTALL_PREFIX="$ARBOR_PREFIX" \
     -DARB_GPU=cuda \
+    -DARB_ARCH="$ARB_ARCH" \
     -DCMAKE_CUDA_ARCHITECTURES="80;86" \
     -DCMAKE_CUDA_COMPILER="$CUDA_HOME/bin/nvcc" \
     -DCUDAToolkit_ROOT="$CUDA_HOME" \

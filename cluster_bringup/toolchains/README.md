@@ -51,6 +51,10 @@ Each of these cost a day to find. They are recorded so that nobody has to find t
 - **System CMake 3.26 and gcc-toolset-13.** The pip CMake 4 that comes first on `PATH` on the
   UMCS login node cannot build Arbor 0.10 (CMake 4 removed `find_package(CUDA)`, which it
   calls). Arbor 0.12 in turn requires CMake 4, which is why the paper uses 0.10.0.
+- **Arbor's CPU target is pinned to `icelake-server`.** Arbor builds with `-march=native` by
+  default. The paper's build was made on a GPU node and dies with `Illegal instruction` on the
+  older login node; built natively on the login node it would lose AVX-512 on the GPU nodes and
+  run the Arbor CPU arm slower than the paper measured.
 - **The Arbor that `python3.12` imports on the cluster is the wrong one.** A pip Arbor 0.12.2
   without GPU support is installed there. Every Arbor arm runs with `$ARBOR_PYTHON` and
   `PYTHONPATH=$ARBOR_PY`, and checks the version before timing.
