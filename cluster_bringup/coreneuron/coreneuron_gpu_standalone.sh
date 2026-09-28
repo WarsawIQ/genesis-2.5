@@ -16,7 +16,7 @@ set -u
 SRC="$HOME/coreneuron_cmp/destexhe_benchmarks"
 W="$HOME/cobahh_dumponly"
 DUMP="$HOME/cobahh_coredat"
-CORE="$SRC/NEURON/cobahh/x86_64_gpu/x86_64/special-core"
+CORE="$SRC/NEURON/cobahh/x86_64_gpu2/x86_64/special-core"
 V="$HOME/opt/nvhpc24/Linux_x86_64/24.11"
 
 [ -x "$CORE" ] || { echo "no special-core at $CORE" >&2; exit 1; }
