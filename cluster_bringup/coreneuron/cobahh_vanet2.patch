@@ -1,0 +1,52 @@
+The changes made to ModelDB 83319 (NEURON/ directory) for the comparison with
+GENESIS's VAnet2. Applied by prepare_cobahh.sh to a fresh, checksum-verified
+copy; see README.md for why each is needed.
+
+  common/init.hoc      tstop 5000 ms and dt 0.05 ms, as in VAnet2 (the package
+                       default dt 0.1 ms does half the work)
+  common/ranstream.hoc Random123 instead of MCellRan4, which NEURON 9 and
+                       CoreNEURON require
+  cobahh/hhcell.hoc    load the ChannelBuilder channels only when the compiled
+                       nahh/khh (mechanisms/) are absent, since CoreNEURON cannot
+                       use ChannelBuilder
+
+ncell stays 4000, the published network. The cluster copy used for the
+12,500-cell scaling runs had it raised to 12500 and was never set back;
+prepare_cobahh.sh takes NCELL= for that experiment instead of an edited file.
+
+diff -ruN a/NEURON/cobahh/hhcell.hoc b/NEURON/cobahh/hhcell.hoc
+--- a/NEURON/cobahh/hhcell.hoc
++++ b/NEURON/cobahh/hhcell.hoc
+@@ -1,5 +1,5 @@
+ // Mostly constructed by cell builder. Lines marked with //* added manually
+-{load_file("hhchan.ses")} //*
++if (name_declared("gmax_nahh") == 0) { load_file("hhchan.ses") } //* compiled nahh/khh take precedence: CoreNEURON cannot use ChannelBuilder
+ 
+ //Network cell templates
+ //   CobaHHCell
+diff -ruN a/NEURON/common/init.hoc b/NEURON/common/init.hoc
+--- a/NEURON/common/init.hoc
++++ b/NEURON/common/init.hoc
+@@ -61,8 +61,8 @@
+ {load_file("netstim.hoc")}  // in common
+ 
+ // Simulation control parameters.
+-tstop = 1000 //5000	//(ms)
+-dt = 0.1	//(ms) time step
++tstop = 5000
++dt = 0.05	//(ms) time step -- matched to VAnet2
+ steps_per_ms = 1/dt
+ v_init = -60
+ celsius = 36
+diff -ruN a/NEURON/common/ranstream.hoc b/NEURON/common/ranstream.hoc
+--- a/NEURON/common/ranstream.hoc
++++ b/NEURON/common/ranstream.hoc
+@@ -10,7 +10,7 @@
+ 	start()
+ }
+ func start() {
+-	return r.MCellRan4(stream*random_stream_offset_ + 1)
++	return r.Random123(stream, 0, 0)
+ }
+ func repick() {
+ 	return r.repick()
