@@ -10,6 +10,7 @@
 set -u
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
+sh "$GENESIS_ROOT/cluster_bringup/coreneuron/arbor_check.sh" || exit 1
 P="$ARBOR_PY"
 export PYTHONPATH="$P"
 export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:${LD_LIBRARY_PATH:-}"

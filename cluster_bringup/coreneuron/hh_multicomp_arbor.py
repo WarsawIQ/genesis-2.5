@@ -25,6 +25,14 @@ import sys
 import time
 
 import arbor as A
+
+# The paper measured Arbor 0.10.0 built with CUDA. On the UMCS login node the
+# system Python also has a pip Arbor 0.12.2 without GPU support; forgetting
+# PYTHONPATH would time that one instead, silently. Refuse it.
+if A.__version__ != "0.10.0" or A.config()["gpu"] != "cuda":
+    sys.exit("refusing Arbor %s (gpu=%s) from %s: the paper used 0.10.0 with CUDA; "
+             "see cluster_bringup/toolchains/40_arbor_gpu.sh"
+             % (A.__version__, A.config()["gpu"], A.__file__))
 from arbor import units as U
 
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 100

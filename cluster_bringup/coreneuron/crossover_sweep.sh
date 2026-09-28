@@ -8,6 +8,7 @@
 set -u
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
+sh "$GENESIS_ROOT/cluster_bringup/coreneuron/arbor_check.sh" || exit 1
 N=${N:-10000}
 REPS=${REPS:-3}
 KLIST=${KLIST:-"1000 2500 5000 10000 20000 50000"}

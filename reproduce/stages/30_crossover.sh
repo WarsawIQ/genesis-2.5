@@ -45,11 +45,12 @@ done
 # still stand on their own; with it the crossing itself is measurable, and the
 # crossing is the claim -- neither simulator is faster in general.
 ARB="$ROOT/cluster_bringup/coreneuron/hh_multicomp_arbor.py"
-if [ -f "$ARB" ] && python3 -c "import arbor" 2>/dev/null; then
+if [ -f "$ARB" ] && sh "$GENESIS_ROOT/cluster_bringup/coreneuron/arbor_check.sh"; then
     for K in 5000 50000; do
         r=1; tot=0
         while [ "$r" -le 3 ]; do
-            w=$(USE_GPU=1 timeout 3600 python3 "$ARB" "$N" "$K" 2>&1 \
+            w=$(PYTHONPATH="$ARBOR_PY" LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:${LD_LIBRARY_PATH:-}" \
+                USE_GPU=1 timeout 3600 "$ARBOR_PYTHON" "$ARB" "$N" "$K" 2>&1 \
                 | sed -n 's/^RESULT_WALL_S=//p')
             [ -n "$w" ] || { echo "  Arbor K=$K rep $r failed"; break; }
             echo "Arbor 0.10.0,$K,$r,$w" >> "$OUT"
@@ -81,6 +82,6 @@ if [ -f "$ARB" ] && python3 -c "import arbor" 2>/dev/null; then
     grep -h "^$key," "$RESULTS/summary.csv" | tail -1 \
         | awk -F, '{printf "the two GPU lines cross at K ~ %d\n", $2}'
 else
-    echo "Arbor arm skipped (no importable arbor); the crossing needs both sides."
+    echo "Arbor arm skipped (no Arbor 0.10.0 with CUDA; see above); the crossing needs both sides."
     echo "See reproduce/README.md for how ours was built."
 fi
