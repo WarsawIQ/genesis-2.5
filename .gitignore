@@ -112,3 +112,7 @@ genesis/distributions/
 # make uznaje cel fflibs za aktualny i nie wchodzi do netcdf ani FMT1, przez co
 # FMT1lib.o nigdy nie powstaje, a link nxgenesis sie wywala. Nie wersjonowac.
 genesis/src/diskio/interface/fflibs
+
+# Python bytecode
+__pycache__/
+*.pyc
