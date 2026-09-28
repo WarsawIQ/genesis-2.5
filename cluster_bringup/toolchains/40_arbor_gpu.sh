@@ -34,9 +34,19 @@ print("arbor", v, "gpu", g)
 sys.exit(0 if (v, g) == ("0.10.0", "cuda") else 1)'
 }
 
-if [ -d "$ARBOR_PY/arbor" ] && check 2>/dev/null; then
-    echo "Arbor $TAG with CUDA already installed in $ARBOR_PREFIX"
-    exit 0
+# A build for Ice Lake cannot be imported on an older CPU, such as the login
+# node's. There, the recipe builds and installs but leaves the import check to
+# ../coreneuron/arbor_check.sh on a GPU node.
+can_run() { [ "$ARB_ARCH" != icelake-server ] || grep -q avx512f /proc/cpuinfo; }
+
+if [ -d "$ARBOR_PY/arbor" ]; then
+    if ! can_run; then
+        echo "Arbor installed in $ARBOR_PREFIX; check it on a GPU node with coreneuron/arbor_check.sh"
+        exit 0
+    elif check 2>/dev/null; then
+        echo "Arbor $TAG with CUDA already installed in $ARBOR_PREFIX"
+        exit 0
+    fi
 fi
 [ -x "$ARBOR_PYTHON" ] || { echo "run 10_miniforge.sh first" >&2; exit 1; }
 
@@ -66,4 +76,10 @@ rm -rf "$B"; mkdir -p "$B"; cd "$B"
 make -j"$(nproc)" > make.log 2>&1 || { echo "Arbor build failed; see $B/make.log" >&2; exit 1; }
 make install > install.log 2>&1
 
-check
+if can_run; then
+    check
+else
+    echo "Arbor $TAG built for $ARB_ARCH and installed in $ARBOR_PREFIX."
+    echo "This machine cannot run that code; check it on a GPU node:"
+    echo "    sh cluster_bringup/coreneuron/arbor_check.sh"
+fi
