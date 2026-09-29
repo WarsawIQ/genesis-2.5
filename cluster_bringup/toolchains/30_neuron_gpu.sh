@@ -106,19 +106,25 @@ rm -rf "$GPU"; mkdir -p "$GPU"; cd "$GPU"
     -DNRN_ENABLE_PYTHON=ON -DPYTHON_EXECUTABLE="$MINIFORGE/bin/python3" \
     -DCMAKE_BUILD_TYPE=Release > cmake.log 2>&1
 
-# Put the working generators in place before the build reaches them. Being
-# newer than their sources, make treats them as up to date and keeps them.
-mkdir -p bin
+# Let nvc++ build its own generators first, then overwrite them with the
+# working GCC ones. Only then are they newer than every file they depend on,
+# so make keeps them. Copying them in before the build does not work: their
+# object files do not exist yet, so make relinks them with nvc++ and the build
+# dies on the first .mod file (found by the fresh-prefix verification run of
+# 2026-09-29). The paper's build got the same order by failing, substituting
+# and resuming.
+make -j"$NPROC" nocmodl nmodl > make.log 2>&1 \
+    || { echo "could not build the generator targets; see $GPU/make.log" >&2; exit 1; }
 cp -f "$NOCMODL" bin/nocmodl
 cp -f "$NMODL" bin/nmodl
 
 # The parallel build can lose a race on the generated nrnconf.h; a serial pass
 # settles the generated headers, after which the parallel build completes.
-make -j"$NPROC" > make.log 2>&1 \
+make -j"$NPROC" >> make.log 2>&1 \
     || { make -j1 >> make.log 2>&1 && make -j"$NPROC" >> make.log 2>&1; } \
     || { echo "NEURON GPU build failed; see $GPU/make.log" >&2; exit 1; }
 
-"$GPU/bin/nmodl" --version >/dev/null 2>&1 \
-    || { echo "the build replaced the GCC nmodl; see the comment above" >&2; exit 1; }
+cmp -s "$GPU/bin/nocmodl" "$NOCMODL" && cmp -s "$GPU/bin/nmodl" "$NMODL" \
+    || { echo "the build replaced a GCC generator; see the comment above" >&2; exit 1; }
 [ -x "$GPU/bin/nrnivmodl-core" ] || { echo "no nrnivmodl-core in $GPU/bin" >&2; exit 1; }
 echo "NEURON $TAG ($REV) with CoreNEURON GPU: $GPU"
