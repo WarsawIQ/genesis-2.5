@@ -21,13 +21,18 @@ typedef struct {
     cl_kernel        kernel_multi; /* chip_channel_multiloop — K steps, single-compt only */
     cl_kernel        kernel_tree;  /* hines_tree_eliminate — real multicompartment solve */
     cl_device_id     device;
+    /* Kernel precision for the whole process, read once from
+       GENESIS_GPU_PRECISION: 0 = float (the default), 1 = double. Every
+       buffer below holds elements of esz bytes of that type. */
+    int              fp64;
+    size_t           esz;
 } OclDeviceState;
 
 typedef struct {
-    /* GPU buffers — float mirrors of hsolve's double arrays. Kernel runs in
-       fp32 (device may lack cl_khr_fp64, e.g. AMD RDNA3); host converts
-       double<->float at upload/download time using the scratch buffers
-       below. */
+    /* GPU buffers — mirrors of hsolve's double arrays in the kernel type:
+       float by default (the device may lack cl_khr_fp64, e.g. AMD RDNA3),
+       double with GENESIS_GPU_PRECISION=fp64. The host converts at
+       upload/download time using the scratch buffers below. */
     cl_mem buf_vm;       /* float[ncompts] */
     cl_mem buf_chip;     /* float[nchips]  */
     cl_mem buf_results;  /* float[ncompts*2] */
@@ -60,11 +65,11 @@ typedef struct {
     int    n_trees;
     int    tree_kernel_ready;  /* 1 once buf_funcs etc are uploaded */
 
-    /* host-side float scratch buffers reused every step for double<->float
-       conversion (avoids malloc/free per step) */
-    float *f_vm;         /* [ncompts] */
-    float *f_chip;       /* [nchips]  */
-    float *f_results;    /* [ncompts*2] */
+    /* host-side scratch in the kernel type, reused every step for the
+       double<->kernel-type conversion (avoids malloc/free per step) */
+    void  *f_vm;         /* [ncompts] */
+    void  *f_chip;       /* [nchips]  */
+    void  *f_results;    /* [ncompts*2] */
 
     int    ncompts;
     int    nchips;

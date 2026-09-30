@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>          /* readlink, for the kernel search path */
 #include <CL/cl.h>
 #include "../hines_ext.h"
 #include "../hines_defs.h"
@@ -60,16 +61,29 @@ static char *load_kernel_source(const char *path)
     return src;
 }
 
-/* Konwersja double<->float na granicy host/GPU (kernel pracuje w fp32). */
-static void d2f(const double *src, float *dst, int n)
+/* Konwersja double<->typ kernela na granicy host/GPU: float (the default,
+   the same cast as always) or double when GENESIS_GPU_PRECISION=fp64. */
+static void d2f(const double *src, void *dst, int n)
 {
     int i;
-    for (i = 0; i < n; i++) dst[i] = (float)src[i];
+    if (ocl_dev.fp64) { double *d = (double *)dst; for (i = 0; i < n; i++) d[i] = src[i]; }
+    else              { float  *d = (float *)dst;  for (i = 0; i < n; i++) d[i] = (float)src[i]; }
 }
-static void f2d(const float *src, double *dst, int n)
+static void f2d(const void *src, double *dst, int n)
 {
     int i;
-    for (i = 0; i < n; i++) dst[i] = (double)src[i];
+    if (ocl_dev.fp64) { const double *s = (const double *)src; for (i = 0; i < n; i++) dst[i] = s[i]; }
+    else              { const float  *s = (const float *)src;  for (i = 0; i < n; i++) dst[i] = (double)s[i]; }
+}
+
+/* GENESIS_GPU_PRECISION: unset, "fp32" or "fp64" -> 0 or 1; anything else -1,
+   which the caller refuses rather than guess at. */
+static int gpu_precision_fp64(void)
+{
+    const char *e = getenv("GENESIS_GPU_PRECISION");
+    if (!e || !*e || strcmp(e, "fp32") == 0) return 0;
+    if (strcmp(e, "fp64") == 0) return 1;
+    return -1;
 }
 
 /*
@@ -214,9 +228,34 @@ int ocl_init(Hsolve *hsolve)
                     sizeof(devname), devname, NULL);
     printf("OCL: urzadzenie: %s\n", devname);
 
-    /* Kernel runs in fp32 (see ocl_channel.cl) — no cl_khr_fp64 requirement,
-       so devices without double-precision support (e.g. AMD RDNA3 890M)
-       are no longer excluded here. */
+    /* The default fp32 kernel needs no cl_khr_fp64, so devices without
+       double precision (e.g. AMD RDNA3 890M) are not excluded. fp64 is asked
+       for with GENESIS_GPU_PRECISION=fp64; a device that cannot do it is
+       refused here, with the cause named, and the model runs on the CPU --
+       rather than failing later with a compiler log about an undeclared
+       type. */
+    {
+        int prec = gpu_precision_fp64();
+        cl_device_fp_config fp64cfg = 0;
+        if (prec < 0) {
+            fprintf(stderr, "OCL: GENESIS_GPU_PRECISION=%s is not understood; "
+                    "use fp32 (the default) or fp64. Computing on the CPU.\n",
+                    getenv("GENESIS_GPU_PRECISION"));
+            free(st); return -1;
+        }
+        if (prec == 1) {
+            clGetDeviceInfo(ocl_dev.device, CL_DEVICE_DOUBLE_FP_CONFIG,
+                            sizeof(fp64cfg), &fp64cfg, NULL);
+            if (fp64cfg == 0) {
+                fprintf(stderr, "OCL: %s has no double-precision support "
+                        "(cl_khr_fp64), so GENESIS_GPU_PRECISION=fp64 cannot run "
+                        "on it. Computing on the CPU.\n", devname);
+                free(st); return -1;
+            }
+        }
+        ocl_dev.fp64 = prec;
+        ocl_dev.esz  = prec ? sizeof(double) : ocl_dev.esz;
+    }
 
     ocl_dev.context = clCreateContext(NULL, 1, &ocl_dev.device,
                                         NULL, NULL, &err);
@@ -237,15 +276,35 @@ int ocl_init(Hsolve *hsolve)
 
     /* szukamy pliku .cl w kilku miejscach */
     {
+    /* GENESIS_OCL_KERNEL names the file explicitly. Otherwise it is looked
+       for relative to the working directory, and then next to the running
+       binary, which the other two miss when a script is run from its own
+       directory. (A search path on one developer's disk used to stand in for
+       the last one.) */
+    char exe_path[4096];
     const char *cl_paths[] = {
+        NULL,                                     /* GENESIS_OCL_KERNEL */
         "opencl/ocl_channel.cl",
         "genesis/src/hines/opencl/ocl_channel.cl",
-        "/datadisk/od-kchlasta/5.Dev/GitHub/genesis-2.4/genesis/src/hines/opencl/ocl_channel.cl",
+        NULL,                                     /* <binary's dir>/hines/opencl/... */
         NULL
     };
     int i;
     char *src = NULL;
-    for (i = 0; cl_paths[i]; i++) {
+    ssize_t len;
+    cl_paths[0] = getenv("GENESIS_OCL_KERNEL");
+    len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 64);
+    if (len > 0) {
+        char *slash;
+        exe_path[len] = '\0';
+        slash = strrchr(exe_path, '/');
+        if (slash) {
+            strcpy(slash + 1, "hines/opencl/ocl_channel.cl");
+            cl_paths[3] = exe_path;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (!cl_paths[i]) continue;
         src = load_kernel_source(cl_paths[i]);
         if (src) break;
     }
@@ -263,9 +322,12 @@ int ocl_init(Hsolve *hsolve)
         free(st); return -1;
     }
 
-    /* -cl-fast-relaxed-math: szybsze obliczenia zmiennoprzecinkowe na GPU */
+    /* -cl-fast-relaxed-math: szybsze obliczenia zmiennoprzecinkowe na GPU.
+       Not in fp64: the point of fp64 is the CPU solver's arithmetic, and
+       relaxed math licenses approximate division. */
     err = clBuildProgram(ocl_dev.program, 1, &ocl_dev.device,
-                         "-cl-fast-relaxed-math", NULL, NULL);
+                         ocl_dev.fp64 ? "-DGENESIS_GPU_FP64" : "-cl-fast-relaxed-math",
+                         NULL, NULL);
     if (err != CL_SUCCESS) {
         char log[4096];
         clGetProgramBuildInfo(ocl_dev.program, ocl_dev.device,
@@ -294,14 +356,19 @@ int ocl_init(Hsolve *hsolve)
     int ns  = hsolve->sntab * 6;
     int ncols = hsolve->ncols;
     int xdivs = hsolve->xdivs;
-    float fxmin  = (float)hsolve->xmin;
-    float finvdx = (float)hsolve->invdx;
+    /* xmin and invdx go to the kernels in the kernel type. */
+    float  fxmin  = (float)hsolve->xmin,  finvdx = (float)hsolve->invdx;
+    double dxmin  = hsolve->xmin,         dinvdx = hsolve->invdx;
+    const void *pxmin  = ocl_dev.fp64 ? (const void *)&dxmin  : (const void *)&fxmin;
+    const void *pinvdx = ocl_dev.fp64 ? (const void *)&dinvdx : (const void *)&finvdx;
     int *opstart, *chipstart, *cpu_only;
     int unsup, ci;
     cl_mem buf_opstart, buf_chipstart;
     /* dummy tablica gdy brak tabeli — kernel nie bedzie jej uzywac */
-    float dummy = 0.0f;
-    float *fconv;
+    float  dummy_f = 0.0f;
+    double dummy_d = 0.0;
+    const void *dummy = ocl_dev.fp64 ? (const void *)&dummy_d : (const void *)&dummy_f;
+    void *fconv;
 
     if (n <= 0 || nc <= 0 || no <= 0) {
         fprintf(stderr, "OCL: hsolve nie zainicjalizowany (n=%d nc=%d no=%d)\n",
@@ -351,25 +418,25 @@ int ocl_init(Hsolve *hsolve)
     /* buf_vm is READ_WRITE: chip_channel_update reads it, chip_channel_multiloop
        reads AND writes it (voltage update inline each step). */
     st->buf_vm      = clCreateBuffer(ocl_dev.context,
-                                CL_MEM_READ_WRITE, n*sizeof(float),  NULL, &err);
+                                CL_MEM_READ_WRITE, n*ocl_dev.esz,  NULL, &err);
     st->buf_chip    = clCreateBuffer(ocl_dev.context,
-                                CL_MEM_READ_WRITE, nc*sizeof(float), NULL, &err);
+                                CL_MEM_READ_WRITE, nc*ocl_dev.esz, NULL, &err);
     st->buf_results = clCreateBuffer(ocl_dev.context,
-                                CL_MEM_WRITE_ONLY, n*2*sizeof(float),NULL, &err);
+                                CL_MEM_WRITE_ONLY, n*2*ocl_dev.esz,NULL, &err);
     st->buf_tablist = clCreateBuffer(ocl_dev.context,
-                                CL_MEM_READ_ONLY,  nt*sizeof(float), NULL, &err);
+                                CL_MEM_READ_ONLY,  nt*ocl_dev.esz, NULL, &err);
     st->buf_xvals   = clCreateBuffer(ocl_dev.context,
-                                CL_MEM_READ_ONLY,  nx*sizeof(float), NULL, &err);
+                                CL_MEM_READ_ONLY,  nx*ocl_dev.esz, NULL, &err);
     st->buf_ops     = clCreateBuffer(ocl_dev.context,
                                 CL_MEM_READ_ONLY,  no*sizeof(int),    NULL, &err);
     if (ns > 0)
         st->buf_stablist = clCreateBuffer(ocl_dev.context,
-                                     CL_MEM_READ_ONLY, ns*sizeof(float), NULL, &err);
+                                     CL_MEM_READ_ONLY, ns*ocl_dev.esz, NULL, &err);
 
     /* host-side float scratch reused every step (ocl_chip_update / multiloop) */
-    st->f_vm      = (float *)malloc(n*sizeof(float));
-    st->f_chip    = (float *)malloc(nc*sizeof(float));
-    st->f_results = (float *)malloc(n*2*sizeof(float));
+    st->f_vm      = malloc(n*ocl_dev.esz);
+    st->f_chip    = malloc(nc*ocl_dev.esz);
+    st->f_results = malloc(n*2*ocl_dev.esz);
 
     /* indeksy zbudowane wyzej (przed alokacja buforow); tu tylko upload —
        dane statyczne, wysylane tylko raz */
@@ -384,31 +451,31 @@ int ocl_init(Hsolve *hsolve)
     free(opstart);
 
     /* upload tabel — konwersja double->float, uzyj dummy jesli brak tabchannels */
-    fconv = (float *)malloc((nt > nx ? nt : nx) * sizeof(float));
+    fconv = malloc((nt > nx ? nt : nx) * ocl_dev.esz);
     if (hsolve->tablist && hsolve->xdivs > 0) {
         d2f(hsolve->tablist, fconv, nt);
         clEnqueueWriteBuffer(ocl_dev.queue, st->buf_tablist, CL_TRUE, 0,
-            nt*sizeof(float), fconv, 0, NULL, NULL);
+            nt*ocl_dev.esz, fconv, 0, NULL, NULL);
     } else {
         clEnqueueWriteBuffer(ocl_dev.queue, st->buf_tablist, CL_TRUE, 0,
-            sizeof(float), &dummy, 0, NULL, NULL);
+            ocl_dev.esz, dummy, 0, NULL, NULL);
     }
     if (hsolve->xvals && hsolve->xdivs > 0) {
         d2f(hsolve->xvals, fconv, nx);
         clEnqueueWriteBuffer(ocl_dev.queue, st->buf_xvals, CL_TRUE, 0,
-            nx*sizeof(float), fconv, 0, NULL, NULL);
+            nx*ocl_dev.esz, fconv, 0, NULL, NULL);
     } else {
         clEnqueueWriteBuffer(ocl_dev.queue, st->buf_xvals, CL_TRUE, 0,
-            sizeof(float), &dummy, 0, NULL, NULL);
+            ocl_dev.esz, dummy, 0, NULL, NULL);
     }
     free(fconv);
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_ops, CL_TRUE,
                          0, no*sizeof(int), hsolve->ops, 0, NULL, NULL);
     if (ns > 0 && hsolve->stablist) {
-        float *sconv = (float *)malloc(ns * sizeof(float));
+        void *sconv = malloc(ns * ocl_dev.esz);
         d2f(hsolve->stablist, sconv, ns);
         clEnqueueWriteBuffer(ocl_dev.queue, st->buf_stablist, CL_TRUE,
-                             0, ns*sizeof(float), sconv, 0, NULL, NULL);
+                             0, ns*ocl_dev.esz, sconv, 0, NULL, NULL);
         free(sconv);
     }
 
@@ -424,8 +491,8 @@ int ocl_init(Hsolve *hsolve)
     clSetKernelArg(ocl_dev.kernel,  8, sizeof(int),    &n);
     clSetKernelArg(ocl_dev.kernel,  9, sizeof(int),    &ncols);
     clSetKernelArg(ocl_dev.kernel, 10, sizeof(int),    &xdivs);
-    clSetKernelArg(ocl_dev.kernel, 11, sizeof(float),  &fxmin);
-    clSetKernelArg(ocl_dev.kernel, 12, sizeof(float),  &finvdx);
+    clSetKernelArg(ocl_dev.kernel, 11, ocl_dev.esz, pxmin);
+    clSetKernelArg(ocl_dev.kernel, 12, ocl_dev.esz, pinvdx);
 
     /* --- multiloop kernel --- */
     ocl_dev.kernel_multi = clCreateKernel(ocl_dev.program,
@@ -448,8 +515,8 @@ int ocl_init(Hsolve *hsolve)
     clSetKernelArg(ocl_dev.kernel_multi,  8, sizeof(int),    &n);
     clSetKernelArg(ocl_dev.kernel_multi,  9, sizeof(int),    &ncols);
     clSetKernelArg(ocl_dev.kernel_multi, 10, sizeof(int),    &xdivs);
-    clSetKernelArg(ocl_dev.kernel_multi, 11, sizeof(float),  &fxmin);
-    clSetKernelArg(ocl_dev.kernel_multi, 12, sizeof(float),  &finvdx);
+    clSetKernelArg(ocl_dev.kernel_multi, 11, ocl_dev.esz, pxmin);
+    clSetKernelArg(ocl_dev.kernel_multi, 12, ocl_dev.esz, pinvdx);
     clSetKernelArg(ocl_dev.kernel_multi, 13, sizeof(int),    &zero); /* nsteps placeholder */
     }
 
@@ -469,7 +536,8 @@ int ocl_init(Hsolve *hsolve)
     st->nops        = no;
     st->initialized = 1;
 
-    printf("OCL: gotowy (%d kompartmentow, %d chips)\n", n, nc);
+    printf("OCL: gotowy (%d kompartmentow, %d chips, kernele %s)\n",
+           n, nc, ocl_dev.fp64 ? "fp64" : "fp32");
     } /* end alokacja */
     hsolve->accel_state = st;
     ocl_state_register(st);
@@ -507,7 +575,7 @@ static int ocl_tree_buffers_init(Hsolve *hsolve)
     int nfuncs  = hsolve->nfuncs;
     int nravals = hsolve->nravals;
     int *fwd_seg_end, *bwd_seg_end;
-    float *fravals;
+    void *fravals;
     OclTreeSortEntry *sorted;
     int i;
 
@@ -548,11 +616,11 @@ static int ocl_tree_buffers_init(Hsolve *hsolve)
         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         nfuncs * sizeof(int), hsolve->funcs, &err);
 
-    fravals = (float *)malloc(nravals * sizeof(float));
+    fravals = malloc(nravals * ocl_dev.esz);
     d2f(hsolve->ravals, fravals, nravals);
     st->buf_ravals = clCreateBuffer(ocl_dev.context,
         CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-        nravals * sizeof(float), fravals, &err);
+        nravals * ocl_dev.esz, fravals, &err);
     free(fravals);
 
     st->buf_fwd_seg_start = clCreateBuffer(ocl_dev.context,
@@ -653,9 +721,9 @@ static int ocl_multiloop_dispatch_tree(Hsolve *hsolve, int nsteps)
     d2f(hsolve->vm, st->f_vm, n);
     d2f(hsolve->chip, st->f_chip, nc);
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_vm, CL_FALSE,
-                         0, n*sizeof(float), st->f_vm, 0, NULL, NULL);
+                         0, n*ocl_dev.esz, st->f_vm, 0, NULL, NULL);
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_chip, CL_FALSE,
-                         0, nc*sizeof(float), st->f_chip, 0, NULL, NULL);
+                         0, nc*ocl_dev.esz, st->f_chip, 0, NULL, NULL);
 
     {
     size_t chan_local  = 64;
@@ -685,11 +753,11 @@ static int ocl_multiloop_dispatch_tree(Hsolve *hsolve, int nsteps)
     }
 
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_vm, CL_FALSE,
-                        0, n*sizeof(float), st->f_vm, 0, NULL, NULL);
+                        0, n*ocl_dev.esz, st->f_vm, 0, NULL, NULL);
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_results, CL_FALSE,
-                        0, n*2*sizeof(float), st->f_results, 0, NULL, NULL);
+                        0, n*2*ocl_dev.esz, st->f_results, 0, NULL, NULL);
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_chip, CL_TRUE,
-                        0, nc*sizeof(float), st->f_chip, 0, NULL, NULL);
+                        0, nc*ocl_dev.esz, st->f_chip, 0, NULL, NULL);
 
     f2d(st->f_vm, hsolve->vm, n);
     f2d(st->f_results, hsolve->results, n*2);
@@ -795,9 +863,9 @@ static int ocl_multiloop_dispatch(Hsolve *hsolve, int nsteps)
     d2f(hsolve->chip, st->f_chip, nc);
 
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_vm, CL_FALSE,
-                         0, n*sizeof(float), st->f_vm, 0, NULL, NULL);
+                         0, n*ocl_dev.esz, st->f_vm, 0, NULL, NULL);
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_chip, CL_FALSE,
-                         0, nc*sizeof(float), st->f_chip, 0, NULL, NULL);
+                         0, nc*ocl_dev.esz, st->f_chip, 0, NULL, NULL);
 
     /* ustaw nsteps w argumencie 13 kernela multiloop */
     clSetKernelArg(ocl_dev.kernel_multi, 13, sizeof(int), &nsteps);
@@ -817,11 +885,11 @@ static int ocl_multiloop_dispatch(Hsolve *hsolve, int nsteps)
 
     /* download vm[] (napięcia po wszystkich krokach) i results[] (tożsame) i chip[] */
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_vm, CL_FALSE,
-                        0, n*sizeof(float), st->f_vm, 0, NULL, NULL);
+                        0, n*ocl_dev.esz, st->f_vm, 0, NULL, NULL);
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_results, CL_FALSE,
-                        0, n*2*sizeof(float), st->f_results, 0, NULL, NULL);
+                        0, n*2*ocl_dev.esz, st->f_results, 0, NULL, NULL);
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_chip, CL_TRUE,
-                        0, nc*sizeof(float), st->f_chip, 0, NULL, NULL);
+                        0, nc*ocl_dev.esz, st->f_chip, 0, NULL, NULL);
 
     /* konwersja float->double z powrotem do hsolve */
     f2d(st->f_vm, hsolve->vm, n);
@@ -919,13 +987,13 @@ int ocl_chip_update(Hsolve *hsolve)
     /* Always upload current vm[] (written by CPU Hines solver each step). */
     d2f(hsolve->vm, st->f_vm, n);
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_vm, CL_FALSE,
-                         0, n*sizeof(float), st->f_vm, 0, NULL, NULL);
+                         0, n*ocl_dev.esz, st->f_vm, 0, NULL, NULL);
 
     /* Upload chip[] only on the first call — after that the GPU owns it. */
     if (!st->chip_on_gpu) {
         d2f(hsolve->chip, st->f_chip, nc);
         clEnqueueWriteBuffer(ocl_dev.queue, st->buf_chip, CL_FALSE,
-                             0, nc*sizeof(float), st->f_chip, 0, NULL, NULL);
+                             0, nc*ocl_dev.esz, st->f_chip, 0, NULL, NULL);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &ttransfer);
@@ -948,7 +1016,7 @@ int ocl_chip_update(Hsolve *hsolve)
 
     /* CL_TRUE = bariera synchronizacji — czekamy na zakonczenie GPU */
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_results, CL_TRUE,
-                        0, n*2*sizeof(float), st->f_results, 0, NULL, NULL);
+                        0, n*2*ocl_dev.esz, st->f_results, 0, NULL, NULL);
     f2d(st->f_results, hsolve->results, n*2);
 
     /* accumulate profiling stats */
@@ -988,7 +1056,7 @@ void ocl_sync_chip(Hsolve *hsolve)
     OclHsolveState *st = (OclHsolveState *)hsolve->accel_state;
     if (!st || !st->initialized || !st->chip_on_gpu) return;
     clEnqueueReadBuffer(ocl_dev.queue, st->buf_chip, CL_TRUE,
-                        0, st->nchips * sizeof(float),
+                        0, st->nchips * ocl_dev.esz,
                         st->f_chip, 0, NULL, NULL);
     f2d(st->f_chip, hsolve->chip, st->nchips);
     st->chip_on_gpu = 0;

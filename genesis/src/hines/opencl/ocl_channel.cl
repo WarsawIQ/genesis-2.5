@@ -17,9 +17,18 @@
  *                            bezposrednio (eliminuje roundtrip CPU/GPU na krok)
  *
  * fp32: urzadzenie moze nie wspierac cl_khr_fp64 (np. AMD RDNA3 890M) —
- * kernel uzywa float zamiast double. Host konwertuje double<->float na
- * upload/download (patrz ocl_hsolve.c).
+ * kernel uzywa domyslnie float zamiast double. Host konwertuje double<->real
+ * na upload/download (patrz ocl_hsolve.c). With GENESIS_GPU_PRECISION=fp64
+ * the host builds this file with -DGENESIS_GPU_FP64 and real is double; it has
+ * already refused any device without cl_khr_fp64.
  */
+
+#ifdef GENESIS_GPU_FP64
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+typedef double real;
+#else
+typedef float real;
+#endif
 
 /* op-codes — musza byc zgodne z hines_defs.h */
 #define COMPT_OP     100
@@ -36,31 +45,31 @@
 /* Wspolna funkcja obliczajaca jeden krok kanalow dla kompartmentu gid */
 /* Zwraca nowe napięcie. chip[] jest modyfikowany w miejscu (bramki).  */
 /* ------------------------------------------------------------------ */
-static float
+static real
 channel_step(int gid,
-             float Vm,
-             __global       float *chip,
-             __global const float *tablist,
-             __global const float *xvals,
+             real Vm,
+             __global       real *chip,
+             __global const real *tablist,
+             __global const real *xvals,
              __global const int    *ops,
              __global const int    *comp_opstart,
              __global const int    *comp_chipstart,
              const int   ncols,
              const int   xdivs,
-             const float xmin,
-             const float invdx)
+             const real xmin,
+             const real invdx)
 {
     int op_i   = comp_opstart[gid];
     int chip_i = comp_chipstart[gid];
 
-    float sumgchan = 0.0f;
-    float ichan    = chip[chip_i] + chip[chip_i + 1]; /* Em/Rm + inject */
+    real sumgchan = 0.0f;
+    real ichan    = chip[chip_i] + chip[chip_i + 1]; /* Em/Rm + inject */
     chip_i += 2;
 
-    float Gk = 0.0f, Ek = 0.0f;
+    real Gk = 0.0f, Ek = 0.0f;
 
     int   filo  = 0;
-    float vipol = 0.0f;
+    real vipol = 0.0f;
 
     /* comp_opstart[gid] points at this compartment's first real opcode,
        skipping the entry sentinel (FCOMPT_OP/COMPT_OP) that precedes it.
@@ -74,9 +83,9 @@ channel_step(int gid,
         if (op == NEWVOLT_OP) {
             vipol = (Vm - xmin) * invdx;
             if (vipol < 0.0f)       vipol = 0.0f;
-            else if (vipol > xdivs) vipol = (float)xdivs;
+            else if (vipol > xdivs) vipol = (real)xdivs;
             filo  = (int)vipol;
-            vipol = vipol - (float)filo;
+            vipol = vipol - (real)filo;
             continue;
         }
 
@@ -92,16 +101,16 @@ channel_step(int gid,
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
             int base = filo * ncols + col;
-            float B      = tablist[base];
-            float Bn     = tablist[base + ncols];
-            float B_interp = B + vipol * (Bn - B);
+            real B      = tablist[base];
+            real Bn     = tablist[base + ncols];
+            real B_interp = B + vipol * (Bn - B);
 
-            float A      = tablist[base + 1];
-            float An     = tablist[base + 1 + ncols];
-            float A_interp = A + vipol * (An - A);
+            real A      = tablist[base + 1];
+            real An     = tablist[base + 1 + ncols];
+            real A_interp = A + vipol * (An - A);
 
             int power = ops[op_i++];
-            float X;
+            real X;
             if (power > 0) {
                 X = chip[chip_i] = (chip[chip_i] * (2.0f - B_interp) + A_interp) / B_interp;
             } else {
@@ -121,8 +130,8 @@ channel_step(int gid,
     }
 
     /* chip[chip_i] = tbyc (dt/Cm), chip[chip_i+1] = diagterm (Hines diagonal) */
-    float tbyc     = chip[chip_i];
-    float diagterm = chip[chip_i + 1];
+    real tbyc     = chip[chip_i];
+    real diagterm = chip[chip_i + 1];
 
     /* Single-compartment voltage update: vm_new = rhs / denom */
     return (Vm + ichan * tbyc) / (sumgchan * tbyc + diagterm);
@@ -132,36 +141,36 @@ channel_step(int gid,
 /* chip_channel_update — jeden krok, wyniki do results[] dla CPU Hines */
 /* ------------------------------------------------------------------ */
 __kernel void chip_channel_update(
-    __global const float *vm,          /* [ncompts] napięcia */
-    __global       float *chip,        /* [nchips]  stan bramek + stale */
-    __global       float *results,     /* [ncompts*2] prawy bok + diag */
-    __global const float *tablist,     /* [xdivs+1][ncols] tabele bramek */
-    __global const float *xvals,       /* [xdivs+2] wartosci V dla tabeli */
+    __global const real *vm,          /* [ncompts] napięcia */
+    __global       real *chip,        /* [nchips]  stan bramek + stale */
+    __global       real *results,     /* [ncompts*2] prawy bok + diag */
+    __global const real *tablist,     /* [xdivs+1][ncols] tabele bramek */
+    __global const real *xvals,       /* [xdivs+2] wartosci V dla tabeli */
     __global const int    *ops,
     __global const int    *comp_opstart,
     __global const int    *comp_chipstart,
     const int   ncompts,
     const int   ncols,
     const int   xdivs,
-    const float xmin,
-    const float invdx
+    const real xmin,
+    const real invdx
 )
 {
     int gid = get_global_id(0);
     if (gid >= ncompts) return;
 
-    float Vm = vm[gid];
+    real Vm = vm[gid];
     int op_i   = comp_opstart[gid];
     int chip_i = comp_chipstart[gid];
 
-    float sumgchan = 0.0f;
-    float ichan    = chip[chip_i] + chip[chip_i + 1];
+    real sumgchan = 0.0f;
+    real ichan    = chip[chip_i] + chip[chip_i + 1];
     chip_i += 2;
 
-    float Gk = 0.0f, Ek = 0.0f;
+    real Gk = 0.0f, Ek = 0.0f;
     int   filo  = 0;
-    float vipol = 0.0f;
-    float xlo = -1e20f, xhi = 1e20f;
+    real vipol = 0.0f;
+    real xlo = -1e20f, xhi = 1e20f;
 
     int op;
     while (ops[op_i] > LCOMPT_OP) {
@@ -170,9 +179,9 @@ __kernel void chip_channel_update(
         if (op == NEWVOLT_OP) {
             vipol = (Vm - xmin) * invdx;
             if (vipol < 0.0f)       vipol = 0.0f;
-            else if (vipol > xdivs) vipol = (float)xdivs;
+            else if (vipol > xdivs) vipol = (real)xdivs;
             filo  = (int)vipol;
-            vipol = vipol - (float)filo;
+            vipol = vipol - (real)filo;
             xlo   = xvals[filo];
             xhi   = xvals[filo + 1];
             (void)xlo; (void)xhi;
@@ -191,16 +200,16 @@ __kernel void chip_channel_update(
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
             int base = filo * ncols + col;
-            float B      = tablist[base];
-            float Bn     = tablist[base + ncols];
-            float B_interp = B + vipol * (Bn - B);
+            real B      = tablist[base];
+            real Bn     = tablist[base + ncols];
+            real B_interp = B + vipol * (Bn - B);
 
-            float A      = tablist[base + 1];
-            float An     = tablist[base + 1 + ncols];
-            float A_interp = A + vipol * (An - A);
+            real A      = tablist[base + 1];
+            real An     = tablist[base + 1 + ncols];
+            real A_interp = A + vipol * (An - A);
 
             int power = ops[op_i++];
-            float X;
+            real X;
             if (power > 0) {
                 X = chip[chip_i] = (chip[chip_i] * (2.0f - B_interp) + A_interp) / B_interp;
             } else {
@@ -219,8 +228,8 @@ __kernel void chip_channel_update(
         }
     }
 
-    float tbyc     = chip[chip_i];
-    float diagterm = chip[chip_i + 1];
+    real tbyc     = chip[chip_i];
+    real diagterm = chip[chip_i + 1];
     results[gid * 2]     = Vm + ichan * tbyc;
     results[gid * 2 + 1] = sumgchan * tbyc + diagterm;
 }
@@ -242,19 +251,19 @@ __kernel void chip_channel_update(
 /* liczy: vm_nowe = vm_final / 1.0 = vm_final (brak zmiany).          */
 /* ------------------------------------------------------------------ */
 __kernel void chip_channel_multiloop(
-    __global       float *vm,          /* [ncompts] napięcia — read+write */
-    __global       float *chip,        /* [nchips]  stan bramek + stale */
-    __global       float *results,     /* [ncompts*2] tożsame po wykonaniu */
-    __global const float *tablist,
-    __global const float *xvals,
+    __global       real *vm,          /* [ncompts] napięcia — read+write */
+    __global       real *chip,        /* [nchips]  stan bramek + stale */
+    __global       real *results,     /* [ncompts*2] tożsame po wykonaniu */
+    __global const real *tablist,
+    __global const real *xvals,
     __global const int    *ops,
     __global const int    *comp_opstart,
     __global const int    *comp_chipstart,
     const int   ncompts,
     const int   ncols,
     const int   xdivs,
-    const float xmin,
-    const float invdx,
+    const real xmin,
+    const real invdx,
     const int    nsteps
 )
 {
@@ -263,7 +272,7 @@ __kernel void chip_channel_multiloop(
 
     int step;
     for (step = 0; step < nsteps; step++) {
-        float Vm_new = channel_step(gid, vm[gid], chip,
+        real Vm_new = channel_step(gid, vm[gid], chip,
                                      tablist, xvals, ops,
                                      comp_opstart, comp_chipstart,
                                      ncols, xdivs, xmin, invdx);
@@ -304,9 +313,9 @@ __kernel void chip_channel_multiloop(
 /* ------------------------------------------------------------------ */
 __kernel void hines_tree_eliminate(
     __global const int   *funcs,          /* [nfuncs] shared opcode program */
-    __global       float *ravals,         /* [nravals] shared; COPY_ARRAY/FASTSIBARRAY_ELIM mutate it in place */
-    __global       float *results,        /* [ncompts*2] shared RHS/diag, read+written */
-    __global       float *vm,             /* [ncompts] output */
+    __global       real *ravals,         /* [nravals] shared; COPY_ARRAY/FASTSIBARRAY_ELIM mutate it in place */
+    __global       real *results,        /* [ncompts*2] shared RHS/diag, read+written */
+    __global       real *vm,             /* [ncompts] output */
     __global const int   *fwd_seg_start,  /* [n_trees] */
     __global const int   *fwd_seg_end,    /* [n_trees] */
     __global const int   *bwd_seg_start,  /* [n_trees] */
@@ -326,7 +335,7 @@ __kernel void hines_tree_eliminate(
     int   first_row = (k == 0) ? 0 : fwd_root_row[k-1] + 1;
     int   fwd_end   = fwd_seg_end[k];
     int   seed_row, resultvalue_i, op;
-    float resultval, diaval, temp = 0.0f;
+    real resultval, diaval, temp = 0.0f;
 
     /* Bootstrap: skip the leading transition opcode (its flush target
        belongs to the PREVIOUS tree -- a cross-tree data race for a
@@ -409,7 +418,7 @@ __kernel void hines_tree_eliminate(
         int   bravals_i       = bwd_raval_start[k];
         int   bend            = bwd_seg_end[k];
         int   bresultvalue_i  = 2 * (root_row - 1);
-        float bresultval      = results[bresultvalue_i];
+        real bresultval      = results[bresultvalue_i];
         int   brow, bop;
 
         while (bfuncs_i < bend) {
