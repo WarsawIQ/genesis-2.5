@@ -84,6 +84,15 @@ make USE_CUDA=1 CUDA_HOME="$CUDA_HOME" NVCCFLAGS="-arch=$ARCH -ccbin $CC" \
      EXTRALIBS="$EXTRALIBS" LEXLIB="$STUB" nxgenesis
 [ -x nxgenesis_nocl ] || cp -f "$HERE/nxgenesis_nocl.bak" nxgenesis_nocl
 
+# genesis/startup holds the scripts every GENESIS run loads through SIMPATH,
+# schedule.g among them. `make install` puts them there; this script does not
+# run it, and the directory is not tracked, so a fresh clone has none and any
+# model that calls `schedule` -- VAnet2 -- stops at once without an error exit
+# (found 2026-09-30, when the accelerator regression's VAnet2 arm came out
+# empty in a clean clone). Copy them the way the install rule does.
+( cd startup && mkdir -p ../../startup \
+  && cp -f $(sed -n 's/^OBJS = //p' Makefile) ../../startup/ ) \
+  || { echo "could not populate genesis/startup" >&2; exit 1; }
 echo "== done =="
 ls -la nxgenesis nxgenesis_nocl
 ldd ./nxgenesis | grep -i cudart || echo "WARN: libcudart not linked"
