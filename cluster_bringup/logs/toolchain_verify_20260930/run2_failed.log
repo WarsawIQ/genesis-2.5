@@ -1,0 +1,79 @@
+START 2026-09-29T23:55:45+02:00 commit 93034a2 WORK_DIR=/storage2/home/kchlasta/tc-verify-20260929
+=== bash cluster_bringup/toolchains/30_neuron_gpu.sh  2026-09-29T23:55:45+02:00
+NEURON GPU build already present in /storage2/home/kchlasta/tc-verify-20260929/nrn_src/build-gpu
+=== OK 0 s
+=== bash cluster_bringup/toolchains/40_arbor_gpu.sh  2026-09-29T23:55:45+02:00
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src'...
+Note: switching to '6b6cc900b85fbf833fae94817b9406a0d690dc28'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Submodule 'ext/fmt' (https://github.com/fmtlib/fmt.git) registered for path 'ext/fmt'
+Submodule 'google-benchmark' (https://github.com/google/benchmark.git) registered for path 'ext/google-benchmark'
+Submodule 'ext/googletest' (https://github.com/google/googletest.git) registered for path 'ext/googletest'
+Submodule 'ext/json' (https://github.com/nlohmann/json.git) registered for path 'ext/json'
+Submodule 'ext/pugixml' (https://github.com/zeux/pugixml.git) registered for path 'ext/pugixml'
+Submodule 'ext/pybind11' (https://github.com/pybind/pybind11.git) registered for path 'ext/pybind11'
+Submodule 'ext/random123' (https://github.com/DEShawResearch/random123.git) registered for path 'ext/random123'
+Submodule 'ext/units' (https://github.com/LLNL/units.git) registered for path 'ext/units'
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/fmt'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/google-benchmark'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/googletest'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/json'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/pugixml'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/pybind11'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/random123'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/arbor_src/ext/units'...
+From https://github.com/fmtlib/fmt
+ * branch            e69e5f977d458f2650bb346dadf2ad30c5320281 -> FETCH_HEAD
+Submodule path 'ext/fmt': checked out 'e69e5f977d458f2650bb346dadf2ad30c5320281'
+From https://github.com/google/benchmark
+ * branch            cb8a0cc10f8b634fd554251ae086da522b58f50e -> FETCH_HEAD
+Submodule path 'ext/google-benchmark': checked out 'cb8a0cc10f8b634fd554251ae086da522b58f50e'
+From https://github.com/google/googletest
+ * branch            58d77fa8070e8cec2dc1ed015d66b454c8d78850 -> FETCH_HEAD
+Submodule path 'ext/googletest': checked out '58d77fa8070e8cec2dc1ed015d66b454c8d78850'
+From https://github.com/nlohmann/json
+ * branch            9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03 -> FETCH_HEAD
+Submodule path 'ext/json': checked out '9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03'
+From https://github.com/zeux/pugixml
+ * branch            db78afc2b7d8f043b4bc6b185635d949ea2ed2a8 -> FETCH_HEAD
+Submodule path 'ext/pugixml': checked out 'db78afc2b7d8f043b4bc6b185635d949ea2ed2a8'
+From https://github.com/pybind/pybind11
+ * branch            8a099e44b3d5f85b20f05828d919d2332a8de841 -> FETCH_HEAD
+Submodule path 'ext/pybind11': checked out '8a099e44b3d5f85b20f05828d919d2332a8de841'
+From https://github.com/DEShawResearch/random123
+ * branch            726a093cd9a73f3ec3c8d7a70ff10ed8efec8d13 -> FETCH_HEAD
+Submodule path 'ext/random123': checked out '726a093cd9a73f3ec3c8d7a70ff10ed8efec8d13'
+From https://github.com/LLNL/units
+ * branch            7917f5f2cfefdcc90b5085ade91761d06df74e59 -> FETCH_HEAD
+Submodule path 'ext/units': checked out '7917f5f2cfefdcc90b5085ade91761d06df74e59'
+Arbor v0.10.0 built for icelake-server and installed in /storage2/home/kchlasta/tc-verify-20260929/opt/arbor-gpu.
+This machine cannot run that code; check it on a GPU node:
+    sh cluster_bringup/coreneuron/arbor_check.sh
+=== OK 123 s
+=== sh cluster_bringup/coreneuron/prepare_cobahh.sh  2026-09-29T23:57:48+02:00
+patching file NEURON/cobahh/hhcell.hoc
+patching file NEURON/common/init.hoc
+patching file NEURON/common/ranstream.hoc
+COBAHH ready in /storage2/home/kchlasta/tc-verify-20260929/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh: ncell=4000, tstop 5000 ms, dt 0.05 ms, Random123
+=== OK 0 s
+=== bash cluster_bringup/coreneuron/build_mechanisms.sh  2026-09-29T23:57:48+02:00
+x86_64/libcorenrnmech.so
+x86_64/libnrnmech.so
+GPU mechanism build failed; see /storage2/home/kchlasta/tc-verify-20260929/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/b.log
+=== FAILED rc=1 after 20 s
+END FAILED 2026-09-29T23:58:08+02:00

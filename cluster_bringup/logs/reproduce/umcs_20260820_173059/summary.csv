@@ -1,0 +1,4 @@
+vanet2_genesis,48.91,s
+vanet2_genesis_1solver,34.85,s
+vanet2_1solver_speedup,1.40,x
+vanet2_gpu_over_cpu,1.04,x

@@ -33,6 +33,13 @@ Three things retired most of them:
 | `cluster_bringup/logs/weekend_campaign_wiq_RTX4090_20260727_194140.csv` | rented card, before the correctness fixes; not in the paper | none |
 | `cluster_bringup/logs/multicomp_walltime_hh_multicompartment_createmap_inf02_20260815_223158.csv` | first end-to-end sweep; re-run on an idle card together with the A100 one | `cluster_bringup/logs/multicomp_walltime_createmap_inf02_A40_clean.csv` |
 | `cluster_bringup/logs/multicomp_walltime_hh_multicompartment_createmap_inf03_20260815_223158.csv` | GPU column inflated ~30% by a foreign job; N=50000 GPU replicates never ran (1.8 ms each) | `cluster_bringup/logs/multicomp_walltime_createmap_inf03_A100_clean.csv` |
+| `cluster_bringup/logs/weekend_campaign_inf02_A40_20260725_200349.csv` | an earlier July step-phase run of the same evening, before the fixes | `cluster_bringup/logs/weekend_campaign_inf02_A40_20260816_clean.csv` |
+| `cluster_bringup/logs/weekend_campaign_inf02_A40_20260725_204512.csv` | as above | as above |
+| `cluster_bringup/logs/weekend_campaign_inf03_A100_20260725_200422.csv` | as above | `cluster_bringup/logs/weekend_campaign_inf03_A100_20260816_clean.csv` |
+| `cluster_bringup/logs/weekend_campaign_inf03_A100_20260725_204532.csv` | as above | as above |
+| `cluster_bringup/logs/multicomp_walltime_inf02_20260815_141608.csv` | first end-to-end sweep, built with the per-neuron script rather than createmap | `cluster_bringup/logs/multicomp_walltime_createmap_inf02_A40_clean.csv` |
+| `cluster_bringup/logs/multicomp_walltime_inf03_20260815_141608.csv` | as above | `cluster_bringup/logs/multicomp_walltime_createmap_inf03_A100_clean.csv` |
+| `cluster_bringup/logs/multicomp_walltime_createmap_refill_inf03_20260816_000911.csv` | the N=50000 block re-run into the contaminated sweep; the whole sweep was then repeated on an idle card | `cluster_bringup/logs/multicomp_walltime_createmap_inf03_A100_clean.csv` |
 | `cluster_bringup/logs/crossover_inf03_20260817.csv` | before the three harness corrections found by the voltage cross-check | `cluster_bringup/logs/crossover_inf03_20260818_232057.csv` |
 | `experiments/data/campaign_wallclock_raw.csv` | release v2.5 campaign, old timing definition | the cluster logs above |
 | `experiments/data/campaign_wallclock_summary.csv` | as above | as above |

@@ -1,0 +1,10 @@
+arm,script,rep,wall_s
+cpu_published,VAnet2-batch.g,1,50.77
+cpu_published,VAnet2-batch.g,2,50.85
+cpu_published,VAnet2-batch.g,3,45.12
+cpu_1solver,VAnet2-batch-1solver.g,1,34.43
+cpu_1solver,VAnet2-batch-1solver.g,2,35.03
+cpu_1solver,VAnet2-batch-1solver.g,3,35.10
+gpu_1solver,VAnet2-batch-1solver.g,1,37.18
+gpu_1solver,VAnet2-batch-1solver.g,2,35.37
+gpu_1solver,VAnet2-batch-1solver.g,3,36.21

@@ -1,0 +1,10 @@
+START 2026-09-30T17:14:21+02:00 commit 5468eb9 WORK_DIR=/storage2/home/kchlasta/tc-verify-20260929
+=== bash cluster_bringup/toolchains/30_neuron_gpu.sh  2026-09-30T17:14:21+02:00
+GCC nocmodl translates a .mod file
+GCC nmodl runs
+NEURON 9.0.2 (ba5783378c0aa1d9ac95b4454bea94b15c63f75d) with CoreNEURON GPU: /storage2/home/kchlasta/tc-verify-20260929/nrn_src/build-gpu
+=== OK 913 s
+=== bash cluster_bringup/coreneuron/build_mechanisms.sh gpu  2026-09-30T17:29:34+02:00
+GPU mechanism build failed; see /storage2/home/kchlasta/tc-verify-20260929/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh/x86_64_gpu2/b.log
+=== FAILED rc=1 after 10 s
+END FAILED 2026-09-30T17:29:44+02:00

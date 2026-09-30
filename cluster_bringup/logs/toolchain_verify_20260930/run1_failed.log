@@ -1,0 +1,496 @@
+START 2026-09-29T01:18:44+02:00 commit a8aac4c WORK_DIR=/storage2/home/kchlasta/tc-verify-20260929
+=== sh cluster_bringup/toolchains/fetch_modeldb_83319.sh  2026-09-29T01:18:44+02:00
+downloading https://modeldb.science/download/83319
+ModelDB 83319: checksum OK
+COBAHH model at /storage2/home/kchlasta/tc-verify-20260929/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh
+=== OK 1 s
+=== bash cluster_bringup/toolchains/10_miniforge.sh  2026-09-29T01:18:45+02:00
+PREFIX=/storage2/home/kchlasta/tc-verify-20260929/opt/miniforge
+Unpacking bootstrapper...
+Unpacking payload...
+Extracting ca-certificates-2026.5.20-hbd8a1cb_0.conda
+Extracting libgomp-15.2.0-he0feb66_19.conda
+Extracting libzlib-1.3.2-h25fd6f3_2.conda
+Extracting nlohmann_json-abi-3.12.0-h0f90c79_1.conda
+Extracting pybind11-abi-11-hc364b38_1.conda
+Extracting python_abi-3.13-8_cp313.conda
+Extracting tzdata-2025c-hc9c84f9_1.conda
+Extracting _openmp_mutex-4.5-20_gnu.conda
+Extracting zstd-1.5.7-hb78ec9c_6.conda
+Extracting ld_impl_linux-64-2.45.1-default_hbd61a6d_102.conda
+Extracting libgcc-15.2.0-he0feb66_19.conda
+Extracting bzip2-1.0.8-hda65f42_9.conda
+Extracting c-ares-1.34.6-hb03c661_0.conda
+Extracting keyutils-1.6.3-hb9d3cd8_0.conda
+Extracting libexpat-2.8.1-hecca717_0.conda
+Extracting libffi-3.5.2-h3435931_0.conda
+Extracting libgcc-ng-15.2.0-h69a702a_19.conda
+Extracting libiconv-1.18-h3b78370_2.conda
+Extracting liblzma-5.8.3-hb03c661_0.conda
+Extracting libmpdec-4.0.0-hb03c661_1.conda
+Extracting libsqlite-3.53.1-h0c1763c_0.conda
+Extracting libstdcxx-15.2.0-h934c35e_19.conda
+Extracting libuuid-2.42.1-h5347b49_0.conda
+Extracting lzo-2.10-h280c20c_1002.conda
+Extracting ncurses-6.6-hdb14827_0.conda
+Extracting openssl-3.6.2-h35e630c_0.conda
+Extracting reproc-14.2.7.post0-hb03c661_1.conda
+Extracting tk-8.6.13-noxft_h366c992_103.conda
+Extracting cpp-expected-1.3.1-h171cf75_0.conda
+Extracting fmt-12.1.0-hff5e90c_0.conda
+Extracting icu-78.3-h33c6efd_0.conda
+Extracting libedit-3.1.20250104-pl5321h7949ede_0.conda
+Extracting libev-4.33-hd590300_2.conda
+Extracting libsolv-0.7.39-h9463b59_0.conda
+Extracting libssh2-1.11.1-hcf80075_0.conda
+Extracting lz4-c-1.10.0-h5888daf_1.conda
+Extracting readline-8.3-h853b02a_0.conda
+Extracting reproc-cpp-14.2.7.post0-hecca717_1.conda
+Extracting simdjson-4.2.4-hb700be7_0.conda
+Extracting yaml-cpp-0.8.0-h3f2d84a_0.conda
+Extracting krb5-1.22.2-ha1258a1_0.conda
+Extracting libnghttp2-1.68.1-h877daf1_0.conda
+Extracting libxml2-16-2.15.3-hca6bf5a_0.conda
+Extracting python-3.13.13-h6add32d_100_cp313.conda
+Extracting spdlog-1.17.0-hab81395_1.conda
+Extracting libcurl-8.20.0-hcf29cc6_0.conda
+Extracting libxml2-2.15.3-h49c6c72_0.conda
+Extracting menuinst-2.4.2-py313h78bf25f_0.conda
+Extracting archspec-0.2.5-pyhd8ed1ab_0.conda
+Extracting backports.zstd-1.5.0-py313h18e8e13_0.conda
+Extracting boltons-25.0.0-pyhd8ed1ab_0.conda
+Extracting brotli-python-1.2.0-py313hf159716_1.conda
+Extracting certifi-2026.5.20-pyhd8ed1ab_0.conda
+Extracting charset-normalizer-3.4.7-pyhd8ed1ab_0.conda
+Extracting distro-1.9.0-pyhd8ed1ab_1.conda
+Extracting frozendict-2.4.7-py313h07c4f96_0.conda
+Extracting hpack-4.1.0-pyhd8ed1ab_0.conda
+Extracting hyperframe-6.1.0-pyhd8ed1ab_0.conda
+Extracting idna-3.17-pyhcf101f3_0.conda
+Extracting jsonpointer-3.1.1-pyhcf101f3_0.conda
+Extracting libarchive-3.8.7-gpl_hc2c16d8_101.conda
+Extracting msgpack-python-1.1.2-py313h7037e92_1.conda
+Extracting packaging-26.2-pyhc364b38_0.conda
+Extracting pip-26.1.2-pyh145f28c_0.conda
+Extracting platformdirs-4.10.0-pyhcf101f3_0.conda
+Extracting pluggy-1.6.0-pyhf9edf01_1.conda
+Extracting pycosat-0.6.6-py313h07c4f96_3.conda
+Extracting pycparser-3.0-pyhcf101f3_0.conda
+Extracting pysocks-1.7.1-pyha55dd90_7.conda
+Extracting ruamel.yaml.clib-0.2.15-py313h54dd161_1.conda
+Extracting setuptools-82.0.1-pyh332efcf_0.conda
+Extracting tqdm-4.67.3-pyh8f84b5b_0.conda
+Extracting truststore-0.10.4-pyhcf101f3_0.conda
+Extracting cffi-2.0.0-py313hf46b229_1.conda
+Extracting h2-4.3.0-pyhcf101f3_0.conda
+Extracting jsonpatch-1.33-pyhd8ed1ab_1.conda
+Extracting libmamba-2.5.0-hd28c85e_0.conda
+Extracting ruamel.yaml-0.18.17-py313h54dd161_2.conda
+Extracting libmamba-spdlog-2.5.0-h12fcf84_0.conda
+Extracting mamba-2.5.0-h9835478_0.conda
+Extracting urllib3-2.7.0-pyhd8ed1ab_0.conda
+Extracting zstandard-0.25.0-py313h54dd161_1.conda
+Extracting conda-package-streaming-0.12.0-pyhd8ed1ab_0.conda
+Extracting libmambapy-2.5.0-py313h4616538_0.conda
+Extracting requests-2.34.2-pyhcf101f3_0.conda
+Extracting conda-libmamba-solver-26.4.2-pyhd8ed1ab_0.conda
+Extracting conda-package-handling-2.4.0-pyh7900ff3_2.conda
+Extracting conda-26.3.2-py313h78bf25f_1.conda
+
+Installing base environment...
+
+modprobe: FATAL: Module nvidia not found in directory /lib/modules/4.18.0-553.126.1.el8_10.x86_64
+Transaction
+
+  Prefix: /storage2/home/kchlasta/tc-verify-20260929/opt/miniforge
+
+  Updating specs:
+
+   - ca-certificates==2026.5.20=hbd8a1cb_0
+   - libgomp==15.2.0=he0feb66_19
+   - libzlib==1.3.2=h25fd6f3_2
+   - nlohmann_json-abi==3.12.0=h0f90c79_1
+   - pybind11-abi==11=hc364b38_1
+   - python_abi==3.13=8_cp313
+   - tzdata==2025c=hc9c84f9_1
+   - _openmp_mutex==4.5=20_gnu
+   - zstd==1.5.7=hb78ec9c_6
+   - ld_impl_linux-64==2.45.1=default_hbd61a6d_102
+   - libgcc==15.2.0=he0feb66_19
+   - bzip2==1.0.8=hda65f42_9
+   - c-ares==1.34.6=hb03c661_0
+   - keyutils==1.6.3=hb9d3cd8_0
+   - libexpat==2.8.1=hecca717_0
+   - libffi==3.5.2=h3435931_0
+   - libgcc-ng==15.2.0=h69a702a_19
+   - libiconv==1.18=h3b78370_2
+   - liblzma==5.8.3=hb03c661_0
+   - libmpdec==4.0.0=hb03c661_1
+   - libsqlite==3.53.1=h0c1763c_0
+   - libstdcxx==15.2.0=h934c35e_19
+   - libuuid==2.42.1=h5347b49_0
+   - lzo==2.10=h280c20c_1002
+   - ncurses==6.6=hdb14827_0
+   - openssl==3.6.2=h35e630c_0
+   - reproc==14.2.7.post0=hb03c661_1
+   - tk==8.6.13=noxft_h366c992_103
+   - cpp-expected==1.3.1=h171cf75_0
+   - fmt==12.1.0=hff5e90c_0
+   - icu==78.3=h33c6efd_0
+   - libedit==3.1.20250104=pl5321h7949ede_0
+   - libev==4.33=hd590300_2
+   - libsolv==0.7.39=h9463b59_0
+   - libssh2==1.11.1=hcf80075_0
+   - lz4-c==1.10.0=h5888daf_1
+   - readline==8.3=h853b02a_0
+   - reproc-cpp==14.2.7.post0=hecca717_1
+   - simdjson==4.2.4=hb700be7_0
+   - yaml-cpp==0.8.0=h3f2d84a_0
+   - krb5==1.22.2=ha1258a1_0
+   - libnghttp2==1.68.1=h877daf1_0
+   - libxml2-16==2.15.3=hca6bf5a_0
+   - python==3.13.13=h6add32d_100_cp313
+   - spdlog==1.17.0=hab81395_1
+   - libcurl==8.20.0=hcf29cc6_0
+   - libxml2==2.15.3=h49c6c72_0
+   - menuinst==2.4.2=py313h78bf25f_0
+   - archspec==0.2.5=pyhd8ed1ab_0
+   - backports.zstd==1.5.0=py313h18e8e13_0
+   - boltons==25.0.0=pyhd8ed1ab_0
+   - brotli-python==1.2.0=py313hf159716_1
+   - certifi==2026.5.20=pyhd8ed1ab_0
+   - charset-normalizer==3.4.7=pyhd8ed1ab_0
+   - distro==1.9.0=pyhd8ed1ab_1
+   - frozendict==2.4.7=py313h07c4f96_0
+   - hpack==4.1.0=pyhd8ed1ab_0
+   - hyperframe==6.1.0=pyhd8ed1ab_0
+   - idna==3.17=pyhcf101f3_0
+   - jsonpointer==3.1.1=pyhcf101f3_0
+   - libarchive==3.8.7=gpl_hc2c16d8_101
+   - msgpack-python==1.1.2=py313h7037e92_1
+   - packaging==26.2=pyhc364b38_0
+   - pip==26.1.2=pyh145f28c_0
+   - platformdirs==4.10.0=pyhcf101f3_0
+   - pluggy==1.6.0=pyhf9edf01_1
+   - pycosat==0.6.6=py313h07c4f96_3
+   - pycparser==3.0=pyhcf101f3_0
+   - pysocks==1.7.1=pyha55dd90_7
+   - ruamel.yaml.clib==0.2.15=py313h54dd161_1
+   - setuptools==82.0.1=pyh332efcf_0
+   - tqdm==4.67.3=pyh8f84b5b_0
+   - truststore==0.10.4=pyhcf101f3_0
+   - cffi==2.0.0=py313hf46b229_1
+   - h2==4.3.0=pyhcf101f3_0
+   - jsonpatch==1.33=pyhd8ed1ab_1
+   - libmamba==2.5.0=hd28c85e_0
+   - ruamel.yaml==0.18.17=py313h54dd161_2
+   - libmamba-spdlog==2.5.0=h12fcf84_0
+   - mamba==2.5.0=h9835478_0
+   - urllib3==2.7.0=pyhd8ed1ab_0
+   - zstandard==0.25.0=py313h54dd161_1
+   - conda-package-streaming==0.12.0=pyhd8ed1ab_0
+   - libmambapy==2.5.0=py313h4616538_0
+   - requests==2.34.2=pyhcf101f3_0
+   - conda-libmamba-solver==26.4.2=pyhd8ed1ab_0
+   - conda-package-handling==2.4.0=pyh7900ff3_2
+   - conda==26.3.2=py313h78bf25f_1
+
+
+  Package                         Version  Build                 Channel         Size
+───────────────────────────────────────────────────────────────────────────────────────
+  Install:
+───────────────────────────────────────────────────────────────────────────────────────
+
+  + _openmp_mutex                     4.5  20_gnu                conda-forge         
+  + archspec                        0.2.5  pyhd8ed1ab_0          conda-forge         
+  + backports.zstd                  1.5.0  py313h18e8e13_0       conda-forge         
+  + boltons                        25.0.0  pyhd8ed1ab_0          conda-forge         
+  + brotli-python                   1.2.0  py313hf159716_1       conda-forge         
+  + bzip2                           1.0.8  hda65f42_9            conda-forge         
+  + c-ares                         1.34.6  hb03c661_0            conda-forge         
+  + ca-certificates             2026.5.20  hbd8a1cb_0            conda-forge         
+  + certifi                     2026.5.20  pyhd8ed1ab_0          conda-forge         
+  + cffi                            2.0.0  py313hf46b229_1       conda-forge         
+  + charset-normalizer              3.4.7  pyhd8ed1ab_0          conda-forge         
+  + conda                          26.3.2  py313h78bf25f_1       conda-forge         
+  + conda-libmamba-solver          26.4.2  pyhd8ed1ab_0          conda-forge         
+  + conda-package-handling          2.4.0  pyh7900ff3_2          conda-forge         
+  + conda-package-streaming        0.12.0  pyhd8ed1ab_0          conda-forge         
+  + cpp-expected                    1.3.1  h171cf75_0            conda-forge         
+  + distro                          1.9.0  pyhd8ed1ab_1          conda-forge         
+  + fmt                            12.1.0  hff5e90c_0            conda-forge         
+  + frozendict                      2.4.7  py313h07c4f96_0       conda-forge         
+  + h2                              4.3.0  pyhcf101f3_0          conda-forge         
+  + hpack                           4.1.0  pyhd8ed1ab_0          conda-forge         
+  + hyperframe                      6.1.0  pyhd8ed1ab_0          conda-forge         
+  + icu                              78.3  h33c6efd_0            conda-forge         
+  + idna                             3.17  pyhcf101f3_0          conda-forge         
+  + jsonpatch                        1.33  pyhd8ed1ab_1          conda-forge         
+  + jsonpointer                     3.1.1  pyhcf101f3_0          conda-forge         
+  + keyutils                        1.6.3  hb9d3cd8_0            conda-forge         
+  + krb5                           1.22.2  ha1258a1_0            conda-forge         
+  + ld_impl_linux-64               2.45.1  default_hbd61a6d_102  conda-forge         
+  + libarchive                      3.8.7  gpl_hc2c16d8_101      conda-forge         
+  + libcurl                        8.20.0  hcf29cc6_0            conda-forge         
+  + libedit                  3.1.20250104  pl5321h7949ede_0      conda-forge         
+  + libev                            4.33  hd590300_2            conda-forge         
+  + libexpat                        2.8.1  hecca717_0            conda-forge         
+  + libffi                          3.5.2  h3435931_0            conda-forge         
+  + libgcc                         15.2.0  he0feb66_19           conda-forge         
+  + libgcc-ng                      15.2.0  h69a702a_19           conda-forge         
+  + libgomp                        15.2.0  he0feb66_19           conda-forge         
+  + libiconv                         1.18  h3b78370_2            conda-forge         
+  + liblzma                         5.8.3  hb03c661_0            conda-forge         
+  + libmamba                        2.5.0  hd28c85e_0            conda-forge         
+  + libmamba-spdlog                 2.5.0  h12fcf84_0            conda-forge         
+  + libmambapy                      2.5.0  py313h4616538_0       conda-forge         
+  + libmpdec                        4.0.0  hb03c661_1            conda-forge         
+  + libnghttp2                     1.68.1  h877daf1_0            conda-forge         
+  + libsolv                        0.7.39  h9463b59_0            conda-forge         
+  + libsqlite                      3.53.1  h0c1763c_0            conda-forge         
+  + libssh2                        1.11.1  hcf80075_0            conda-forge         
+  + libstdcxx                      15.2.0  h934c35e_19           conda-forge         
+  + libuuid                        2.42.1  h5347b49_0            conda-forge         
+  + libxml2                        2.15.3  h49c6c72_0            conda-forge         
+  + libxml2-16                     2.15.3  hca6bf5a_0            conda-forge         
+  + libzlib                         1.3.2  h25fd6f3_2            conda-forge         
+  + lz4-c                          1.10.0  h5888daf_1            conda-forge         
+  + lzo                              2.10  h280c20c_1002         conda-forge         
+  + mamba                           2.5.0  h9835478_0            conda-forge         
+  + menuinst                        2.4.2  py313h78bf25f_0       conda-forge         
+  + msgpack-python                  1.1.2  py313h7037e92_1       conda-forge         
+  + ncurses                           6.6  hdb14827_0            conda-forge         
+  + nlohmann_json-abi              3.12.0  h0f90c79_1            conda-forge         
+  + openssl                         3.6.2  h35e630c_0            conda-forge         
+  + packaging                        26.2  pyhc364b38_0          conda-forge         
+  + pip                            26.1.2  pyh145f28c_0          conda-forge         
+  + platformdirs                   4.10.0  pyhcf101f3_0          conda-forge         
+  + pluggy                          1.6.0  pyhf9edf01_1          conda-forge         
+  + pybind11-abi                       11  hc364b38_1            conda-forge         
+  + pycosat                         0.6.6  py313h07c4f96_3       conda-forge         
+  + pycparser                         3.0  pyhcf101f3_0          conda-forge         
+  + pysocks                         1.7.1  pyha55dd90_7          conda-forge         
+  + python                        3.13.13  h6add32d_100_cp313    conda-forge         
+  + python_abi                       3.13  8_cp313               conda-forge         
+  + readline                          8.3  h853b02a_0            conda-forge         
+  + reproc                   14.2.7.post0  hb03c661_1            conda-forge         
+  + reproc-cpp               14.2.7.post0  hecca717_1            conda-forge         
+  + requests                       2.34.2  pyhcf101f3_0          conda-forge         
+  + ruamel.yaml                   0.18.17  py313h54dd161_2       conda-forge         
+  + ruamel.yaml.clib               0.2.15  py313h54dd161_1       conda-forge         
+  + setuptools                     82.0.1  pyh332efcf_0          conda-forge         
+  + simdjson                        4.2.4  hb700be7_0            conda-forge         
+  + spdlog                         1.17.0  hab81395_1            conda-forge         
+  + tk                             8.6.13  noxft_h366c992_103    conda-forge         
+  + tqdm                           4.67.3  pyh8f84b5b_0          conda-forge         
+  + truststore                     0.10.4  pyhcf101f3_0          conda-forge         
+  + tzdata                          2025c  hc9c84f9_1            conda-forge         
+  + urllib3                         2.7.0  pyhd8ed1ab_0          conda-forge         
+  + yaml-cpp                        0.8.0  h3f2d84a_0            conda-forge         
+  + zstandard                      0.25.0  py313h54dd161_1       conda-forge         
+  + zstd                            1.5.7  hb78ec9c_6            conda-forge         
+
+  Summary:
+
+  Install: 88 packages
+
+  Total download: 0 B
+
+───────────────────────────────────────────────────────────────────────────────────────
+
+
+
+Transaction starting
+Linking ca-certificates-2026.5.20-hbd8a1cb_0
+Linking libgomp-15.2.0-he0feb66_19
+Linking libzlib-1.3.2-h25fd6f3_2
+Linking nlohmann_json-abi-3.12.0-h0f90c79_1
+Linking pybind11-abi-11-hc364b38_1
+Linking python_abi-3.13-8_cp313
+Linking tzdata-2025c-hc9c84f9_1
+Linking _openmp_mutex-4.5-20_gnu
+Linking zstd-1.5.7-hb78ec9c_6
+Linking ld_impl_linux-64-2.45.1-default_hbd61a6d_102
+Linking libgcc-15.2.0-he0feb66_19
+Linking bzip2-1.0.8-hda65f42_9
+Linking c-ares-1.34.6-hb03c661_0
+Linking keyutils-1.6.3-hb9d3cd8_0
+Linking libexpat-2.8.1-hecca717_0
+Linking libffi-3.5.2-h3435931_0
+Linking libgcc-ng-15.2.0-h69a702a_19
+Linking libiconv-1.18-h3b78370_2
+Linking liblzma-5.8.3-hb03c661_0
+Linking libmpdec-4.0.0-hb03c661_1
+Linking libsqlite-3.53.1-h0c1763c_0
+Linking libstdcxx-15.2.0-h934c35e_19
+Linking libuuid-2.42.1-h5347b49_0
+Linking lzo-2.10-h280c20c_1002
+Linking ncurses-6.6-hdb14827_0
+Linking openssl-3.6.2-h35e630c_0
+Linking reproc-14.2.7.post0-hb03c661_1
+Linking tk-8.6.13-noxft_h366c992_103
+Linking cpp-expected-1.3.1-h171cf75_0
+Linking fmt-12.1.0-hff5e90c_0
+Linking icu-78.3-h33c6efd_0
+Linking libedit-3.1.20250104-pl5321h7949ede_0
+Linking libev-4.33-hd590300_2
+Linking libsolv-0.7.39-h9463b59_0
+Linking libssh2-1.11.1-hcf80075_0
+Linking lz4-c-1.10.0-h5888daf_1
+Linking readline-8.3-h853b02a_0
+Linking reproc-cpp-14.2.7.post0-hecca717_1
+Linking simdjson-4.2.4-hb700be7_0
+Linking yaml-cpp-0.8.0-h3f2d84a_0
+Linking krb5-1.22.2-ha1258a1_0
+Linking libnghttp2-1.68.1-h877daf1_0
+Linking libxml2-16-2.15.3-hca6bf5a_0
+Linking python-3.13.13-h6add32d_100_cp313
+Linking spdlog-1.17.0-hab81395_1
+Linking libcurl-8.20.0-hcf29cc6_0
+Linking libxml2-2.15.3-h49c6c72_0
+Linking menuinst-2.4.2-py313h78bf25f_0
+Linking archspec-0.2.5-pyhd8ed1ab_0
+Linking backports.zstd-1.5.0-py313h18e8e13_0
+Linking boltons-25.0.0-pyhd8ed1ab_0
+Linking brotli-python-1.2.0-py313hf159716_1
+Linking certifi-2026.5.20-pyhd8ed1ab_0
+Linking charset-normalizer-3.4.7-pyhd8ed1ab_0
+Linking distro-1.9.0-pyhd8ed1ab_1
+Linking frozendict-2.4.7-py313h07c4f96_0
+Linking hpack-4.1.0-pyhd8ed1ab_0
+Linking hyperframe-6.1.0-pyhd8ed1ab_0
+Linking idna-3.17-pyhcf101f3_0
+Linking jsonpointer-3.1.1-pyhcf101f3_0
+Linking libarchive-3.8.7-gpl_hc2c16d8_101
+Linking msgpack-python-1.1.2-py313h7037e92_1
+Linking packaging-26.2-pyhc364b38_0
+Linking pip-26.1.2-pyh145f28c_0
+Linking platformdirs-4.10.0-pyhcf101f3_0
+Linking pluggy-1.6.0-pyhf9edf01_1
+Linking pycosat-0.6.6-py313h07c4f96_3
+Linking pycparser-3.0-pyhcf101f3_0
+Linking pysocks-1.7.1-pyha55dd90_7
+Linking ruamel.yaml.clib-0.2.15-py313h54dd161_1
+Linking setuptools-82.0.1-pyh332efcf_0
+Linking tqdm-4.67.3-pyh8f84b5b_0
+Linking truststore-0.10.4-pyhcf101f3_0
+Linking cffi-2.0.0-py313hf46b229_1
+Linking h2-4.3.0-pyhcf101f3_0
+Linking jsonpatch-1.33-pyhd8ed1ab_1
+Linking libmamba-2.5.0-hd28c85e_0
+Linking ruamel.yaml-0.18.17-py313h54dd161_2
+Linking libmamba-spdlog-2.5.0-h12fcf84_0
+Linking mamba-2.5.0-h9835478_0
+Linking urllib3-2.7.0-pyhd8ed1ab_0
+Linking zstandard-0.25.0-py313h54dd161_1
+Linking conda-package-streaming-0.12.0-pyhd8ed1ab_0
+Linking libmambapy-2.5.0-py313h4616538_0
+Linking requests-2.34.2-pyhcf101f3_0
+Linking conda-libmamba-solver-26.4.2-pyhd8ed1ab_0
+Linking conda-package-handling-2.4.0-pyh7900ff3_2
+Linking conda-26.3.2-py313h78bf25f_1
+
+Transaction finished
+
+installation finished.
+miniforge 26.3.2-3: Python 3.13.13
+=== OK 38 s
+=== bash cluster_bringup/toolchains/20_nvhpc.sh  2026-09-29T01:19:23+02:00
+generating environment modules for NV HPC SDK 24.11 ... done.
+nvc++ 24.11-0 64-bit target on x86-64 Linux -tp haswell 
+=== OK 1685 s
+=== bash cluster_bringup/toolchains/30_neuron_gpu.sh  2026-09-29T01:47:28+02:00
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src'...
+Note: switching to 'ba5783378c0aa1d9ac95b4454bea94b15c63f75d'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  45% (1441/3153)Updating files:  46% (1451/3153)Updating files:  47% (1482/3153)Updating files:  48% (1514/3153)Updating files:  49% (1545/3153)Updating files:  50% (1577/3153)Updating files:  51% (1609/3153)Updating files:  52% (1640/3153)Updating files:  53% (1672/3153)Updating files:  54% (1703/3153)Updating files:  55% (1735/3153)Updating files:  56% (1766/3153)Updating files:  57% (1798/3153)Updating files:  58% (1829/3153)Updating files:  59% (1861/3153)Updating files:  60% (1892/3153)Updating files:  61% (1924/3153)Updating files:  62% (1955/3153)Updating files:  63% (1987/3153)Updating files:  64% (2018/3153)Updating files:  65% (2050/3153)Updating files:  66% (2081/3153)Updating files:  67% (2113/3153)Updating files:  68% (2145/3153)Updating files:  69% (2176/3153)Updating files:  70% (2208/3153)Updating files:  71% (2239/3153)Updating files:  72% (2271/3153)Updating files:  73% (2302/3153)Updating files:  74% (2334/3153)Updating files:  75% (2365/3153)Updating files:  76% (2397/3153)Updating files:  77% (2428/3153)Updating files:  78% (2460/3153)Updating files:  79% (2491/3153)Updating files:  80% (2523/3153)Updating files:  81% (2554/3153)Updating files:  82% (2586/3153)Updating files:  83% (2617/3153)Updating files:  84% (2649/3153)Updating files:  85% (2681/3153)Updating files:  86% (2712/3153)Updating files:  87% (2744/3153)Updating files:  88% (2775/3153)Updating files:  89% (2807/3153)Updating files:  89% (2816/3153)Updating files:  90% (2838/3153)Updating files:  91% (2870/3153)Updating files:  92% (2901/3153)Updating files:  93% (2933/3153)Updating files:  94% (2964/3153)Updating files:  95% (2996/3153)Updating files:  96% (3027/3153)Updating files:  97% (3059/3153)Updating files:  98% (3090/3153)Updating files:  99% (3122/3153)Updating files: 100% (3153/3153)Updating files: 100% (3153/3153), done.
+Submodule 'external/CLI11' (https://github.com/CLIUtils/CLI11.git) registered for path 'external/CLI11'
+Submodule 'external/Random123' (https://github.com/BlueBrain/Random123.git) registered for path 'external/Random123'
+Submodule 'external/backward' (https://github.com/bombela/backward-cpp.git) registered for path 'external/backward'
+Submodule 'external/catch2' (https://github.com/catchorg/Catch2.git) registered for path 'external/catch2'
+Submodule 'external/coding-conventions' (https://github.com/neuronsimulator/coding-conventions.git) registered for path 'external/coding-conventions'
+Submodule 'external/eigen' (https://gitlab.com/libeigen/eigen.git) registered for path 'external/eigen'
+Submodule 'external/fmt' (https://github.com/fmtlib/fmt) registered for path 'external/fmt'
+Submodule 'modules/iv' (https://github.com/neuronsimulator/iv.git) registered for path 'external/iv'
+Submodule 'external/json' (https://github.com/nlohmann/json.git) registered for path 'external/json'
+Submodule 'external/nanobind' (https://github.com/wjakob/nanobind) registered for path 'external/nanobind'
+Submodule 'external/pybind11' (https://github.com/pybind/pybind11.git) registered for path 'external/pybind11'
+Submodule 'external/spdlog' (https://github.com/gabime/spdlog.git) registered for path 'external/spdlog'
+Submodule 'test/rxd/testdata' (https://github.com/neuronsimulator/rxdtestdata) registered for path 'test/rxd/testdata'
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/CLI11'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/Random123'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/backward'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/catch2'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/coding-conventions'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/eigen'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/fmt'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/iv'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/json'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/nanobind'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/pybind11'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/spdlog'...
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/test/rxd/testdata'...
+From https://github.com/CLIUtils/CLI11
+ * branch            6c7b07a878ad834957b98d0f9ce1dbe0cb204fc9 -> FETCH_HEAD
+Submodule path 'external/CLI11': checked out '6c7b07a878ad834957b98d0f9ce1dbe0cb204fc9'
+From https://github.com/BlueBrain/Random123
+ * branch            b5cb15614e8f3eb0ff316bdc50c300ddd32fa3c1 -> FETCH_HEAD
+Submodule path 'external/Random123': checked out 'b5cb15614e8f3eb0ff316bdc50c300ddd32fa3c1'
+From https://github.com/bombela/backward-cpp
+ * branch            3bb9240cb15459768adb3e7d963a20e1523a6294 -> FETCH_HEAD
+Submodule path 'external/backward': checked out '3bb9240cb15459768adb3e7d963a20e1523a6294'
+From https://github.com/catchorg/Catch2
+ * branch            fa43b77429ba76c462b1898d6cd2f2d7a9416b14 -> FETCH_HEAD
+Submodule path 'external/catch2': checked out 'fa43b77429ba76c462b1898d6cd2f2d7a9416b14'
+From https://github.com/neuronsimulator/coding-conventions
+ * branch            f1915f5d4f169569de9144c13d58afe20a1ea73e -> FETCH_HEAD
+Submodule path 'external/coding-conventions': checked out 'f1915f5d4f169569de9144c13d58afe20a1ea73e'
+From https://gitlab.com/libeigen/eigen
+ * branch            3147391d946bb4b6c68edd901f2add6ac1f31f8c -> FETCH_HEAD
+Submodule path 'external/eigen': checked out '3147391d946bb4b6c68edd901f2add6ac1f31f8c'
+From https://github.com/fmtlib/fmt
+ * branch            0c9fce2ffefecfdce794e1859584e25877b7b592 -> FETCH_HEAD
+Submodule path 'external/fmt': checked out '0c9fce2ffefecfdce794e1859584e25877b7b592'
+From https://github.com/neuronsimulator/iv
+ * branch            5843bf468d52dca991b45d193b103b32f8232ebf -> FETCH_HEAD
+Submodule path 'external/iv': checked out '5843bf468d52dca991b45d193b103b32f8232ebf'
+From https://github.com/nlohmann/json
+ * branch            9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03 -> FETCH_HEAD
+Submodule path 'external/json': checked out '9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03'
+From https://github.com/wjakob/nanobind
+ * branch            784efa2a0358a4dc5432c74f5685ee026e20f2b6 -> FETCH_HEAD
+Submodule path 'external/nanobind': checked out '784efa2a0358a4dc5432c74f5685ee026e20f2b6'
+Submodule 'ext/robin_map' (https://github.com/Tessil/robin-map) registered for path 'external/nanobind/ext/robin_map'
+Cloning into '/storage2/home/kchlasta/tc-verify-20260929/nrn_src/external/nanobind/ext/robin_map'...
+From https://github.com/Tessil/robin-map
+ * branch            188c45569cc2a5dd768077c193830b51d33a5020 -> FETCH_HEAD
+Submodule path 'external/nanobind/ext/robin_map': checked out '188c45569cc2a5dd768077c193830b51d33a5020'
+From https://github.com/pybind/pybind11
+ * branch            3e9dfa2866941655c56877882565e7577de6fc7b -> FETCH_HEAD
+Submodule path 'external/pybind11': checked out '3e9dfa2866941655c56877882565e7577de6fc7b'
+From https://github.com/gabime/spdlog
+ * branch            7c02e204c92545f869e2f04edaab1f19fe8b19fd -> FETCH_HEAD
+Submodule path 'external/spdlog': checked out '7c02e204c92545f869e2f04edaab1f19fe8b19fd'
+From https://github.com/neuronsimulator/rxdtestdata
+ * branch            fb90febf33a84798bdf78cac62a838736e255870 -> FETCH_HEAD
+Submodule path 'test/rxd/testdata': checked out 'fb90febf33a84798bdf78cac62a838736e255870'
+GCC nocmodl translates a .mod file
+GCC nmodl runs
+NEURON GPU build failed; see /storage2/home/kchlasta/tc-verify-20260929/nrn_src/build-gpu/make.log
+=== FAILED rc=1 after 286 s
+END FAILED 2026-09-29T01:52:14+02:00

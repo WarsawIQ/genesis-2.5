@@ -1,0 +1,4 @@
+setenv SIMPATH . /storage2/home/kchlasta/genesis-2.5/genesis/startup /storage2/home/kchlasta/genesis-2.5/genesis/Scripts/neurokit /storage2/home/kchlasta/genesis-2.5/genesis/Scripts/neurokit/prototypes
+setenv SIMNOTES /storage2/home/kchlasta/genesis-2.5/reproduce/results/vanet2/cpu_1solver/.notes
+setenv GENESIS_HELP /storage2/home/kchlasta/genesis-2.5/genesis/Doc
+schedule
