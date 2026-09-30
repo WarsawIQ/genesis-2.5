@@ -9,7 +9,8 @@
 #
 # A line that genuinely needs a literal path (a comment quoting an error
 # message, a path inside a generated file) can say so with "# path-ok: why".
-# The unchanged copies in cluster_bringup/toolchains/as-found/ are exempt:
+# The unchanged copies in cluster_bringup/toolchains/as-found/ and anything
+# under cluster_bringup/logs/ are exempt:
 # they are the record of what ran.
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -20,7 +21,7 @@ hits=$(git ls-files -co --exclude-standard -- \
         'cluster_bringup/*.sh' 'cluster_bringup/**/*.sh' 'cluster_bringup/**/*.py' \
         'reproduce/*.sh' 'reproduce/**/*.sh' 'reproduce/*.py' \
         'paper/scripts/*' 'experiments/*.py' \
-    | grep -v -e '^cluster_bringup/env.sh$' -e '^cluster_bringup/toolchains/as-found/' \
+    | grep -v -e '^cluster_bringup/env.sh$' -e '^cluster_bringup/toolchains/as-found/' -e '^cluster_bringup/logs/' \
     | while read -r f; do
           grep -n -E "$PATTERN" "$f" | grep -v 'path-ok:' | sed "s#^#$f:#"
       done)
