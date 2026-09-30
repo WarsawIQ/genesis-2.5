@@ -33,8 +33,12 @@ HOSTTOOLS="$NRN_GPU_SRC/build-hosttools"
 HOSTNMODL="$NRN_GPU_SRC/build-hostnmodl"
 NPROC=$(nproc)
 
-if [ -x "$GPU/bin/nrnivmodl-core" ] && [ -x "$GPU/bin/nocmodl" ] \
-   && "$GPU/bin/nmodl" --version >/dev/null 2>&1; then
+# Only a build this recipe finished counts as done. Checking for the binaries
+# instead accepted a failed build: a run that died half-way leaves
+# nrnivmodl-core and an nvc++ nmodl behind, and nmodl --version works even
+# though the tool crashes on every .mod file.
+STAMP="$GPU/.recipe_ok"
+if [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$REV" ]; then
     echo "NEURON GPU build already present in $GPU"
     exit 0
 fi
@@ -127,4 +131,5 @@ make -j"$NPROC" >> make.log 2>&1 \
 cmp -s "$GPU/bin/nocmodl" "$NOCMODL" && cmp -s "$GPU/bin/nmodl" "$NMODL" \
     || { echo "the build replaced a GCC generator; see the comment above" >&2; exit 1; }
 [ -x "$GPU/bin/nrnivmodl-core" ] || { echo "no nrnivmodl-core in $GPU/bin" >&2; exit 1; }
+echo "$REV" > "$STAMP"
 echo "NEURON $TAG ($REV) with CoreNEURON GPU: $GPU"
