@@ -10,8 +10,9 @@
  * kernel is a runtime-compiled string), and is the standard robust way to add
  * CUDA to a C codebase.
  *
- * Semantics are a 1:1 port of opencl/ocl_hsolve.c: fp32 kernels, host-side
- * double<->float conversion at the buffer boundary, persistent chip[] on the
+ * Semantics are a 1:1 port of opencl/ocl_hsolve.c: kernels in float, or in
+ * double when GENESIS_GPU_PRECISION=fp64, host-side double<->float (or double)
+ * conversion at the buffer boundary, persistent chip[] on the
  * device between per-step calls, and a multiloop path that batches K steps in
  * one launch. Timing lines are printed in the same shape as the OpenCL path
  * ("CUDA MULTILOOP: ... total X ms") so the benchmark harness parses either.
@@ -70,14 +71,21 @@ struct CudaState {
     int crank = 0;
 
     int ncompts = 0, nchips = 0, nops = 0, ncols = 0, xdivs = 0;
-    float xmin = 0.0f, invdx = 0.0f;
+    double xmin = 0.0, invdx = 0.0;
 
-    /* device buffers (fp32 mirrors of hsolve's double arrays) */
-    float *d_vm = nullptr, *d_chip = nullptr, *d_results = nullptr;
-    float *d_tablist = nullptr, *d_xvals = nullptr;
+    /* Kernel precision, fixed for the process: 0 = float (the default and the
+       arithmetic every published figure used), 1 = double. The buffers below
+       hold elements of esz bytes of that type; they are void * so that one
+       state serves both instantiations of the kernels. */
+    int fp64 = 0;
+    size_t esz = sizeof(float);
+
+    /* device buffers (mirrors of hsolve's double arrays in the kernel type) */
+    void *d_vm = nullptr, *d_chip = nullptr, *d_results = nullptr;
+    void *d_tablist = nullptr, *d_xvals = nullptr;
     /* Synaptic constants (6 per synchan table). The CUDA backend never needed
        these until SYN2_OP became supported; OpenCL has carried them all along. */
-    float *d_stablist = nullptr;
+    void *d_stablist = nullptr;
     int    sntab = 0;
     int   *d_ops = nullptr, *d_opstart = nullptr, *d_chipstart = nullptr;
     /* SPIKE_OP support: the refractory counter must be writable (ops[] is not)
@@ -93,16 +101,16 @@ struct CudaState {
        are the only values that have to travel each step. */
     int   *syn_slot_host = nullptr;
     int   *d_syn_slot = nullptr;
-    float *d_syn_val  = nullptr;
-    float *h_syn_val  = nullptr;
+    void *d_syn_val  = nullptr;
+    void *h_syn_val  = nullptr;
     int    syn_nslots = 0;
     int   *d_spike_refrac = nullptr, *d_spike_flag = nullptr;
     int   *h_spike_flag = nullptr;
     int    nspike = 0;
     int    spikes_this_step = 0;
 
-    /* host fp32 scratch reused every step */
-    float *f_vm = nullptr, *f_chip = nullptr, *f_results = nullptr;
+    /* host scratch in the kernel type, reused every step */
+    void *f_vm = nullptr, *f_chip = nullptr, *f_results = nullptr;
 
     /* per-step profiling */
     cudaEvent_t ev_start = nullptr, ev_stop = nullptr;
@@ -116,18 +124,87 @@ struct CudaState {
     int tree_ready = 0;
     int n_trees = 0;
     int *d_funcs = nullptr;
-    float *d_ravals = nullptr;
+    void *d_ravals = nullptr;
     int *d_fwd_seg_start = nullptr, *d_fwd_seg_end = nullptr;
     int *d_bwd_seg_start = nullptr, *d_bwd_seg_end = nullptr;
     int *d_fwd_root_row = nullptr, *d_fwd_raval_start = nullptr, *d_bwd_raval_start = nullptr;
 };
 
 
-inline void d2f(const double *src, float *dst, int n) {
-    for (int i = 0; i < n; i++) dst[i] = (float)src[i];
+/* double <-> kernel type at the buffer boundary. For float this is the
+   (float) cast the backend has always used. */
+template <typename T> inline void d2t(const double *src, void *dst, int n) {
+    T *d = (T *)dst;
+    for (int i = 0; i < n; i++) d[i] = (T)src[i];
 }
-inline void f2d(const float *src, double *dst, int n) {
-    for (int i = 0; i < n; i++) dst[i] = (double)src[i];
+template <typename T> inline void t2d(const void *src, double *dst, int n) {
+    const T *s = (const T *)src;
+    for (int i = 0; i < n; i++) dst[i] = (double)s[i];
+}
+inline void d2g(const CudaState *st, const double *src, void *dst, int n) {
+    if (st->fp64) d2t<double>(src, dst, n); else d2t<float>(src, dst, n);
+}
+inline void g2d(const CudaState *st, const void *src, double *dst, int n) {
+    if (st->fp64) t2d<double>(src, dst, n); else t2d<float>(src, dst, n);
+}
+inline void set_elem(const CudaState *st, void *p, int i, double v) {
+    if (st->fp64) ((double *)p)[i] = v; else ((float *)p)[i] = (float)v;
+}
+
+/* GENESIS_GPU_PRECISION: unset, "fp32" or "fp64". Returns 0 or 1, or -1 for
+   any other value, which the caller refuses rather than guess at. */
+int gpu_precision_fp64()
+{
+    const char *e = getenv("GENESIS_GPU_PRECISION");
+    if (!e || !*e || strcmp(e, "fp32") == 0) return 0;
+    if (strcmp(e, "fp64") == 0) return 1;
+    return -1;
+}
+
+/* Kernel launches, one template per kernel; the entry points below pick the
+   instantiation from st->fp64. */
+template <typename T>
+void launch_update(CudaState *st, int grid, int block, int n,
+                   int *refrac, int *flag, int solve_here, int crank)
+{
+    cuda_chip_channel_update<T><<<grid, block>>>(
+        (T *)st->d_vm, (T *)st->d_chip, (T *)st->d_results,
+        (T *)st->d_tablist, (T *)st->d_xvals,
+        st->d_ops, st->d_opstart, st->d_chipstart,
+        (T *)st->d_stablist, refrac, flag,
+        n, st->ncols, st->xdivs, (T)st->xmin, (T)st->invdx,
+        solve_here ? (T *)st->d_vm : (T *)0, crank);
+}
+
+template <typename T>
+void launch_multiloop(CudaState *st, int grid, int block, int n, int nsteps)
+{
+    cuda_chip_channel_multiloop<T><<<grid, block>>>(
+        (T *)st->d_vm, (T *)st->d_chip, (T *)st->d_results,
+        (T *)st->d_tablist, (T *)st->d_xvals, (T *)st->d_stablist,
+        st->d_ops, st->d_opstart, st->d_chipstart,
+        n, st->ncols, st->xdivs, (T)st->xmin, (T)st->invdx, nsteps);
+}
+
+template <typename T>
+void launch_tree(CudaState *st, int grid, int block)
+{
+    cuda_hines_tree_eliminate<T><<<grid, block>>>(
+        st->d_funcs, (T *)st->d_ravals, (T *)st->d_results, (T *)st->d_vm,
+        st->d_fwd_seg_start, st->d_fwd_seg_end,
+        st->d_bwd_seg_start, st->d_bwd_seg_end,
+        st->d_fwd_root_row, st->d_fwd_raval_start, st->d_bwd_raval_start,
+        st->n_trees);
+}
+
+/* Scatter the host's synaptic X values into the device chip[] at their fixed
+   slots. Replaces uploading the whole array, which would also overwrite the Y
+   state and the channel gating variables the kernel maintains. */
+template <typename T>
+__global__ void k_scatter_syn(T *chip, const int *slot, const T *val, int n)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) chip[slot[i]] = val[i];
 }
 
 inline int grid_for(int n, int block) { return (n + block - 1) / block; }
@@ -193,6 +270,15 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
     CudaState *st = (CudaState *)calloc(1, sizeof(CudaState));
     if (!st) return NULL;
     st->last_batch_time = -1.0;   /* calloc does not run the C++ initialiser */
+    int prec = gpu_precision_fp64();
+    if (prec < 0) {
+        fprintf(stderr, "CUDA: GENESIS_GPU_PRECISION=%s is not understood; "
+                "use fp32 (the default) or fp64. Computing on the CPU.\n",
+                getenv("GENESIS_GPU_PRECISION"));
+        cuda_state_destroy(st); return NULL;
+    }
+    st->fp64 = prec;
+    st->esz = prec ? sizeof(double) : sizeof(float);
     int dev_count = 0;
     CUDA_CHECK_P(cudaGetDeviceCount(&dev_count), "cudaGetDeviceCount");
     if (dev_count < 1) {
@@ -206,7 +292,7 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
 
     st->ncompts = ncompts; st->nchips = nchips; st->nops = nops;
     st->ncols = ncols; st->xdivs = xdivs;
-    st->xmin = (float)xmin; st->invdx = (float)invdx;
+    st->xmin = xmin; st->invdx = invdx;
 
     if (ntab < 1) ntab = 1;
     if (nx  < 1) nx  = 1;
@@ -223,28 +309,28 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
     st->sntab = sntab;
     if (sntab > 0 && stablist) {
         int ns = sntab * 6;
-        float *tmp = (float *)malloc(ns * sizeof(float));
+        void *tmp = malloc(ns * st->esz);
         if (!tmp) { cuda_state_destroy(st); return NULL; }
-        d2f(stablist, tmp, ns);
-        if (cudaMalloc(&st->d_stablist, ns * sizeof(float)) != cudaSuccess ||
-            cudaMemcpy(st->d_stablist, tmp, ns * sizeof(float),
+        d2g(st, stablist, tmp, ns);
+        if (cudaMalloc(&st->d_stablist, ns * st->esz) != cudaSuccess ||
+            cudaMemcpy(st->d_stablist, tmp, ns * st->esz,
                        cudaMemcpyHostToDevice) != cudaSuccess) {
             free(tmp); cuda_state_destroy(st); return NULL;
         }
         free(tmp);
     }
-    CUDA_CHECK_P(cudaMalloc(&st->d_vm,        ncompts * sizeof(float)),   "malloc vm");
-    CUDA_CHECK_P(cudaMalloc(&st->d_chip,      nchips  * sizeof(float)),   "malloc chip");
-    CUDA_CHECK_P(cudaMalloc(&st->d_results,   ncompts * 2 * sizeof(float)),"malloc results");
-    CUDA_CHECK_P(cudaMalloc(&st->d_tablist,   ntab    * sizeof(float)),   "malloc tablist");
-    CUDA_CHECK_P(cudaMalloc(&st->d_xvals,     nx      * sizeof(float)),   "malloc xvals");
+    CUDA_CHECK_P(cudaMalloc(&st->d_vm,        ncompts * st->esz),   "malloc vm");
+    CUDA_CHECK_P(cudaMalloc(&st->d_chip,      nchips  * st->esz),   "malloc chip");
+    CUDA_CHECK_P(cudaMalloc(&st->d_results,   ncompts * 2 * st->esz),"malloc results");
+    CUDA_CHECK_P(cudaMalloc(&st->d_tablist,   ntab    * st->esz),   "malloc tablist");
+    CUDA_CHECK_P(cudaMalloc(&st->d_xvals,     nx      * st->esz),   "malloc xvals");
     CUDA_CHECK_P(cudaMalloc(&st->d_ops,       nops    * sizeof(int)),     "malloc ops");
     CUDA_CHECK_P(cudaMalloc(&st->d_opstart,   ncompts * sizeof(int)),     "malloc opstart");
     CUDA_CHECK_P(cudaMalloc(&st->d_chipstart, ncompts * sizeof(int)),     "malloc chipstart");
 
-    st->f_vm      = (float *)malloc(ncompts * sizeof(float));
-    st->f_chip    = (float *)malloc(nchips  * sizeof(float));
-    st->f_results = (float *)malloc(ncompts * 2 * sizeof(float));
+    st->f_vm      = malloc(ncompts * st->esz);
+    st->f_chip    = malloc(nchips  * st->esz);
+    st->f_results = malloc(ncompts * 2 * st->esz);
 
     /* upload static data (once): ops, opstart, chipstart, and fp32 tables */
     CUDA_CHECK_P(cudaMemcpy(st->d_ops, ops, nops * sizeof(int),
@@ -255,22 +341,24 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
                           cudaMemcpyHostToDevice), "copy chipstart");
 
     {
-        float dummy = 0.0f;
-        float *fconv = (float *)malloc((ntab > nx ? ntab : nx) * sizeof(float));
+        float dummy_f = 0.0f;
+        double dummy_d = 0.0;
+        const void *dummy = st->fp64 ? (const void *)&dummy_d : (const void *)&dummy_f;
+        void *fconv = malloc((ntab > nx ? ntab : nx) * st->esz);
         if (tablist && xdivs > 0) {
-            d2f(tablist, fconv, ntab);
-            CUDA_CHECK_P(cudaMemcpy(st->d_tablist, fconv, ntab * sizeof(float),
+            d2g(st, tablist, fconv, ntab);
+            CUDA_CHECK_P(cudaMemcpy(st->d_tablist, fconv, ntab * st->esz,
                                   cudaMemcpyHostToDevice), "copy tablist");
         } else {
-            CUDA_CHECK_P(cudaMemcpy(st->d_tablist, &dummy, sizeof(float),
+            CUDA_CHECK_P(cudaMemcpy(st->d_tablist, dummy, st->esz,
                                   cudaMemcpyHostToDevice), "copy tablist(dummy)");
         }
         if (xvals && xdivs > 0) {
-            d2f(xvals, fconv, nx);
-            CUDA_CHECK_P(cudaMemcpy(st->d_xvals, fconv, nx * sizeof(float),
+            d2g(st, xvals, fconv, nx);
+            CUDA_CHECK_P(cudaMemcpy(st->d_xvals, fconv, nx * st->esz,
                                   cudaMemcpyHostToDevice), "copy xvals");
         } else {
-            CUDA_CHECK_P(cudaMemcpy(st->d_xvals, &dummy, sizeof(float),
+            CUDA_CHECK_P(cudaMemcpy(st->d_xvals, dummy, st->esz,
                                   cudaMemcpyHostToDevice), "copy xvals(dummy)");
         }
         free(fconv);
@@ -282,7 +370,8 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
     st->initialized = 1;
     st->chip_on_gpu = 0;
     st->prof_enabled = (getenv("GENESIS_CUDA_PROFILE") != NULL);
-    printf("CUDA: ready (%d compartments, %d chips)\n", ncompts, nchips);
+    printf("CUDA: ready (%d compartments, %d chips, %s kernels)\n",
+           ncompts, nchips, st->fp64 ? "fp64" : "fp32");
     return st;
 }
 
@@ -293,11 +382,11 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
     CudaState *st = (CudaState *)sth;
     if (!st) return -1;
     int n = st->ncompts, nc = st->nchips;
-    d2f(vm, st->f_vm, n);
+    d2g(st, vm, st->f_vm, n);
     /* With the solve on the device, vm[] never leaves it: the kernel wrote the
        final voltages last step and reads them again now. */
     if (!st->solve_on_device) {
-        CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * sizeof(float),
+        CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * st->esz,
                               cudaMemcpyHostToDevice), "upload vm");
     }
     /* chip[] uploaded by cuda_backend_upload_chip() on the first step */
@@ -308,12 +397,12 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
 
     int block = 64, grid = grid_for(n, block);
     if (st->prof_enabled) cudaEventRecord(st->ev_start);
-    cuda_chip_channel_update<<<grid, block>>>(
-        st->d_vm, st->d_chip, st->d_results, st->d_tablist, st->d_xvals,
-        st->d_ops, st->d_opstart, st->d_chipstart,
-        st->d_stablist, st->d_spike_refrac, st->d_spike_flag,
-        n, st->ncols, st->xdivs, st->xmin, st->invdx,
-        st->solve_on_device ? st->d_vm : (float *)0, st->crank);
+    if (st->fp64)
+        launch_update<double>(st, grid, block, n, st->d_spike_refrac,
+                              st->d_spike_flag, st->solve_on_device, st->crank);
+    else
+        launch_update<float>(st, grid, block, n, st->d_spike_refrac,
+                             st->d_spike_flag, st->solve_on_device, st->crank);
     if (st->prof_enabled) cudaEventRecord(st->ev_stop);
 
     cudaError_t kerr = cudaGetLastError();
@@ -325,11 +414,11 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
     st->chip_on_gpu = 1;
 
     if (!st->solve_on_device || st->results_needed) {
-        CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * sizeof(float),
+        CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * st->esz,
                               cudaMemcpyDeviceToHost), "download results");
     }
     if (!st->solve_on_device || st->results_needed)
-        f2d(st->f_results, results_out, n * 2);
+        g2d(st, st->f_results, results_out, n * 2);
 
     /* Count spikes for the caller to emit. The kernel cannot do the emission
        itself: h_dospike_event() dispatches to synapses on other cells, which is
@@ -368,21 +457,11 @@ int cuda_backend_upload_chip(void *sth, const double *chip)
 {
     CudaState *st = (CudaState *)sth;
     if (!st) return -1;
-    d2f(chip, st->f_chip, st->nchips);
-    CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, st->nchips * sizeof(float),
+    d2g(st, chip, st->f_chip, st->nchips);
+    CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, st->nchips * st->esz,
                           cudaMemcpyHostToDevice), "upload chip");
     st->chip_on_gpu = 1;
     return 0;
-}
-
-/* Scatter the host's synaptic X values into the device chip[] at their fixed
-   slots. Replaces uploading the whole array, which would also overwrite the Y
-   state and the channel gating variables the kernel maintains. */
-__global__ void k_scatter_syn(float *chip, const int *slot, const float *val,
-                              int n)
-{
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < n) chip[slot[i]] = val[i];
 }
 
 int cuda_backend_set_syn_slots(void *sth, const int *slots, int n)
@@ -394,12 +473,12 @@ int cuda_backend_set_syn_slots(void *sth, const int *slots, int n)
     free(st->h_syn_val);      st->h_syn_val  = nullptr;
     st->syn_nslots = 0;
     if (n <= 0) return 0;
-    st->h_syn_val = (float *)malloc((size_t)n * sizeof(float));
+    st->h_syn_val = malloc((size_t)n * st->esz);
     st->syn_slot_host = (int *)malloc((size_t)n * sizeof(int));
     if (!st->h_syn_val || !st->syn_slot_host) return -1;
     memcpy(st->syn_slot_host, slots, (size_t)n * sizeof(int));
     if (cudaMalloc(&st->d_syn_slot, (size_t)n * sizeof(int)) != cudaSuccess ||
-        cudaMalloc(&st->d_syn_val,  (size_t)n * sizeof(float)) != cudaSuccess ||
+        cudaMalloc(&st->d_syn_val,  (size_t)n * st->esz) != cudaSuccess ||
         cudaMemcpy(st->d_syn_slot, slots, (size_t)n * sizeof(int),
                    cudaMemcpyHostToDevice) != cudaSuccess)
         return -1;
@@ -416,12 +495,16 @@ int cuda_backend_upload_syn_x(void *sth, const double *chip)
     if (n <= 0) return 0;
     /* the slot list lives on the device; the host copy is rebuilt here from
        the same order it was uploaded in */
-    for (i = 0; i < n; i++) st->h_syn_val[i] = (float)chip[st->syn_slot_host[i]];
-    CUDA_CHECK(cudaMemcpy(st->d_syn_val, st->h_syn_val, (size_t)n * sizeof(float),
+    for (i = 0; i < n; i++) set_elem(st, st->h_syn_val, i, chip[st->syn_slot_host[i]]);
+    CUDA_CHECK(cudaMemcpy(st->d_syn_val, st->h_syn_val, (size_t)n * st->esz,
                           cudaMemcpyHostToDevice), "upload syn x");
     threads = 128; blocks = (n + threads - 1) / threads;
-    k_scatter_syn<<<blocks, threads>>>(st->d_chip, st->d_syn_slot,
-                                       st->d_syn_val, n);
+    if (st->fp64)
+        k_scatter_syn<double><<<blocks, threads>>>((double *)st->d_chip, st->d_syn_slot,
+                                                   (const double *)st->d_syn_val, n);
+    else
+        k_scatter_syn<float><<<blocks, threads>>>((float *)st->d_chip, st->d_syn_slot,
+                                                  (const float *)st->d_syn_val, n);
     return 0;
 }
 
@@ -438,9 +521,9 @@ int cuda_backend_download_chip(void *sth, double *chip)
     CudaState *st = (CudaState *)sth;
     int i;
     if (!st || !chip) return -1;
-    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, st->nchips * sizeof(float),
+    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, st->nchips * st->esz,
                           cudaMemcpyDeviceToHost), "download chip");
-    for (i = 0; i < st->nchips; i++) chip[i] = (double)st->f_chip[i];
+    g2d(st, st->f_chip, chip, st->nchips);
     return 0;
 }
 
@@ -453,20 +536,17 @@ int cuda_backend_multiloop(void *sth, double *vm_io, double *chip_io,
     if (!st) return -1;
     int n = st->ncompts, nc = st->nchips;
 
-    d2f(vm_io, st->f_vm, n);
-    d2f(chip_io, st->f_chip, nc);
-    CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * sizeof(float),
+    d2g(st, vm_io, st->f_vm, n);
+    d2g(st, chip_io, st->f_chip, nc);
+    CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * st->esz,
                           cudaMemcpyHostToDevice), "ml upload vm");
-    CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, nc * sizeof(float),
+    CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, nc * st->esz,
                           cudaMemcpyHostToDevice), "ml upload chip");
 
     int block = 64, grid = grid_for(n, block);
     cudaEventRecord(st->ev_start);
-    cuda_chip_channel_multiloop<<<grid, block>>>(
-        st->d_vm, st->d_chip, st->d_results, st->d_tablist, st->d_xvals,
-        st->d_stablist,
-        st->d_ops, st->d_opstart, st->d_chipstart,
-        n, st->ncols, st->xdivs, st->xmin, st->invdx, nsteps);
+    if (st->fp64) launch_multiloop<double>(st, grid, block, n, nsteps);
+    else          launch_multiloop<float>(st, grid, block, n, nsteps);
     cudaEventRecord(st->ev_stop);
 
     cudaError_t kerr = cudaGetLastError();
@@ -476,15 +556,15 @@ int cuda_backend_multiloop(void *sth, double *vm_io, double *chip_io,
         return -1;
     }
 
-    CUDA_CHECK(cudaMemcpy(st->f_vm, st->d_vm, n * sizeof(float),
+    CUDA_CHECK(cudaMemcpy(st->f_vm, st->d_vm, n * st->esz,
                           cudaMemcpyDeviceToHost), "ml download vm");
-    CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * sizeof(float),
+    CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * st->esz,
                           cudaMemcpyDeviceToHost), "ml download results");
-    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, nc * sizeof(float),
+    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, nc * st->esz,
                           cudaMemcpyDeviceToHost), "ml download chip");
-    f2d(st->f_vm, vm_io, n);
-    f2d(st->f_results, results_out, n * 2);
-    f2d(st->f_chip, chip_io, nc);
+    g2d(st, st->f_vm, vm_io, n);
+    g2d(st, st->f_results, results_out, n * 2);
+    g2d(st, st->f_chip, chip_io, nc);
     st->chip_on_gpu = 0;
 
     cudaEventSynchronize(st->ev_stop);
@@ -513,7 +593,7 @@ int cuda_backend_tree_init(void *sth, int n_trees, int nfuncs, int nravals,
     CudaState *st = (CudaState *)sth;
     if (!st) return -1;
     std::vector<int> fwd_seg_end(n_trees), bwd_seg_end(n_trees);
-    std::vector<float> fravals(nravals);
+    std::vector<char> fravals((size_t)nravals * st->esz);
     std::vector<std::pair<int,int> > sorted(n_trees); /* (bwd_seg_start, idx) */
     int i;
 
@@ -526,10 +606,10 @@ int cuda_backend_tree_init(void *sth, int n_trees, int nfuncs, int nravals,
         int this_idx = sorted[i].second;
         bwd_seg_end[this_idx] = (i+1 < n_trees) ? sorted[i+1].first - 1 : nfuncs - 1;
     }
-    d2f(ravals, fravals.data(), nravals);
+    d2g(st, ravals, fravals.data(), nravals);
 
     CUDA_CHECK(cudaMalloc(&st->d_funcs, nfuncs * sizeof(int)), "malloc funcs");
-    CUDA_CHECK(cudaMalloc(&st->d_ravals, nravals * sizeof(float)), "malloc ravals(tree)");
+    CUDA_CHECK(cudaMalloc(&st->d_ravals, nravals * st->esz), "malloc ravals(tree)");
     CUDA_CHECK(cudaMalloc(&st->d_fwd_seg_start, n_trees * sizeof(int)), "malloc fwd_seg_start");
     CUDA_CHECK(cudaMalloc(&st->d_fwd_seg_end, n_trees * sizeof(int)), "malloc fwd_seg_end");
     CUDA_CHECK(cudaMalloc(&st->d_bwd_seg_start, n_trees * sizeof(int)), "malloc bwd_seg_start");
@@ -539,7 +619,7 @@ int cuda_backend_tree_init(void *sth, int n_trees, int nfuncs, int nravals,
     CUDA_CHECK(cudaMalloc(&st->d_bwd_raval_start, n_trees * sizeof(int)), "malloc bwd_raval_start");
 
     CUDA_CHECK(cudaMemcpy(st->d_funcs, funcs, nfuncs * sizeof(int), cudaMemcpyHostToDevice), "copy funcs");
-    CUDA_CHECK(cudaMemcpy(st->d_ravals, fravals.data(), nravals * sizeof(float), cudaMemcpyHostToDevice), "copy ravals(tree)");
+    CUDA_CHECK(cudaMemcpy(st->d_ravals, fravals.data(), nravals * st->esz, cudaMemcpyHostToDevice), "copy ravals(tree)");
     CUDA_CHECK(cudaMemcpy(st->d_fwd_seg_start, fwd_seg_start, n_trees * sizeof(int), cudaMemcpyHostToDevice), "copy fwd_seg_start");
     CUDA_CHECK(cudaMemcpy(st->d_fwd_seg_end, fwd_seg_end.data(), n_trees * sizeof(int), cudaMemcpyHostToDevice), "copy fwd_seg_end");
     CUDA_CHECK(cudaMemcpy(st->d_bwd_seg_start, bwd_seg_start, n_trees * sizeof(int), cudaMemcpyHostToDevice), "copy bwd_seg_start");
@@ -576,10 +656,10 @@ int cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_io, doubl
     int n = st->ncompts, nc = st->nchips;
     int step;
 
-    d2f(vm_io, st->f_vm, n);
-    d2f(chip_io, st->f_chip, nc);
-    CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * sizeof(float), cudaMemcpyHostToDevice), "mlt upload vm");
-    CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, nc * sizeof(float), cudaMemcpyHostToDevice), "mlt upload chip");
+    d2g(st, vm_io, st->f_vm, n);
+    d2g(st, chip_io, st->f_chip, nc);
+    CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * st->esz, cudaMemcpyHostToDevice), "mlt upload vm");
+    CUDA_CHECK(cudaMemcpy(st->d_chip, st->f_chip, nc * st->esz, cudaMemcpyHostToDevice), "mlt upload chip");
 
     {
     int chan_block = 64, chan_grid = grid_for(n, chan_block);
@@ -598,19 +678,16 @@ int cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_io, doubl
 
     cudaEventRecord(st->ev_start);
     for (step = 0; step < nsteps; step++) {
-        cuda_chip_channel_update<<<chan_grid, chan_block>>>(
-            st->d_vm, st->d_chip, st->d_results, st->d_tablist, st->d_xvals,
-            st->d_ops, st->d_opstart, st->d_chipstart,
-            st->d_stablist,
-            (int *)0, (int *)0,   /* multiloop refuses SPIKE_OP; see cuda_hsolve.c */
-            n, st->ncols, st->xdivs, st->xmin, st->invdx,
-            (float *)0, 0);       /* the tree kernel below does the solve */
-        cuda_hines_tree_eliminate<<<tree_grid, tree_block>>>(
-            st->d_funcs, st->d_ravals, st->d_results, st->d_vm,
-            st->d_fwd_seg_start, st->d_fwd_seg_end,
-            st->d_bwd_seg_start, st->d_bwd_seg_end,
-            st->d_fwd_root_row, st->d_fwd_raval_start, st->d_bwd_raval_start,
-            st->n_trees);
+        /* Refractory and flag buffers are null: multiloop refuses SPIKE_OP
+           (see cuda_hsolve.c). The tree kernel does the solve, so the
+           channel kernel does not. */
+        if (st->fp64) {
+            launch_update<double>(st, chan_grid, chan_block, n, (int *)0, (int *)0, 0, 0);
+            launch_tree<double>(st, tree_grid, tree_block);
+        } else {
+            launch_update<float>(st, chan_grid, chan_block, n, (int *)0, (int *)0, 0, 0);
+            launch_tree<float>(st, tree_grid, tree_block);
+        }
         if (sync_mask >= 0 && (step & sync_mask) == sync_mask) cudaDeviceSynchronize();
     }
     cudaEventRecord(st->ev_stop);
@@ -621,12 +698,12 @@ int cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_io, doubl
         return -1;
     }
 
-    CUDA_CHECK(cudaMemcpy(st->f_vm, st->d_vm, n * sizeof(float), cudaMemcpyDeviceToHost), "mlt download vm");
-    CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * sizeof(float), cudaMemcpyDeviceToHost), "mlt download results");
-    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, nc * sizeof(float), cudaMemcpyDeviceToHost), "mlt download chip");
-    f2d(st->f_vm, vm_io, n);
-    f2d(st->f_results, results_out, n * 2);
-    f2d(st->f_chip, chip_io, nc);
+    CUDA_CHECK(cudaMemcpy(st->f_vm, st->d_vm, n * st->esz, cudaMemcpyDeviceToHost), "mlt download vm");
+    CUDA_CHECK(cudaMemcpy(st->f_results, st->d_results, n * 2 * st->esz, cudaMemcpyDeviceToHost), "mlt download results");
+    CUDA_CHECK(cudaMemcpy(st->f_chip, st->d_chip, nc * st->esz, cudaMemcpyDeviceToHost), "mlt download chip");
+    g2d(st, st->f_vm, vm_io, n);
+    g2d(st, st->f_results, results_out, n * 2);
+    g2d(st, st->f_chip, chip_io, nc);
     st->chip_on_gpu = 0;
 
     cudaEventSynchronize(st->ev_stop);
@@ -643,9 +720,9 @@ void cuda_backend_sync_chip(void *sth, double *chip_out)
     CudaState *st = (CudaState *)sth;
     if (!st) return;
     if (!st->initialized || !st->chip_on_gpu) return;
-    cudaMemcpy(st->f_chip, st->d_chip, st->nchips * sizeof(float),
+    cudaMemcpy(st->f_chip, st->d_chip, st->nchips * st->esz,
                cudaMemcpyDeviceToHost);
-    f2d(st->f_chip, chip_out, st->nchips);
+    g2d(st, st->f_chip, chip_out, st->nchips);
     st->chip_on_gpu = 0;
 }
 

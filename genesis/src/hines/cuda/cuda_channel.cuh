@@ -3,19 +3,23 @@
  *
  * CUDA port of opencl/ocl_channel.cl. One thread == one compartment.
  * Line-for-line faithful to the OpenCL kernels so the two backends compute
- * bit-comparable results (both fp32); see opencl/ocl_channel.cl for the
+ * bit-comparable results in each precision; see opencl/ocl_channel.cl for the
  * annotated reference version and the sentinel/opcode explanation.
  *
  * Translation map OpenCL C -> CUDA C++:
- *   __kernel void          -> extern "C" __global__ void
- *   __global float *       -> float *          (device global memory)
- *   __global const float * -> const float *
- *   get_global_id(0)       -> blockIdx.x * blockDim.x + threadIdx.x
- *   static float f(...)     -> __device__ float f(...)
+ *   __kernel void           -> template <typename T> __global__ void
+ *   __global real *         -> T *              (device global memory)
+ *   __global const real *   -> const T *
+ *   get_global_id(0)        -> blockIdx.x * blockDim.x + threadIdx.x
+ *   static real f(...)      -> template <typename T> __device__ T f(...)
  *
- * Kernels run in float (fp32): the host converts double<->float at the
- * buffer boundary (see cuda_hsolve.cu), exactly as the OpenCL path does, so
- * a device without fp64 (or where fp64 is slow) is not penalised.
+ * The kernels are templates over the floating-point type T. cuda_backend.cu
+ * compiles both instantiations and picks one per process from
+ * GENESIS_GPU_PRECISION: float by default -- the arithmetic every published
+ * figure was measured with, and token for token the code as it was before the
+ * templates -- or double. The host converts double<->T at the buffer
+ * boundary, exactly as the OpenCL path does, so in the default a device
+ * without fp64 (or where fp64 is slow) is not penalised.
  */
 #ifndef CUDA_CHANNEL_CUH
 #define CUDA_CHANNEL_CUH
@@ -38,33 +42,34 @@
    chip[] gate variables are updated in place. Identical maths to
    ocl_channel.cl channel_step(). */
 /* ------------------------------------------------------------------ */
-__device__ static float
+template <typename T>
+__device__ static T
 cuda_channel_step(int gid,
-                  float Vm,
-                  float       *chip,
-                  const float *tablist,
-                  const float *xvals,
+                  T Vm,
+                  T       *chip,
+                  const T *tablist,
+                  const T *xvals,
                   const int   *ops,
                   const int   *comp_opstart,
                   const int   *comp_chipstart,
-                  const float *stablist,       /* synaptic constants, 6 per table */
+                  const T *stablist,       /* synaptic constants, 6 per table */
                   int         *spike_refrac,   /* [ncompts], mutable; NULL if unused */
                   int         *spike_flag,     /* [ncompts], set to 1 on a spike */
                   const int   ncols,
                   const int   xdivs,
-                  const float xmin,
-                  const float invdx)
+                  const T xmin,
+                  const T invdx)
 {
     int op_i   = comp_opstart[gid];
     int chip_i = comp_chipstart[gid];
 
-    float sumgchan = 0.0f;
-    float ichan    = chip[chip_i] + chip[chip_i + 1]; /* Em/Rm + inject */
+    T sumgchan = 0.0f;
+    T ichan    = chip[chip_i] + chip[chip_i + 1]; /* Em/Rm + inject */
     chip_i += 2;
 
-    float Gk = 0.0f, Ek = 0.0f;
+    T Gk = 0.0f, Ek = 0.0f;
     int   filo  = 0;
-    float vipol = 0.0f;
+    T vipol = 0.0f;
 
     int op;
     while (ops[op_i] > LCOMPT_OP) {
@@ -73,9 +78,9 @@ cuda_channel_step(int gid,
         if (op == NEWVOLT_OP) {
             vipol = (Vm - xmin) * invdx;
             if (vipol < 0.0f)       vipol = 0.0f;
-            else if (vipol > xdivs) vipol = (float)xdivs;
+            else if (vipol > xdivs) vipol = (T)xdivs;
             filo  = (int)vipol;
-            vipol = vipol - (float)filo;
+            vipol = vipol - (T)filo;
             continue;
         }
 
@@ -104,7 +109,7 @@ cuda_channel_step(int gid,
                synapses on other cells, which is host-side messaging; the kernel
                only records that a spike happened and the host emits it after
                the dispatch returns. */
-            float thresh = chip[chip_i++];
+            T thresh = chip[chip_i++];
             if (spike_refrac) {
                 int r = spike_refrac[gid] - 1;
                 if (Vm > thresh && r <= 0) {
@@ -129,7 +134,7 @@ cuda_channel_step(int gid,
                uses, and the reason a mismatch here would silently desynchronise
                the whole stream. */
             int   ktab = ops[op_i];
-            float X;
+            T X;
             /* The X decay and the activation injection both happen on the host,
                in that order, before this dispatch -- hines_chip.c decays first
                and only then lets h_dosynchan() add to chip[], so doing the
@@ -158,16 +163,16 @@ cuda_channel_step(int gid,
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
             int base = filo * ncols + col;
-            float B      = tablist[base];
-            float Bn     = tablist[base + ncols];
-            float B_interp = B + vipol * (Bn - B);
+            T B      = tablist[base];
+            T Bn     = tablist[base + ncols];
+            T B_interp = B + vipol * (Bn - B);
 
-            float A      = tablist[base + 1];
-            float An     = tablist[base + 1 + ncols];
-            float A_interp = A + vipol * (An - A);
+            T A      = tablist[base + 1];
+            T An     = tablist[base + 1 + ncols];
+            T A_interp = A + vipol * (An - A);
 
             int power = ops[op_i++];
-            float X;
+            T X;
             if (power > 0) {
                 X = chip[chip_i] = (chip[chip_i] * (2.0f - B_interp) + A_interp) / B_interp;
             } else {
@@ -186,48 +191,49 @@ cuda_channel_step(int gid,
         }
     }
 
-    float tbyc     = chip[chip_i];
-    float diagterm = chip[chip_i + 1];
+    T tbyc     = chip[chip_i];
+    T diagterm = chip[chip_i + 1];
     return (Vm + ichan * tbyc) / (sumgchan * tbyc + diagterm);
 }
 
 /* ------------------------------------------------------------------ */
 /* chip_channel_update -- one step, writes results[] for the CPU Hines solve */
 /* ------------------------------------------------------------------ */
-extern "C" __global__ void
-cuda_chip_channel_update(const float *vm,
-                         float       *chip,
-                         float       *results,
-                         const float *tablist,
-                         const float *xvals,
+template <typename T>
+__global__ void
+cuda_chip_channel_update(const T *vm,
+                         T       *chip,
+                         T       *results,
+                         const T *tablist,
+                         const T *xvals,
                          const int   *ops,
                          const int   *comp_opstart,
                          const int   *comp_chipstart,
-                         const float *stablist,     /* synaptic constants, 6 per table */
+                         const T *stablist,     /* synaptic constants, 6 per table */
                          int         *spike_refrac,  /* [ncompts], mutable; NULL if unused */
                          int         *spike_flag,    /* [ncompts], set to 1 on a spike */
                          const int   ncompts,
                          const int   ncols,
                          const int   xdivs,
-                         const float xmin,
-                         const float invdx,
-                         float       *vm_out,   /* non-NULL: finish the solve here */
+                         const T xmin,
+                         const T invdx,
+                         T       *vm_out,   /* non-NULL: finish the solve here */
                          const int    crank)    /* apply the Crank-Nicholson step */
 {
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     if (gid >= ncompts) return;
 
-    float Vm = vm[gid];
+    T Vm = vm[gid];
     int op_i   = comp_opstart[gid];
     int chip_i = comp_chipstart[gid];
 
-    float sumgchan = 0.0f;
-    float ichan    = chip[chip_i] + chip[chip_i + 1];
+    T sumgchan = 0.0f;
+    T ichan    = chip[chip_i] + chip[chip_i + 1];
     chip_i += 2;
 
-    float Gk = 0.0f, Ek = 0.0f;
+    T Gk = 0.0f, Ek = 0.0f;
     int   filo  = 0;
-    float vipol = 0.0f;
+    T vipol = 0.0f;
 
     int op;
     while (ops[op_i] > LCOMPT_OP) {
@@ -236,9 +242,9 @@ cuda_chip_channel_update(const float *vm,
         if (op == NEWVOLT_OP) {
             vipol = (Vm - xmin) * invdx;
             if (vipol < 0.0f)       vipol = 0.0f;
-            else if (vipol > xdivs) vipol = (float)xdivs;
+            else if (vipol > xdivs) vipol = (T)xdivs;
             filo  = (int)vipol;
-            vipol = vipol - (float)filo;
+            vipol = vipol - (T)filo;
             continue;
         }
 
@@ -260,7 +266,7 @@ cuda_chip_channel_update(const float *vm,
                once and read-only here; the reload value is static and read from
                ops[] directly. Delivery is the host's job -- h_dospike_event()
                dispatches to other cells' synapses. */
-            float thresh = chip[chip_i++];
+            T thresh = chip[chip_i++];
             if (spike_refrac) {
                 int r = spike_refrac[gid] - 1;
                 if (Vm > thresh && r <= 0) {
@@ -285,7 +291,7 @@ cuda_chip_channel_update(const float *vm,
                uses, and the reason a mismatch here would silently desynchronise
                the whole stream. */
             int   ktab = ops[op_i];
-            float X;
+            T X;
             /* The X decay and the activation injection both happen on the host,
                in that order, before this dispatch -- hines_chip.c decays first
                and only then lets h_dosynchan() add to chip[], so doing the
@@ -314,16 +320,16 @@ cuda_chip_channel_update(const float *vm,
         } else if (op == IPOL1V_OP) {
             int col  = ops[op_i++];
             int base = filo * ncols + col;
-            float B      = tablist[base];
-            float Bn     = tablist[base + ncols];
-            float B_interp = B + vipol * (Bn - B);
+            T B      = tablist[base];
+            T Bn     = tablist[base + ncols];
+            T B_interp = B + vipol * (Bn - B);
 
-            float A      = tablist[base + 1];
-            float An     = tablist[base + 1 + ncols];
-            float A_interp = A + vipol * (An - A);
+            T A      = tablist[base + 1];
+            T An     = tablist[base + 1 + ncols];
+            T A_interp = A + vipol * (An - A);
 
             int power = ops[op_i++];
-            float X;
+            T X;
             if (power > 0) {
                 X = chip[chip_i] = (chip[chip_i] * (2.0f - B_interp) + A_interp) / B_interp;
             } else {
@@ -342,8 +348,8 @@ cuda_chip_channel_update(const float *vm,
         }
     }
 
-    float tbyc     = chip[chip_i];
-    float diagterm = chip[chip_i + 1];
+    T tbyc     = chip[chip_i];
+    T diagterm = chip[chip_i + 1];
     if (vm_out) {
         /* Every compartment is its own tree, so the Hines solve is one
            division and the kernel can finish it. vm[] stays on the device and
@@ -357,7 +363,7 @@ cuda_chip_channel_update(const float *vm,
            *vm = resultval + resultval - *vm (hines_solve.c:155), so the same
            correction is applied here. results[] keeps the pre-correction value
            because that is what the CPU path leaves there. */
-        float resultval = (Vm + ichan * tbyc) / (sumgchan * tbyc + diagterm);
+        T resultval = (Vm + ichan * tbyc) / (sumgchan * tbyc + diagterm);
         vm_out[gid]          = crank ? (resultval + resultval - Vm) : resultval;
         results[gid * 2]     = resultval;
         results[gid * 2 + 1] = 1.0f;
@@ -373,28 +379,29 @@ cuda_chip_channel_update(const float *vm,
    inner loop over nsteps, voltage updated inline, then an identity result[]
    so the CPU Hines pass is a no-op. NOT valid for multi-compartment trees. */
 /* ------------------------------------------------------------------ */
-extern "C" __global__ void
-cuda_chip_channel_multiloop(float       *vm,
-                            float       *chip,
-                            float       *results,
-                            const float *tablist,
-                            const float *xvals,
-                            const float *stablist,
+template <typename T>
+__global__ void
+cuda_chip_channel_multiloop(T       *vm,
+                            T       *chip,
+                            T       *results,
+                            const T *tablist,
+                            const T *xvals,
+                            const T *stablist,
                             const int   *ops,
                             const int   *comp_opstart,
                             const int   *comp_chipstart,
                             const int   ncompts,
                             const int   ncols,
                             const int   xdivs,
-                            const float xmin,
-                            const float invdx,
+                            const T xmin,
+                            const T invdx,
                             const int   nsteps)
 {
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     if (gid >= ncompts) return;
 
     for (int step = 0; step < nsteps; step++) {
-        float Vm_new = cuda_channel_step(gid, vm[gid], chip,
+        T Vm_new = cuda_channel_step(gid, vm[gid], chip,
                                          tablist, xvals, ops,
                                          comp_opstart, comp_chipstart,
                                          stablist,
@@ -434,12 +441,13 @@ cuda_chip_channel_multiloop(float       *vm,
 /* construction, never cross into another tree's rows), so this is      */
 /* race-free without any synchronization between threads.               */
 /* ------------------------------------------------------------------ */
-extern "C" __global__ void
+template <typename T>
+__global__ void
 cuda_hines_tree_eliminate(
     const int   *funcs,          /* [nfuncs] shared opcode program */
-    float       *ravals,         /* [nravals] shared; COPY_ARRAY/FASTSIBARRAY_ELIM mutate it in place */
-    float       *results,        /* [ncompts*2] shared RHS/diag, read+written */
-    float       *vm,             /* [ncompts] output */
+    T       *ravals,         /* [nravals] shared; COPY_ARRAY/FASTSIBARRAY_ELIM mutate it in place */
+    T       *results,        /* [ncompts*2] shared RHS/diag, read+written */
+    T       *vm,             /* [ncompts] output */
     const int   *fwd_seg_start,  /* [n_trees] */
     const int   *fwd_seg_end,    /* [n_trees] */
     const int   *bwd_seg_start,  /* [n_trees] */
@@ -459,7 +467,7 @@ cuda_hines_tree_eliminate(
     int   first_row = (k == 0) ? 0 : fwd_root_row[k-1] + 1;
     int   fwd_end   = fwd_seg_end[k];
     int   seed_row, resultvalue_i, op;
-    float resultval, diaval, temp = 0.0f;
+    T resultval, diaval, temp = 0.0f;
 
     /* Bootstrap: skip the leading transition opcode (its flush target
        belongs to the PREVIOUS tree -- a cross-tree data race for a
@@ -542,7 +550,7 @@ cuda_hines_tree_eliminate(
         int   bravals_i       = bwd_raval_start[k];
         int   bend            = bwd_seg_end[k];
         int   bresultvalue_i  = 2 * (root_row - 1);
-        float bresultval      = results[bresultvalue_i];
+        T bresultval      = results[bresultvalue_i];
         int   brow, bop;
 
         while (bfuncs_i < bend) {
