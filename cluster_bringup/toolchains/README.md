@@ -23,12 +23,15 @@ The NEURON CPU arms use the pip wheel: `python3.12 -m pip install --user neuron=
 Every recipe verifies its downloads against a checksum, refuses a source tree at the wrong
 commit, and exits at once if its result is already installed, so re-running is safe.
 
-| Recipe | Time (estimate, replaced by the measured one after the verification build) | Disk |
+| Recipe | Time on the UMCS login node (48 cores), measured | Disk |
 |---|---|---|
-| `10_miniforge.sh` | 2 min | 0.5 GB |
-| `20_nvhpc.sh` | 20 min | 6.1 GB download, 13 GB installed |
-| `30_neuron_gpu.sh` | 1–2 h | 1 GB |
-| `40_arbor_gpu.sh` | 30–60 min | 1 GB |
+| `10_miniforge.sh` | under 1 min | 0.5 GB |
+| `20_nvhpc.sh` | 28 min, mostly the 6.1 GB download | 13 GB installed |
+| `30_neuron_gpu.sh` | 15 min | 1 GB |
+| `40_arbor_gpu.sh` | 2 min | 1 GB |
+
+A full rebuild from an empty directory was verified on 2026-09-30; see
+`../logs/toolchain_verify_20260930.md`.
 
 ## Why the builds look the way they do
 
