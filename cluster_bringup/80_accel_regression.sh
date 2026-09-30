@@ -16,6 +16,13 @@
 # Usage:
 #   sh 80_accel_regression.sh record   # write cluster_bringup/accel_regression_golden.txt
 #   sh 80_accel_regression.sh check    # regenerate and diff against it
+#   sh 80_accel_regression.sh fp64     # GPU in double: every value within 1e-10 V
+#                                      # of the CPU solver (no golden file)
+#
+# record and check run the GPU in the default precision (fp32) whatever
+# GENESIS_GPU_PRECISION says, since that is what the golden files pin. Every
+# mode also checks that each GPU run reported the precision it was meant to
+# use; a run that silently fell back to the other one fails.
 #
 # Must run on a node with the GPU the golden file was recorded on: the fp32
 # kernels are not bit-identical across different devices, so a golden recorded
@@ -37,7 +44,14 @@ MODE=${1:-check}
 # needs its own golden (as does each device -- see the check below).
 GOLDEN=${ACCEL_GOLDEN:-"$HERE/accel_regression_golden.txt"}
 OUT=$(mktemp)
-trap 'rm -f "$OUT"' EXIT
+BANNERS=$(mktemp)
+trap 'rm -f "$OUT" "$BANNERS"' EXIT
+
+if [ "$MODE" = fp64 ]; then
+    export GENESIS_GPU_PRECISION=fp64; WANT=fp64
+else
+    unset GENESIS_GPU_PRECISION;       WANT=fp32
+fi
 
 BIN_CPU=./genesis/src/nxgenesis_nocl
 BIN_GPU=./genesis/src/nxgenesis
@@ -60,6 +74,11 @@ run() {
     else
         out=$(timeout 600 env $envs "$bin" -nosimrc -notty -batch "$@" </dev/null 2>&1)
     fi
+    # The backend's start-up line names the kernel precision (CUDA: "... fp32
+    # kernels)", OpenCL: "kernele fp32"). Kept apart from the recorded values
+    # so the golden files do not change.
+    echo "$label $(echo "$out" | grep -o -E '(fp32|fp64) kernels|kernele (fp32|fp64)' \
+        | grep -o -E 'fp32|fp64' | head -1)" >> "$BANNERS"
     echo "$out" \
       | grep -E "^(RESULT_[A-Z_]+=|NEURONS_AGREE:)" \
       | grep -vE "^RESULT_T_" \
@@ -122,7 +141,32 @@ if [ -d genesis/Scripts/VAnet2 ]; then
     fi
 fi
 
+# Every GPU arm must have reported the precision this mode asked for.
+bad=$(awk -v want="$WANT" '$1 ~ /_gpu$/ && $2 != want {print $1 " reported [" $2 "]"}' "$BANNERS")
+if [ -n "$bad" ]; then
+    echo "FAIL: GPU runs not in $WANT:" >&2
+    echo "$bad" >&2
+    exit 1
+fi
+
 case "$MODE" in
+  fp64)
+    # Pair each GPU value with the CPU value of the same benchmark and key.
+    awk -F'|' -v tol=1e-10 '
+        /^#/ || !/RESULT_V/ { next }
+        { split($1, a, "_"); arm = a[length(a)]; bench = substr($1, 1, length($1) - length(arm) - 1)
+          split($2, kv, "="); v[bench "|" kv[1] "|" arm] = kv[2] + 0; keys[bench "|" kv[1]] = 1 }
+        END {
+          fail = 0; n = 0
+          for (k in keys) {
+            c = v[k "|cpu"]; g = v[k "|gpu"]; d = g - c; if (d < 0) d = -d; n++
+            printf "%-28s cpu %.10f  gpu %.10f  |diff| %.2e %s\n", k, c, g, d, (d <= tol ? "ok" : "OUTSIDE")
+            if (d > tol) fail = 1
+          }
+          if (fail) { print "FAIL: fp64 GPU differs from the CPU by more than " tol " V"; exit 1 }
+          printf "PASS: %d values within %s V of the CPU solver (fp64 kernels)\n", n, tol
+        }' "$OUT"
+    ;;
   record)
     cp "$OUT" "$GOLDEN"
     echo "recorded $(grep -c '|' "$GOLDEN") values on $DEVICE -> $GOLDEN"
@@ -143,6 +187,6 @@ case "$MODE" in
     fi
     ;;
   *)
-    echo "usage: $0 [record|check]" >&2; exit 2
+    echo "usage: $0 [record|check|fp64]" >&2; exit 2
     ;;
 esac
