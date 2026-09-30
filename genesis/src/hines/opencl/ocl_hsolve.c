@@ -254,7 +254,7 @@ int ocl_init(Hsolve *hsolve)
             }
         }
         ocl_dev.fp64 = prec;
-        ocl_dev.esz  = prec ? sizeof(double) : ocl_dev.esz;
+        ocl_dev.esz  = prec ? sizeof(double) : sizeof(float);
     }
 
     ocl_dev.context = clCreateContext(NULL, 1, &ocl_dev.device,
