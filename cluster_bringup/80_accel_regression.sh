@@ -101,6 +101,17 @@ run() {
                    $BENCH/hh_branching_multicompartment_benchmark.g
     run branch_gpu "$BIN_GPU" "GENESIS_BENCH_NCOMP=16 GENESIS_BENCH_CHANMODE=4" \
                    $BENCH/hh_branching_multicompartment_benchmark.g
+
+    # fp64 compares the GPU with the CPU in the same hsolve mode. The *_cpu
+    # arms above run chanmode 1, whose results differ from chanmode 4's by up
+    # to 4e-10 V on the CPU alone (measured 2026-09-30), which is a property of
+    # the solver modes, not of GPU precision.
+    if [ "$MODE" = fp64 ]; then
+        run multi_cpu4  "$BIN_CPU" "GENESIS_BENCH_NCOMP=16 GENESIS_BENCH_CHANMODE=4" \
+                        $BENCH/hh_multicompartment_benchmark.g
+        run branch_cpu4 "$BIN_CPU" "GENESIS_BENCH_NCOMP=16 GENESIS_BENCH_CHANMODE=4" \
+                        $BENCH/hh_branching_multicompartment_benchmark.g
+    fi
 } > "$OUT" 2>/dev/null
 
 # VAnet2 (Vogels-Abbott) is the correctness anchor for a real network model.
@@ -151,7 +162,8 @@ fi
 
 case "$MODE" in
   fp64)
-    # Pair each GPU value with the CPU value of the same benchmark and key.
+    # Pair each GPU value with the CPU value of the same benchmark and key,
+    # taking the chanmode-4 CPU run where there is one.
     awk -F'|' -v tol=1e-10 '
         /^#/ || !/RESULT_V/ { next }
         { split($1, a, "_"); arm = a[length(a)]; bench = substr($1, 1, length($1) - length(arm) - 1)
@@ -159,7 +171,8 @@ case "$MODE" in
         END {
           fail = 0; n = 0
           for (k in keys) {
-            c = v[k "|cpu"]; g = v[k "|gpu"]; d = g - c; if (d < 0) d = -d; n++
+            c = ((k "|cpu4") in v) ? v[k "|cpu4"] : v[k "|cpu"]
+            g = v[k "|gpu"]; d = g - c; if (d < 0) d = -d; n++
             printf "%-28s cpu %.10f  gpu %.10f  |diff| %.2e %s\n", k, c, g, d, (d <= tol ? "ok" : "OUTSIDE")
             if (d > tol) fail = 1
           }
