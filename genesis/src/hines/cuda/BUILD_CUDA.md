@@ -1,7 +1,10 @@
 # GENESIS 2.5 CUDA backend — build & validation guide
 
-**Status: implemented and validated.** This backend is a faithful fp32 port
-of the OpenCL backend (`../opencl/`). It has been built and validated on an
+**Status: implemented and validated.** This backend is a faithful port of
+the OpenCL backend (`../opencl/`), in fp32 by default. Since v2.6 the same
+binary also runs in fp64 when `GENESIS_GPU_PRECISION=fp64` is set; the check
+for that mode is `sh cluster_bringup/80_accel_regression.sh fp64`, which
+requires every GPU value to be within 1e-10 V of the CPU solver. It has been built and validated on an
 NVIDIA RTX 4090 (WarsawIQ, `sm_89`) and, independently, on the UMCS "Lunar"
 cluster's A100 (`sm_80`) and A40 (`sm_86`) nodes: numerical parity with the
 fp64 CPU path to ~1e-7 V, and a 10-replicate step-phase speedup sweep for

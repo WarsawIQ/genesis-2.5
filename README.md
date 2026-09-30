@@ -239,8 +239,9 @@ CUDA:
 cd genesis/src
 make USE_CUDA=1 CUDA_HOME=/usr/local/cuda nxgenesis
 ```
-The CUDA kernels are a line-for-line fp32 port of the OpenCL ones behind the
-same entry point. If both `USE_OPENCL` and `USE_CUDA` are defined, CUDA
+The CUDA kernels are a line-for-line port of the OpenCL ones behind the
+same entry point, in fp32 by default and in fp64 with
+`GENESIS_GPU_PRECISION=fp64` (one binary; see below). If both `USE_OPENCL` and `USE_CUDA` are defined, CUDA
 wins. The linker step is the fiddly part: the default `EXTRALIBS` already
 carries `sprng` and `TERMCAP`, and a bare `EXTRALIBS=-lcudart` will silently
 drop both instead of adding to them. See
@@ -348,6 +349,7 @@ A few environment variables control dispatch at run time:
 
 | Variable | Effect |
 |---|---|
+| `GENESIS_GPU_PRECISION=fp64` | Run the kernels in double precision, as the CPU solver does. The default, `fp32`, is what every published figure used and runs on integrated GPUs without double precision. A device without it refuses `fp64` with a message and the model runs on the CPU. The start-up line names the precision in use |
 | `GENESIS_OCL_MULTILOOP=<K>` | Batch `K` steps into one OpenCL dispatch instead of one per step |
 | `GENESIS_CUDA_MULTILOOP=<K>` | Same, CUDA |
 | `GENESIS_OCL_TREE_MAX_NCOMPTS=<N>` | Safety cap for laptop integrated GPUs, which can hang past ~22,000-24,000 compartments when the same chip also drives the display. Confirmed not to affect dedicated GPUs (verified on A40 well beyond that size), so set `0` on any datacenter or desktop card |
