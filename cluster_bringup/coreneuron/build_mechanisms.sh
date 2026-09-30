@@ -39,6 +39,11 @@ fi
 if [ "$WHICH" = gpu ] || [ "$WHICH" = both ]; then
     [ -x "$NRN_GPU_BUILD/bin/nrnivmodl" ] || { echo "run toolchains/30_neuron_gpu.sh first" >&2; exit 1; }
     rm -rf "$COBAHH_GPU_MECH"; mkdir -p "$COBAHH_GPU_MECH"; cd "$COBAHH_GPU_MECH"
+    # NRNHOME points nrnivmodl at the build tree. Without it the script falls
+    # back to its configure prefix, /usr/local, because this NEURON is used
+    # uninstalled (see toolchains/30_neuron_gpu.sh): the CoreNEURON half then
+    # builds and the NEURON half stops on a missing nrnmech_makefile.
+    NRNHOME="$NRN_GPU_BUILD" \
     PATH="$NVHPC_ROOT/compilers/bin:$PATH" \
     LD_LIBRARY_PATH="$NVHPC_ROOT/compilers/lib:${LD_LIBRARY_PATH:-}" \
         "$NRN_GPU_BUILD/bin/nrnivmodl" -coreneuron -loadflags -lstdc++fs ../mechanisms > b.log 2>&1 \
