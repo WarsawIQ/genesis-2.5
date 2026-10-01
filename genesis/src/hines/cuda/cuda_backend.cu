@@ -106,6 +106,19 @@ struct CudaState {
     int    syn_nslots = 0;
     int   *d_spike_refrac = nullptr, *d_spike_flag = nullptr;
     int   *h_spike_flag = nullptr;
+
+    /* CUDA Graphs (GENESIS_CUDA_GRAPH=1, off by default): the repetitive
+       dispatches are captured once and replayed. tree_exec holds a block of
+       tree-loop steps; step_exec one per-step dispatch, rebuilt when the
+       shape of a step changes (step_sig). With graphs on, the host buffers
+       the graphs copy to and from are pinned (pinned = 1). */
+    int use_graph = 0;
+    int pinned = 0;
+    cudaStream_t gstream = nullptr;
+    cudaGraphExec_t tree_exec = nullptr;
+    int tree_exec_steps = 0;
+    cudaGraphExec_t step_exec = nullptr;
+    int step_sig = -1;
     int    nspike = 0;
     int    spikes_this_step = 0;
 
@@ -165,9 +178,10 @@ int gpu_precision_fp64()
    instantiation from st->fp64. */
 template <typename T>
 void launch_update(CudaState *st, int grid, int block, int n,
-                   int *refrac, int *flag, int solve_here, int crank)
+                   int *refrac, int *flag, int solve_here, int crank,
+                   cudaStream_t s = 0)
 {
-    cuda_chip_channel_update<T><<<grid, block>>>(
+    cuda_chip_channel_update<T><<<grid, block, 0, s>>>(
         (T *)st->d_vm, (T *)st->d_chip, (T *)st->d_results,
         (T *)st->d_tablist, (T *)st->d_xvals,
         st->d_ops, st->d_opstart, st->d_chipstart,
@@ -187,9 +201,9 @@ void launch_multiloop(CudaState *st, int grid, int block, int n, int nsteps)
 }
 
 template <typename T>
-void launch_tree(CudaState *st, int grid, int block)
+void launch_tree(CudaState *st, int grid, int block, cudaStream_t s = 0)
 {
-    cuda_hines_tree_eliminate<T><<<grid, block>>>(
+    cuda_hines_tree_eliminate<T><<<grid, block, 0, s>>>(
         st->d_funcs, (T *)st->d_ravals, (T *)st->d_results, (T *)st->d_vm,
         st->d_fwd_seg_start, st->d_fwd_seg_end,
         st->d_bwd_seg_start, st->d_bwd_seg_end,
@@ -234,6 +248,14 @@ static void cuda_state_destroy(CudaState *st)
     cudaFree(st->d_syn_slot); cudaFree(st->d_syn_val);
     cudaFree(st->d_spike_refrac); cudaFree(st->d_spike_flag);
     cudaFree(st->d_stablist);
+    if (st->pinned) {
+        cudaFreeHost(st->h_spike_flag); st->h_spike_flag = nullptr;
+        cudaFreeHost(st->f_vm);         st->f_vm = nullptr;
+        cudaFreeHost(st->f_results);    st->f_results = nullptr;
+    }
+    if (st->tree_exec) cudaGraphExecDestroy(st->tree_exec);
+    if (st->step_exec) cudaGraphExecDestroy(st->step_exec);
+    if (st->gstream)   cudaStreamDestroy(st->gstream);
     free(st->h_spike_flag);
     cudaFree(st->d_funcs); cudaFree(st->d_ravals);
     cudaFree(st->d_fwd_seg_start); cudaFree(st->d_fwd_seg_end);
@@ -370,6 +392,27 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
     st->initialized = 1;
     st->chip_on_gpu = 0;
     st->prof_enabled = (getenv("GENESIS_CUDA_PROFILE") != NULL);
+
+    {
+        const char *g = getenv("GENESIS_CUDA_GRAPH");
+        if (g && strcmp(g, "1") == 0) {
+            /* Graph memcpy nodes need pinned host memory, so the buffers they
+               touch are replaced by pinned ones of the same size. */
+            void *pv = nullptr, *pr = nullptr; int *pf = nullptr;
+            CUDA_CHECK_P(cudaStreamCreate(&st->gstream), "graph stream");
+            CUDA_CHECK_P(cudaMallocHost(&pv, ncompts * st->esz), "pinned vm");
+            CUDA_CHECK_P(cudaMallocHost(&pr, ncompts * 2 * st->esz), "pinned results");
+            if (st->nspike > 0) {
+                CUDA_CHECK_P(cudaMallocHost((void **)&pf, ncompts * sizeof(int)), "pinned flags");
+                memset(pf, 0, ncompts * sizeof(int));
+            }
+            free(st->f_vm); free(st->f_results); free(st->h_spike_flag);
+            st->f_vm = pv; st->f_results = pr; st->h_spike_flag = pf;
+            st->pinned = 1;
+            st->use_graph = 1;
+            printf("CUDA: graph dispatch on (GENESIS_CUDA_GRAPH=1)\n");
+        }
+    }
     printf("CUDA: ready (%d compartments, %d chips, %s kernels)\n",
            ncompts, nchips, st->fp64 ? "fp64" : "fp32");
     return st;
@@ -377,12 +420,63 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
 
 /* One-step dispatch: upload vm (always) + chip (first call only), launch the
    single-step kernel, download results[]. Mirrors ocl_chip_update per-step. */
+/* One per-step dispatch as a graph: the same operations as the path below,
+   captured once and replayed every step. Rebuilt when the shape of a step
+   changes. */
+static int perstep_graph(CudaState *st, double *results_out)
+{
+    int n = st->ncompts;
+    int need_results = (!st->solve_on_device || st->results_needed);
+    int sig = (st->solve_on_device ? 1 : 0) | (st->results_needed ? 2 : 0)
+            | (st->crank ? 4 : 0);
+    if (!st->step_exec || st->step_sig != sig) {
+        cudaGraph_t g;
+        int block = 64, grid = grid_for(n, block);
+        if (st->step_exec) { cudaGraphExecDestroy(st->step_exec); st->step_exec = nullptr; }
+        CUDA_CHECK(cudaStreamBeginCapture(st->gstream, cudaStreamCaptureModeThreadLocal),
+                   "begin capture (step)");
+        if (!st->solve_on_device)
+            cudaMemcpyAsync(st->d_vm, st->f_vm, n * st->esz,
+                            cudaMemcpyHostToDevice, st->gstream);
+        if (st->nspike > 0)
+            cudaMemsetAsync(st->d_spike_flag, 0, n * sizeof(int), st->gstream);
+        if (st->fp64)
+            launch_update<double>(st, grid, block, n, st->d_spike_refrac, st->d_spike_flag,
+                                  st->solve_on_device, st->crank, st->gstream);
+        else
+            launch_update<float>(st, grid, block, n, st->d_spike_refrac, st->d_spike_flag,
+                                 st->solve_on_device, st->crank, st->gstream);
+        if (need_results)
+            cudaMemcpyAsync(st->f_results, st->d_results, n * 2 * st->esz,
+                            cudaMemcpyDeviceToHost, st->gstream);
+        if (st->nspike > 0)
+            cudaMemcpyAsync(st->h_spike_flag, st->d_spike_flag, n * sizeof(int),
+                            cudaMemcpyDeviceToHost, st->gstream);
+        CUDA_CHECK(cudaStreamEndCapture(st->gstream, &g), "end capture (step)");
+        CUDA_CHECK(cudaGraphInstantiate(&st->step_exec, g, 0), "instantiate (step)");
+        cudaGraphDestroy(g);
+        st->step_sig = sig;
+    }
+    CUDA_CHECK(cudaGraphLaunch(st->step_exec, st->gstream), "graph launch (step)");
+    CUDA_CHECK(cudaStreamSynchronize(st->gstream), "graph sync (step)");
+    st->chip_on_gpu = 1;
+    if (need_results) g2d(st, st->f_results, results_out, n * 2);
+    if (st->nspike > 0) {
+        int i, fired = 0;
+        for (i = 0; i < n; i++) if (st->h_spike_flag[i]) fired++;
+        st->spikes_this_step = fired;
+    }
+    st->prof_calls++;
+    return 0;
+}
+
 int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
 {
     CudaState *st = (CudaState *)sth;
     if (!st) return -1;
     int n = st->ncompts, nc = st->nchips;
     d2g(st, vm, st->f_vm, n);
+    if (st->use_graph) return perstep_graph(st, results_out);
     /* With the solve on the device, vm[] never leaves it: the kernel wrote the
        final voltages last step and reads them again now. */
     if (!st->solve_on_device) {
@@ -677,7 +771,38 @@ int cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_io, doubl
     }
 
     cudaEventRecord(st->ev_start);
-    for (step = 0; step < nsteps; step++) {
+    step = 0;
+    if (st->use_graph) {
+        /* Blocks of G steps replayed from one graph, synchronised after each
+           block as the loop below synchronises every G steps. */
+        int G = (sync_mask >= 0) ? sync_mask + 1 : 16;
+        if (st->tree_exec_steps != G) {
+            cudaGraph_t g;
+            int k;
+            if (st->tree_exec) { cudaGraphExecDestroy(st->tree_exec); st->tree_exec = nullptr; }
+            CUDA_CHECK(cudaStreamBeginCapture(st->gstream, cudaStreamCaptureModeThreadLocal),
+                       "begin capture (tree)");
+            for (k = 0; k < G; k++) {
+                if (st->fp64) {
+                    launch_update<double>(st, chan_grid, chan_block, n, (int *)0, (int *)0, 0, 0, st->gstream);
+                    launch_tree<double>(st, tree_grid, tree_block, st->gstream);
+                } else {
+                    launch_update<float>(st, chan_grid, chan_block, n, (int *)0, (int *)0, 0, 0, st->gstream);
+                    launch_tree<float>(st, tree_grid, tree_block, st->gstream);
+                }
+            }
+            CUDA_CHECK(cudaStreamEndCapture(st->gstream, &g), "end capture (tree)");
+            CUDA_CHECK(cudaGraphInstantiate(&st->tree_exec, g, 0), "instantiate (tree)");
+            cudaGraphDestroy(g);
+            st->tree_exec_steps = G;
+        }
+        for (; step + G <= nsteps; step += G) {
+            cudaGraphLaunch(st->tree_exec, st->gstream);
+            if (sync_mask >= 0) cudaStreamSynchronize(st->gstream);
+        }
+        cudaStreamSynchronize(st->gstream);
+    }
+    for (; step < nsteps; step++) {
         /* Refractory and flag buffers are null: multiloop refuses SPIKE_OP
            (see cuda_hsolve.c). The tree kernel does the solve, so the
            channel kernel does not. */
