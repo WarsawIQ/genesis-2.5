@@ -16,7 +16,8 @@
  *   chip_channel_multiloop — K krokow w jednym dispatchu, aktualizuje vm[]
  *                            bezposrednio (eliminuje roundtrip CPU/GPU na krok)
  *
- * fp32: urzadzenie moze nie wspierac cl_khr_fp64 (np. AMD RDNA3 890M) —
+ * fp32: runtime moze nie udostepniac cl_khr_fp64 (np. Mesa rusticl na Radeon
+ * 890M; ROCm na tym samym ukladzie je udostepnia) —
  * kernel uzywa domyslnie float zamiast double. Host konwertuje double<->real
  * na upload/download (patrz ocl_hsolve.c). With GENESIS_GPU_PRECISION=fp64
  * the host builds this file with -DGENESIS_GPU_FP64 and real is double; it has

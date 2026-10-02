@@ -30,7 +30,8 @@ typedef struct {
 
 typedef struct {
     /* GPU buffers — mirrors of hsolve's double arrays in the kernel type:
-       float by default (the device may lack cl_khr_fp64, e.g. AMD RDNA3),
+       float by default (the runtime may expose no cl_khr_fp64: Mesa rusticl on
+       the Radeon 890M does not, while ROCm on the same chip does),
        double with GENESIS_GPU_PRECISION=fp64. The host converts at
        upload/download time using the scratch buffers below. */
     cl_mem buf_vm;       /* float[ncompts] */

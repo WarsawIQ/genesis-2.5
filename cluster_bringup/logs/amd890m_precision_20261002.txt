@@ -1,0 +1,34 @@
+# Radeon 890M (gfx1150), Karol Chlasta laptop, 2026-10-02T10:05:25+02:00
+# commit: b73654c; host: 7.0.0-111030-tuxedo; gcc: gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+# mesa-opencl-icd:amd64 26.1.6-1~24.04-tux1
+# rocm-opencl-runtime 6.3.1.60301-48~24.04
+# CL_DEVICE_DOUBLE_FP_CONFIG:
+#   [AMD/0]     CL_DEVICE_NAME                                  gfx1150
+#   [AMD/0]     CL_DEVICE_DOUBLE_FP_CONFIG                      CL_FP_DENORM | CL_FP_INF_NAN | CL_FP_ROUND_TO_NEAREST | CL_FP_ROUND_TO_ZERO | CL_FP_ROUND_TO_INF | CL_FP_FMA
+#   [MESA/0]    CL_DEVICE_NAME                                  AMD Radeon Graphics (radeonsi, strix1, ACO, DRM 3.64, 7.0.0-111030-tuxedo)
+
+== ROCm, sh cluster_bringup/80_accel_regression.sh fp64
+branch|RESULT_VM_FAR         cpu -0.0671207429  gpu -0.0671207429  |diff| 0.00e+00 ok
+branch|RESULT_VM_SOMA        cpu -0.0660303971  gpu -0.0660303971  |diff| 0.00e+00 ok
+multi|RESULT_VM_SOMA         cpu -0.0735408490  gpu -0.0735408490  |diff| 0.00e+00 ok
+multi|RESULT_VM_FAR          cpu -0.0798336889  gpu -0.0798336889  |diff| 0.00e+00 ok
+ap|RESULT_VM                 cpu -0.0214348588  gpu -0.0214348588  |diff| 0.00e+00 ok
+PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+
+== ROCm, fp32, hh1952_ap_verify.g 8 200
+OCL: gotowy (8 kompartmentow, 88 chips, kernele fp32)
+NEURONS_AGREE: YES (spread < 1e-6 V)
+RESULT_VM= -0.02143507078
+
+== rusticl (OCL_ICD_VENDORS=rusticl.icd, RUSTICL_ENABLE=radeonsi), GENESIS_GPU_PRECISION=fp64
+OCL: AMD Radeon Graphics (radeonsi, strix1, ACO, DRM 3.64, 7.0.0-111030-tuxedo) has no double-precision support (cl_khr_fp64), so GENESIS_GPU_PRECISION=fp64 cannot run on it. Computing on the CPU.
+NEURONS_AGREE: YES (spread < 1e-6 V)
+RESULT_VM= -0.02143485882
+
+== rusticl, fp32
+OCL: gotowy (8 kompartmentow, 88 chips, kernele fp32)
+NEURONS_AGREE: YES (spread < 1e-6 V)
+RESULT_VM= -0.02143505402
+
+== CPU reference
+RESULT_VM= -0.02143485882

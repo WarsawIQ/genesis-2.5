@@ -229,7 +229,9 @@ int ocl_init(Hsolve *hsolve)
     printf("OCL: urzadzenie: %s\n", devname);
 
     /* The default fp32 kernel needs no cl_khr_fp64, so devices without
-       double precision (e.g. AMD RDNA3 890M) are not excluded. fp64 is asked
+       double precision are not excluded. (Whether a device has it can depend
+       on the runtime as much as the chip: on the Radeon 890M, ROCm exposes
+       cl_khr_fp64 and Mesa rusticl does not.) fp64 is asked
        for with GENESIS_GPU_PRECISION=fp64; a device that cannot do it is
        refused here, with the cause named, and the model runs on the CPU --
        rather than failing later with a compiler log about an undeclared
