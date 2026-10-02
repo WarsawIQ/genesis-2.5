@@ -251,3 +251,4 @@ vanet2_level_at_12500_ratio,1,x,prose
 spiking_speedup_ceiling,2.43902439,x,derived
 harness_fix_walltime_change_pct,1.3,pct,prose
 igpu_tree_limit_compartments,22000,compartments,prose
+cpu_ap_vm,-0.02143485882,V,measured

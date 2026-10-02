@@ -5,6 +5,10 @@
 #   sh reproduce/run_all.sh             ~95 min, adds the sweeps and the
 #                                       spiking network
 #   sh reproduce/run_all.sh --with-neuron   adds the cross-simulator comparison
+#   sh reproduce/run_all.sh --cpu-only  no GPU needed: the Hines-solver fixes,
+#                                       linear model construction and the
+#                                       spiking network on one core (~20 min
+#                                       with --quick, ~90 min without)
 #
 # Every stage writes a CSV under reproduce/results/ and appends one line per
 # claim to reproduce/results/summary.csv. compare.py then prints measured
@@ -12,7 +16,7 @@
 # rather than a pile of numbers to interpret.
 #
 # What you need: Linux x86_64, GCC, GNU make, a CUDA 12.x toolkit and an NVIDIA
-# GPU. --with-neuron additionally needs NEURON 9.x (pip install neuron) and,
+# GPU; for --cpu-only, only GCC, GNU make, flex, bison and ncurses. --with-neuron additionally needs NEURON 9.x (pip install neuron) and,
 # for the Arbor arm, an Arbor built with CUDA. Neither is required for the
 # GENESIS claims, which are the ones this paper makes.
 #
@@ -32,16 +36,19 @@ SUMMARY="$RESULTS/summary.csv"
 
 MODE=quick
 WITH_NEURON=0
+CPU_ONLY=0
 for a in "$@"; do
     case "$a" in
         --quick) MODE=quick ;;
         --full)  MODE=full ;;
         --with-neuron) WITH_NEURON=1 ;;
+        --cpu-only) CPU_ONLY=1 ;;
         -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
         *) echo "unknown option: $a" >&2; exit 2 ;;
     esac
 done
-[ "$#" -eq 0 ] && MODE=full
+# Full unless --quick was given, whatever other options are present.
+case " $* " in *" --quick "*) MODE=quick ;; *) MODE=full ;; esac
 
 cd "$ROOT" || exit 1
 echo "claim,measured,units" > "$SUMMARY"
@@ -60,6 +67,22 @@ done
 say "environment"
 uname -srm
 gcc --version | head -1
+if [ "$CPU_ONLY" = 1 ]; then
+    say "build (CPU only)"
+    sh cluster_bringup/12_build_cpu.sh > "$RESULTS/build.log" 2>&1 \
+        || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
+    echo "built genesis/src/nxgenesis_nocl"
+    say "claims that need no GPU"
+    sh "$HERE/stages/05_cpu.sh" "$RESULTS" "$MODE" | tee "$RESULTS/cpu.txt"
+    if [ "$WITH_NEURON" = 1 ]; then
+        say "cross-simulator comparison (CPU arms)"
+        sh "$HERE/stages/40_simulators.sh" "$RESULTS" | tee "$RESULTS/simulators.txt"
+    fi
+    say "measured against published"
+    python3 "$HERE/compare.py" "$SUMMARY"
+    echo; echo "Raw results: $RESULTS"
+    exit 0
+fi
 if command -v nvidia-smi >/dev/null 2>&1; then
     nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
     USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)

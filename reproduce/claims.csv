@@ -251,3 +251,4 @@ vanet2_level_at_12500_ratio,sec:5,prose,x,%.2f,,,,,,,,,,,a40+a100,,25,1.0,spikin
 spiking_speedup_ceiling,sec:5,derived,x,%.1f,1 / (1 - spiking_accelerable_fraction_pct / 100),,,,,,,spiking_accelerable_fraction_pct,,,none,,25,,Amdahl ceiling
 harness_fix_walltime_change_pct,sec:3,prose,pct,%.1f,,,,,,,,,,,arbor-gpu,,25,1.3,largest wall-time change after the vmcross harness corrections; before/after table not kept; superseded by feature 004
 igpu_tree_limit_compartments,sec:3,prose,compartments,",",,,,,,,,,,,amd-890m,,25,22000,driver reset threshold on the Radeon 890M; measured by hand; superseded by feature 004
+cpu_ap_vm,sec:3,measured,V,%.5f,regex,cluster_bringup/accel_regression_golden.txt,ap_cpu\|RESULT_VM= (-?[0-9.]+),,,,,,inf02-20260819,reproduce/stages/05_cpu.sh,none,1,0.01,,membrane potential of the action-potential check on the CPU; reproduces to the digit on any machine with the same build
