@@ -10,12 +10,13 @@
 #   EXPECT_SPIKES                          reference spike count (+-20%)
 #   SANITY_RE                              a line the run must print (generic check)
 # and the plausible wall-time band per arm comes from bands.csv (arm,min_s,max_s),
-# written from the dry run; without a band, any run under 0.5 s is rejected.
+# optional; without a band, a run under 0.02 s is rejected (the shortest real
+# run, Table 2 at N = 100, takes about 0.13 s; a binary that never started, 2 ms).
 
 BANDS=${BANDS:-$GENESIS_ROOT/cluster_bringup/campaign/bands.csv}
 
 band_ok() {   # $1 wall time; uses $arm from run_rep
-    lo=0.5; hi=1e9
+    lo=0.02; hi=1e9
     if [ -f "$BANDS" ]; then
         b=$(grep "^$arm," "$BANDS" | head -1)
         [ -n "$b" ] && lo=$(echo "$b" | cut -d, -f2) && hi=$(echo "$b" | cut -d, -f3)

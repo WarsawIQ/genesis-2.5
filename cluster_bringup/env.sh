@@ -76,10 +76,14 @@ MODELDB_DIR=${MODELDB_DIR:-$WORK_DIR/coreneuron_cmp}
 COBAHH_DIR=${COBAHH_DIR:-$MODELDB_DIR/destexhe_benchmarks/NEURON/cobahh}
 COBAHH_GPU_MECH=${COBAHH_GPU_MECH:-$COBAHH_DIR/x86_64_gpu2}
 
-# MPI launcher for the PGENESIS scaling runs.
-MPIRUN=${MPIRUN:-mpirun}
+# MPI for PGENESIS: MPICH as RHEL packages it (what "module load
+# mpi/mpich-x86_64" puts on PATH), else whatever mpirun is on PATH.
+MPICH_BIN=${MPICH_BIN:-/usr/lib64/mpich/bin}
+if [ -z "${MPIRUN:-}" ]; then
+    if [ -x "$MPICH_BIN/mpirun" ]; then MPIRUN=$MPICH_BIN/mpirun; else MPIRUN=mpirun; fi
+fi
 
 export GENESIS_ROOT WORK_DIR RUN_DIR SCRATCH CUDA_HOME OPENCL_CUDA_HOME
 export CMAKE GCC_TOOLSET MINIFORGE ARBOR_PYTHON NRN_PYTHON NRN_PIP_BIN NVHPC_ROOT NRN_GPU_SRC
 export NRN_GPU_BUILD ARBOR_PREFIX ARB_ARCH ARBOR_PY ARBOR_COBAHH_CAT MODELDB_DIR COBAHH_DIR
-export COBAHH_GPU_MECH MPIRUN
+export COBAHH_GPU_MECH MPIRUN MPICH_BIN

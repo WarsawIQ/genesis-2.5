@@ -1,6 +1,6 @@
 #!/bin/sh
-# Build the three binaries a campaign node needs, in the order that keeps all
-# of them: the OpenCL build first (it leaves nxgenesis_ocl), then the CUDA
+# Build the binaries a campaign node needs, in the order that keeps all of
+# them: PGENESIS where MPICH is installed (13_build_pgenesis.sh), the OpenCL build (it leaves nxgenesis_ocl), then the CUDA
 # build for this node's card (nxgenesis, nxgenesis_nocl). Run on the GPU node,
 # from the checkout the campaign will run in; every node needs its own
 # checkout, because the CUDA build targets the card it runs on. Without a CUDA
@@ -22,6 +22,11 @@ OUT=cluster_bringup/logs/campaign_$TAG/build_$NODE
 [ "${CAMPAIGN_DRY:-0}" = 1 ] && OUT=cluster_bringup/logs/campaign_dry/build_$NODE
 mkdir -p "$OUT"
 echo "commit $(git rev-parse HEAD) ($(git describe --tags --always)) on $NODE" | tee "$OUT/summary.txt"
+if [ -x "$MPICH_BIN/mpicc" ]; then   # PGENESIS for E3c, before any GPU build
+    sh cluster_bringup/13_build_pgenesis.sh > "$OUT/build_pgenesis.log" 2>&1 \
+        || { echo "PGENESIS build failed, see $OUT/build_pgenesis.log" | tee -a "$OUT/summary.txt"; exit 1; }
+    echo "built pgenesis/bin/Linux/nxpgenesis" | tee -a "$OUT/summary.txt"
+fi
 sh cluster_bringup/11_build_opencl.sh > "$OUT/build_opencl.log" 2>&1 \
     || { echo "OpenCL build failed, see $OUT/build_opencl.log" | tee -a "$OUT/summary.txt"; exit 1; }
 BINS="nxgenesis_nocl nxgenesis_ocl"
