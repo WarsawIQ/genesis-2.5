@@ -1,0 +1,10 @@
+START 2026-09-30T20:06:35+02:00 inf02 NVIDIA A40, 0 MiB
+base: ce21b63 logs: bring in the results that were still only on the cluster
+base recorded; vs committed golden:
+  differs from committed golden: 5 diff lines
+f1: f16d235 cuda: choose float or double kernels at run time
+F1 fp32 check rc=0
+PASS: 13 values unchanged on NVIDIA A40
+F1 fp64 record rc=0
+      1 f1: f16d235 cuda: choose float or double kernels at run time
+END 2026-09-30T20:09:45+02:00

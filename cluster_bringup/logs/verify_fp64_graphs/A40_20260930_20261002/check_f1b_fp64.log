@@ -1,0 +1,6 @@
+branch|RESULT_VM_FAR         cpu -0.0671207429  gpu -0.0671207429  |diff| 3.00e-11 ok
+branch|RESULT_VM_SOMA        cpu -0.0660303970  gpu -0.0660303971  |diff| 3.00e-11 ok
+multi|RESULT_VM_SOMA         cpu -0.0735408486  gpu -0.0735408490  |diff| 3.80e-10 OUTSIDE
+multi|RESULT_VM_FAR          cpu -0.0798336887  gpu -0.0798336889  |diff| 2.00e-10 OUTSIDE
+ap|RESULT_VM                 cpu -0.0214348588  gpu -0.0214348588  |diff| 0.00e+00 ok
+FAIL: fp64 GPU differs from the CPU by more than 1e-10 V

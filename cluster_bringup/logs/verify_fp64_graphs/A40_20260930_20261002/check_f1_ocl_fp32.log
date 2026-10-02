@@ -1,0 +1,4 @@
+FAIL: GPU runs not in fp32:
+ap_gpu reported []
+multi_gpu reported []
+branch_gpu reported []

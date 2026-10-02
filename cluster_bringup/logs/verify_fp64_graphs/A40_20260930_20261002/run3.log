@@ -1,0 +1,39 @@
+START 2026-09-30T20:21:42+02:00 inf02 NVIDIA A40, 0 MiB
+base ocl record rc=0
+vs committed opencl golden:
+5,12c5,12
+< multi_cpu|RESULT_VM_FAR= -0.07250332459
+< multi_cpu|RESULT_VM_SOMA= -0.06453309591
+< multi_gpu|RESULT_VM_FAR= -0.07250280832
+< multi_gpu|RESULT_VM_SOMA= -0.0645333697
+< branch_cpu|RESULT_VM_FAR= -0.06915225603
+< branch_cpu|RESULT_VM_SOMA= -0.0677864387
+< branch_gpu|RESULT_VM_FAR= -0.06915225593
+< branch_gpu|RESULT_VM_SOMA= -0.06778643208
+---
+> multi_cpu|RESULT_VM_FAR= -0.0798336887
+> multi_cpu|RESULT_VM_SOMA= -0.0735408486
+> multi_gpu|RESULT_VM_FAR= -0.07983308288
+> multi_gpu|RESULT_VM_SOMA= -0.0735396004
+> branch_cpu|RESULT_VM_FAR= -0.06712074288
+> branch_cpu|RESULT_VM_SOMA= -0.06603039703
+> branch_gpu|RESULT_VM_FAR= -0.06712071115
+> branch_gpu|RESULT_VM_SOMA= -0.06603036164
+15,17d14
+< vanet2_gpu|vm_md5=1440eb862079f69f891c5a57a99af681
+< vanet2_gpu|vm_lines=50001
+< vanet2_gpu|guard=ABSENT
+  differs
+F1 ocl fp32 check rc=1
+ap_gpu reported []
+multi_gpu reported []
+branch_gpu reported []
+F1 ocl fp64 rc=0
+branch|RESULT_VM_FAR         cpu -0.0671207429  gpu -0.0671207429  |diff| 0.00e+00 ok
+branch|RESULT_VM_SOMA        cpu -0.0660303971  gpu -0.0660303971  |diff| 0.00e+00 ok
+multi|RESULT_VM_SOMA         cpu -0.0735408490  gpu -0.0735408490  |diff| 0.00e+00 ok
+multi|RESULT_VM_FAR          cpu -0.0798336889  gpu -0.0798336889  |diff| 0.00e+00 ok
+ap|RESULT_VM                 cpu -0.0214348588  gpu -0.0214348588  |diff| 0.00e+00 ok
+PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+CUDA build restored
+END 2026-09-30T20:28:30+02:00

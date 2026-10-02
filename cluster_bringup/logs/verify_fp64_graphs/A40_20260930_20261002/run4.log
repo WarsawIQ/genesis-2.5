@@ -1,0 +1,9 @@
+START 2026-09-30T20:32:03+02:00
+F1 ocl fp32 check rc=0
+PASS: 14 values unchanged on NVIDIA A40
+F1 ocl fp64 rc=0
+PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+OCL: GENESIS_GPU_PRECISION=double is not understood; use fp32 (the default) or fp64. Computing on the CPU.
+RESULT_VM= -0.02143485882
+CUDA build restored
+END 2026-09-30T20:36:31+02:00
