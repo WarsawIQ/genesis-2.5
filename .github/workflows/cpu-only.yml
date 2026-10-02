@@ -27,6 +27,7 @@ jobs:
           python3 reproduce/make_numbers.py --check
           sh reproduce/check_paths.sh
           sh reproduce/tests/test_claims.sh
+          sh reproduce/tests/test_campaign.sh
       - name: Reproduce the CPU claims
         run: sh reproduce/run_all.sh --cpu-only --quick
       - name: Keep the results
