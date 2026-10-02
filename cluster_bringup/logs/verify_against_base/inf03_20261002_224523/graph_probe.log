@@ -1,0 +1,8 @@
+written: /storage2/home/kchlasta/vrf-inf03-head/cluster_bringup/logs/cuda_graph_probe_inf03_20261002_225303.csv
+spiking,100000,0  mean wall 48.355 s (n=5)
+spiking,100000,1  mean wall 46.610 s (n=5)
+tree,50000,0  mean wall 4.641 s (n=5)
+tree,50000,1  mean wall 4.515 s (n=5)
+tree,5000,0  mean wall 1.797 s (n=5)
+tree,5000,1  mean wall 1.685 s (n=5)
+# distinct spike trains over all spiking runs: 1 (1 means identical)
