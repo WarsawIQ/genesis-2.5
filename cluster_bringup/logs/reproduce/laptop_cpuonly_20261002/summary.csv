@@ -1,0 +1,6 @@
+claim,measured,units
+cpu_ap_vm,-0.02143485882,V
+construction_exponent_after,1.029,exponent
+vanet2_genesis_published_s,39.12,s
+vanet2_genesis_1solver_s,26.13,s
+vanet2_1solver_speedup,1.50,x

@@ -1,0 +1,3 @@
+Hines fixes: 8 neurons under one hsolve, all injected: NEURONS_AGREE YES (spread < 1e-6 V)
+construction: wall time ~ compartments^1.03 over 4 runs
+VAnet2 on one core: as published 39.1 s, one solver per layer 26.1 s, ratio 1.50

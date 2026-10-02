@@ -1,0 +1,5 @@
+rep,n_neurons,ncompts,total_wallclock_s,variant
+1,1000,17000,0.532,after
+1,2000,34000,1.026,after
+1,4000,68000,2.106,after
+1,8000,136000,4.510,after
