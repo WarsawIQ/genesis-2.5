@@ -1,0 +1,31 @@
+# Reproduce the claims that need no GPU on every push, on a clean machine:
+# the Hines-solver fixes, linear model construction and the Vogels-Abbott
+# network on one core (reproduce/run_all.sh --cpu-only --quick, about 2
+# minutes of simulation). The verdict table is printed at the end of the log
+# and the results are kept as an artifact.
+name: cpu-only reproduction
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cpu-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential flex bison libncurses-dev python3
+      - name: Reproduce the CPU claims
+        run: sh reproduce/run_all.sh --cpu-only --quick
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-only-results
+          path: reproduce/results/
