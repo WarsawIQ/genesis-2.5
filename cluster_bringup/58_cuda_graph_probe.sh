@@ -3,6 +3,10 @@
 # workloads faster? Measured, not argued: the reviewer of the SoftwareX
 # revision asked about CUDA Graphs, and the answer should be a number.
 #
+# Graphs are on by default for the tree loop (since 2026-10-02) and off for the
+# per-step dispatch; the arms here set GENESIS_CUDA_GRAPH explicitly, 0 = none
+# and 1 = both, so they compare the same two paths as before.
+#
 # Two workloads, each with graphs off and on, replicates interleaved so that a
 # drift of the node affects both arms alike:
 #   tree     hh_multicompartment_createmap.g, N=10000 x 16 compartments,
@@ -38,7 +42,7 @@ tree_run() {   # $1 K, $2 graph 0|1, $3 rep
           GENESIS_CUDA_GRAPH=$2 ./genesis/src/nxgenesis -nosimrc -notty -batch "$S" 10000 "$1" </dev/null 2>&1)
     t1=$(date +%s%N)
     step=$(echo "$o" | sed -n 's/^RESULT_T_TOTAL= *//p' | head -1)
-    banner=$(echo "$o" | grep -c 'graph dispatch on')
+    banner=$(echo "$o" | grep -c 'tree loop on')
     echo "tree,$1,$2,$3,$(awk "BEGIN{printf \"%.4f\", ($t1-$t0)/1e9}"),${step:-NA},$banner" >> "$OUT"
 }
 
@@ -52,7 +56,7 @@ spike_run() {  # $1 graph 0|1, $2 rep
     ( cd "$VA" && GENESIS_CUDA_GRAPH=$1 GENESIS_VANET2_SPIKEFILE="$VA/spikes_g$1_r$2.txt" \
         timeout 3600 "$R/genesis/src/nxgenesis" -notty -batch VAnet2-batch-1solver.g > "out_g$1_r$2.log" 2>&1 )
     t1=$(date +%s%N)
-    banner=$(grep -c 'graph dispatch on' "$VA/out_g$1_r$2.log")
+    banner=$(grep -c 'per-step on' "$VA/out_g$1_r$2.log")
     echo "spiking,100000,$1,$2,$(awk "BEGIN{printf \"%.4f\", ($t1-$t0)/1e9}"),NA,$banner" >> "$OUT"
 }
 

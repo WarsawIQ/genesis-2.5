@@ -349,6 +349,7 @@ A few environment variables control dispatch at run time:
 
 | Variable | Effect |
 |---|---|
+| `GENESIS_CUDA_GRAPH=0` or `1` | CUDA Graph dispatch. Unset (the default): on for the batched tree loop, where it is 1-6% faster with identical results, off for the per-step dispatch of spiking networks, where it gains nothing. `0` turns it off everywhere, `1` on everywhere. Measurements: `cluster_bringup/logs/cuda_graph_decision_20261002.md` |
 | `GENESIS_GPU_PRECISION=fp64` | Run the kernels in double precision, as the CPU solver does. The default, `fp32`, is what every published figure used and runs on integrated GPUs without double precision. A device without it refuses `fp64` with a message and the model runs on the CPU. The start-up line names the precision in use |
 | `GENESIS_OCL_MULTILOOP=<K>` | Batch `K` steps into one OpenCL dispatch instead of one per step |
 | `GENESIS_CUDA_MULTILOOP=<K>` | Same, CUDA |

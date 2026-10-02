@@ -55,6 +55,9 @@ the A100 tree loop at K=5000 (6.4%) falls in the 5–10% band where the decision
 Pending that decision, graphs stay off by default. The campaign repeats the probe on the
 release tag on both cards (E8).
 
-**Decided 2026-10-02 (Karol Chlasta): off by default.** The default path stays the one
-measured longest and used for every published number; `GENESIS_CUDA_GRAPH=1` is
-documented as an option with the gains above.
+**Decided 2026-10-02 (Karol Chlasta): on by default for the batched tree loop, off for the
+per-step dispatch.** The tree loop gains a few percent on the A100 with byte-identical
+results; the per-step dispatch gains nothing. The revision's measurement campaign
+therefore measures the tree loop with graphs, and the numbers it puts in the paper carry
+that setting. `GENESIS_CUDA_GRAPH=0` restores the previous behaviour, `=1` adds the
+per-step dispatch.

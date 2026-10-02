@@ -107,12 +107,15 @@ struct CudaState {
     int   *d_spike_refrac = nullptr, *d_spike_flag = nullptr;
     int   *h_spike_flag = nullptr;
 
-    /* CUDA Graphs (GENESIS_CUDA_GRAPH=1, off by default): the repetitive
-       dispatches are captured once and replayed. tree_exec holds a block of
-       tree-loop steps; step_exec one per-step dispatch, rebuilt when the
-       shape of a step changes (step_sig). With graphs on, the host buffers
-       the graphs copy to and from are pinned (pinned = 1). */
-    int use_graph = 0;
+    /* CUDA Graphs: the repetitive dispatches are captured once and replayed.
+       tree_exec holds a block of tree-loop steps; step_exec one per-step
+       dispatch, rebuilt when the shape of a step changes (step_sig).
+       graph_tree is on by default -- measured 1-6% faster, results
+       byte-identical (logs/cuda_graph_decision_20261002.md); graph_step only
+       with GENESIS_CUDA_GRAPH=1, since it gains nothing measurable. With
+       graph_step on, the host buffers its graph copies are pinned. */
+    int graph_tree = 0;
+    int graph_step = 0;
     int pinned = 0;
     cudaStream_t gstream = nullptr;
     cudaGraphExec_t tree_exec = nullptr;
@@ -394,12 +397,22 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
     st->prof_enabled = (getenv("GENESIS_CUDA_PROFILE") != NULL);
 
     {
+        /* GENESIS_CUDA_GRAPH: unset = graphs for the tree loop only (the
+           default), "0" = none, "1" = also the per-step dispatch. */
         const char *g = getenv("GENESIS_CUDA_GRAPH");
-        if (g && strcmp(g, "1") == 0) {
+        if (g && *g && strcmp(g, "0") != 0 && strcmp(g, "1") != 0) {
+            fprintf(stderr, "CUDA: GENESIS_CUDA_GRAPH=%s is not understood; use 0 or 1 "
+                    "(unset: graphs for the tree loop only). Computing on the CPU.\n", g);
+            cuda_state_destroy(st); return NULL;
+        }
+        st->graph_tree = !(g && strcmp(g, "0") == 0);
+        st->graph_step = (g && strcmp(g, "1") == 0);
+        if (st->graph_tree || st->graph_step)
+            CUDA_CHECK_P(cudaStreamCreate(&st->gstream), "graph stream");
+        if (st->graph_step) {
             /* Graph memcpy nodes need pinned host memory, so the buffers they
                touch are replaced by pinned ones of the same size. */
             void *pv = nullptr, *pr = nullptr; int *pf = nullptr;
-            CUDA_CHECK_P(cudaStreamCreate(&st->gstream), "graph stream");
             CUDA_CHECK_P(cudaMallocHost(&pv, ncompts * st->esz), "pinned vm");
             CUDA_CHECK_P(cudaMallocHost(&pr, ncompts * 2 * st->esz), "pinned results");
             if (st->nspike > 0) {
@@ -409,9 +422,9 @@ void *cuda_backend_init(int ncompts, int nchips, int nops, int ncols, int xdivs,
             free(st->f_vm); free(st->f_results); free(st->h_spike_flag);
             st->f_vm = pv; st->f_results = pr; st->h_spike_flag = pf;
             st->pinned = 1;
-            st->use_graph = 1;
-            printf("CUDA: graph dispatch on (GENESIS_CUDA_GRAPH=1)\n");
         }
+        printf("CUDA: graph dispatch: tree loop %s, per-step %s\n",
+               st->graph_tree ? "on" : "off", st->graph_step ? "on" : "off");
     }
     printf("CUDA: ready (%d compartments, %d chips, %s kernels)\n",
            ncompts, nchips, st->fp64 ? "fp64" : "fp32");
@@ -476,7 +489,7 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
     if (!st) return -1;
     int n = st->ncompts, nc = st->nchips;
     d2g(st, vm, st->f_vm, n);
-    if (st->use_graph) return perstep_graph(st, results_out);
+    if (st->graph_step) return perstep_graph(st, results_out);
     /* With the solve on the device, vm[] never leaves it: the kernel wrote the
        final voltages last step and reads them again now. */
     if (!st->solve_on_device) {
@@ -772,7 +785,7 @@ int cuda_backend_multiloop_tree(void *sth, double *vm_io, double *chip_io, doubl
 
     cudaEventRecord(st->ev_start);
     step = 0;
-    if (st->use_graph) {
+    if (st->graph_tree) {
         /* Blocks of G steps replayed from one graph, synchronised after each
            block as the loop below synchronises every G steps. */
         int G = (sync_mask >= 0) ? sync_mask + 1 : 16;
