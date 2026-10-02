@@ -54,3 +54,7 @@ Under the rule fixed in advance, the A40 result (below 5% everywhere) keeps grap
 the A100 tree loop at K=5000 (6.4%) falls in the 5–10% band where the decision is Karol's.
 Pending that decision, graphs stay off by default. The campaign repeats the probe on the
 release tag on both cards (E8).
+
+**Decided 2026-10-02 (Karol Chlasta): off by default.** The default path stays the one
+measured longest and used for every published number; `GENESIS_CUDA_GRAPH=1` is
+documented as an option with the gains above.
