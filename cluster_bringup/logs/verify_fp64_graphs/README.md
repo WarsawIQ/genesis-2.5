@@ -23,4 +23,12 @@ one predated a later fix.
 
 ## A100 (inf03), 2026-10-02 — `A100_20261002/`
 
-`run6.sh`: the same as above on the A100, CUDA and OpenCL, with the graph probe.
+`run6.sh` (commit 909d47a; base golden recorded on the A100 from ce21b63):
+
+| Check | Result |
+|---|---|
+| CUDA fp32 vs base, graphs off / on | 14/14 identical / 14/14 identical |
+| CUDA fp64 vs CPU, graphs off / on | 5/5 within 1e-10 V / 5/5 |
+| CUDA Graphs probe | `../cuda_graph_probe_inf03_20261002_203248.csv` |
+| OpenCL fp32 vs base | 14/14 identical |
+| OpenCL fp64 vs CPU | 5/5 within 1e-10 V |
