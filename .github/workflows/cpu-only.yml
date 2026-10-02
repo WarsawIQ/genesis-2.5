@@ -2,7 +2,8 @@
 # the Hines-solver fixes, linear model construction and the Vogels-Abbott
 # network on one core (reproduce/run_all.sh --cpu-only --quick, about 2
 # minutes of simulation). The verdict table is printed at the end of the log
-# and the results are kept as an artifact.
+# and the results are kept as an artifact. Before that, the claim map must
+# regenerate with no change (no number edited by hand) and its tests must pass.
 name: cpu-only reproduction
 
 on:
@@ -20,7 +21,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential flex bison libncurses-dev python3
+            build-essential flex bison libncurses-dev python3 texlive-latex-base
+      - name: Claim map is current and refuses broken input
+        run: |
+          python3 reproduce/make_numbers.py --check
+          sh reproduce/check_paths.sh
+          sh reproduce/tests/test_claims.sh
       - name: Reproduce the CPU claims
         run: sh reproduce/run_all.sh --cpu-only --quick
       - name: Keep the results

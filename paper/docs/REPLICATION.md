@@ -1,5 +1,38 @@
 # Replication Guide: GENESIS 2.5 CPU vs GPU Benchmarks
 
+## Start here (revision, October 2026)
+
+The way to reproduce the paper is now one entry point and one map:
+
+- [`reproduce/claims.csv`](../../reproduce/claims.csv) lists every number in the
+  paper and in the README with the data file, rows and formula it comes from.
+  `python3 reproduce/make_numbers.py` recomputes them all into
+  [`paper/numbers.tex`](../numbers.tex) (the manuscript prints them with
+  `\claim{id}`), into [`reproduce/published.csv`](../../reproduce/published.csv) and
+  into the README. `python3 reproduce/lint_numbers.py <file.tex>` finds numbers
+  typed into a manuscript by hand.
+- [`reproduce/run_all.sh`](../../reproduce/run_all.sh) measures them again:
+  `--cpu-only --quick` on any Linux machine, `--quick` and the full run on an NVIDIA
+  GPU. See [`reproduce/README.md`](../../reproduce/README.md).
+- Every machine-specific path is a variable in
+  [`cluster_bringup/env.sh`](../../cluster_bringup/env.sh); the comparison
+  simulators (NEURON, CoreNEURON for the GPU, Arbor) and ModelDB 83319 are built from
+  the recipes in [`cluster_bringup/toolchains/`](../../cluster_bringup/toolchains/),
+  verified from an empty directory on 2026-09-30
+  ([`logs/toolchain_verify_20260930.md`](../../cluster_bringup/logs/toolchain_verify_20260930.md)).
+- What existed on the cluster before that, and what was found wrong with it, is in
+  [`toolchains/as-found/`](../../cluster_bringup/toolchains/as-found/); data files
+  that no longer support a claim are listed in
+  [`logs/SUPERSEDED.md`](../../cluster_bringup/logs/SUPERSEDED.md) and the generator
+  refuses to use them.
+- Cluster results are pulled into the repository with
+  [`cluster_bringup/sync_from_cluster.sh`](../../cluster_bringup/sync_from_cluster.sh)
+  after every run.
+
+The rest of this document is the build and measurement record from July 2026, kept
+because the numbers of that period came from it. Where it calls something
+authoritative, read "authoritative at the time".
+
 ## Overview
 
 This document records every build and run step needed to reproduce the CPU vs GPU
@@ -17,7 +50,7 @@ network size and is unrelated to GPU acceleration.
 
 ---
 
-## Authoritative reproduction (SoftwareX draft, 2026-07)
+## Authoritative reproduction at the time (SoftwareX draft, 2026-07; historical)
 
 After building `nxgenesis` (USE_OPENCL=1) and `nxgenesis_nocl` (Steps 1–3 below),
 one driver produces every number and figure in the manuscript's illustrative
