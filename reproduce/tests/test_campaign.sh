@@ -92,14 +92,14 @@ else bad "dry run: rc $rc"; [ -n "$C" ] && cat "$C"; fi
 # 3. A busy card: wait, retry, give up with 3, name the process
 fresh; touch "$T/busy"
 stage CAMPAIGN_DRY=1; rc=$?
-if [ "$rc" = 3 ] && grep -q "4242, python" "$OUTDIR/busy.log" && [ "$(grep -c ',ok,' "$(csv)")" = 0 ]; then
+if [ "$rc" = 3 ] && grep -q "4242, python" "$OUTDIR/busy_testnode.log" && [ "$(grep -c ',ok,' "$(csv)")" = 0 ]; then
     ok "busy GPU: waited, gave up with exit 3, logged the foreign process"
 else bad "busy GPU: rc $rc"; fi
 
 # 4. Wrong precision in the banner: rejected, retried once, exit 4
 fresh
 stage CAMPAIGN_DRY=1 WANT="fp64 kernels" REPS=1; rc=$?
-if [ "$rc" = 4 ] && grep -q "banner does not match" "$OUTDIR/rejected.csv" \
+if [ "$rc" = 4 ] && grep -q "banner does not match" "$OUTDIR/rejected_testnode.csv" \
    && [ "$(grep -c ',ok,' "$(csv)")" = 0 ]; then
     ok "banner mismatch (fp32 binary, fp64 asked): every run rejected"
 else bad "banner mismatch: rc $rc"; fi
@@ -107,21 +107,21 @@ else bad "banner mismatch: rc $rc"; fi
 # 5. Implausibly fast run: rejected by the sanity band
 fresh
 stage CAMPAIGN_DRY=1 SLEEP=0 REPS=1; rc=$?
-if [ "$rc" = 4 ] && grep -q "outside the plausible band" "$OUTDIR/rejected.csv"; then
+if [ "$rc" = 4 ] && grep -q "outside the plausible band" "$OUTDIR/rejected_testnode.csv"; then
     ok "a run that finished in no time is rejected"
 else bad "fast run: rc $rc"; fi
 
 # 6. Card taken during a run: that run is rejected
 fresh
 stage CAMPAIGN_DRY=1 BUSY_DURING=armB REPS=1; rc=$?
-if grep -q "GPU busy after the run" "$OUTDIR/rejected.csv" && [ "$rc" = 3 ]; then
+if grep -q "GPU busy after the run" "$OUTDIR/rejected_testnode.csv" && [ "$rc" = 3 ]; then
     ok "a foreign job during the run rejects the run, then the stage stops with 3"
 else bad "busy during run: rc $rc"; fi
 
 # 7. A failed run is retried once and the stage completes
 fresh; rm -f "$T/failed_once"
 stage CAMPAIGN_DRY=1 FAIL_ONCE=armA:1 REPS=1; rc=$?
-if [ "$rc" = 0 ] && grep -q "exit code 1" "$OUTDIR/rejected.csv" && [ "$(grep -c ',ok,' "$(csv)")" = 4 ]; then
+if [ "$rc" = 0 ] && grep -q "exit code 1" "$OUTDIR/rejected_testnode.csv" && [ "$(grep -c ',ok,' "$(csv)")" = 4 ]; then
     ok "a failed run is retried and replaced"
 else bad "retry: rc $rc"; fi
 

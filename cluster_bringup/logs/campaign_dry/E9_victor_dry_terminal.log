@@ -1,0 +1,7 @@
+[00:54:39] E9: session victor_20261003_005439, untagged (026eb3c5ae6fbf60c8fa5c660e6892fc94d24a88), data /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_dry/E9_victor_20261003_005439.csv
+ap_cpu -0.02143485882
+ap_rocm32 -0.02143507321
+ap_rocm64 -0.02143485882
+ap_rusticl32 -0.02143504861
+ap_rusticl64 -0.02143485882
+report: /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_dry/E9_victor_20261003_005439_report.md

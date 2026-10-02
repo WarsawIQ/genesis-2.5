@@ -30,9 +30,6 @@ need genesis/src/nxgenesis_ocl "cluster_bringup/11_build_opencl.sh"
 need genesis/src/nxgenesis_nocl "cluster_bringup/11_build_opencl.sh"
 need "$ROCM_ICD" "ROCm OpenCL runtime"
 need "$RUSTICL_ICD" "Mesa rusticl"
-{ echo "# rocm_icd: $ROCM_ICD"; echo "# rusticl_icd: $RUSTICL_ICD"
-  echo "# opencl: $(dpkg-query -W -f '${Package} ${Version}; ' rocm-opencl-runtime mesa-opencl-icd 2>/dev/null)"
-  echo "# power: $(cat /sys/class/power_supply/AC*/online 2>/dev/null | head -1) (1 = on AC)"; } >> "$CSV"
 DEV='^OCL: urzadzenie: .*(gfx1150|Radeon)'
 
 rt() {   # the environment that selects one OpenCL implementation
@@ -41,6 +38,12 @@ rt() {   # the environment that selects one OpenCL implementation
         rusticl) echo "OCL_ICD_VENDORS=$RUSTICL_ICD RUSTICL_ENABLE=radeonsi" ;;
     esac
 }
+{ echo "# rocm_icd: $ROCM_ICD"; echo "# rusticl_icd: $RUSTICL_ICD"
+  echo "# opencl: $(dpkg-query -W -f '${Package} ${Version}; ' rocm-opencl-runtime mesa-opencl-icd 2>/dev/null)"
+  echo "# power: $(cat /sys/class/power_supply/AC*/online 2>/dev/null | head -1) (1 = on AC)"
+  for r in rocm rusticl; do
+      echo "# opencl_devices_$r: $(env $(rt $r) clinfo -l 2>/dev/null | tr -s ' ' | tr '\n' ';')"
+  done; } >> "$CSV"
 ap() {   # <arm> <rep> <order> <rocm|rusticl|cpu> <fp32|fp64> <banner>
     SANITY_RE='^NEURONS_AGREE: YES' SANITY_METRIC=agree
     if [ "$4" = cpu ]; then

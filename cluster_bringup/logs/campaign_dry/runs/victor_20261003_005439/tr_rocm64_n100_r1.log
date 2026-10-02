@@ -1,0 +1,68 @@
+# experiment: E9
+# session: victor_20261003_005439
+# commit: 026eb3c5ae6fbf60c8fa5c660e6892fc94d24a88
+# describe: untagged
+# dirty: 0
+# build_generated_changed: 22
+# node: victor
+# cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# governor: powersave
+# loadavg: 1.99 1.36 1.15
+# gpu: none
+# arm: tr_rocm64_n100
+# rep: 1
+# command: env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 GENESIS_OCL_MULTILOOP=5010 GENESIS_GPU_PRECISION=fp64 OCL_ICD_VENDORS=/etc/OpenCL/vendors/amdocl64_60301_48.icd timeout 7200 ./genesis/src/nxgenesis_ocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh_multicompartment_createmap.g 100 5000
+Starting Genesis
+Executable:         /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/./genesis/src/nxgenesis_ocl
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_multicompartment_createmap.g
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 63
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 67
+** Error - Error promoting '' to INT, using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 78
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 79
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 80
+** Error - CastToInt: Error casting '', using 0
+=== HH Multicompartment Benchmark ===
+Neurons:    100
+Comp/neuron: 16
+Total comps: 1600
+Steps:      5000
+chanmode:   4
+
+/library
+/
+/library/cell
+/
+Building cables via createmap...
+changing clock [0] from 1 to 1e-05
+Configuring single hsolve (chanmode= 4 , N*NCOMP= 1600  comps)...
+ncompts:  1600
+time = 0.000000 ; step = 0          
+OCL: urzadzenie: gfx1150
+OCL: tryb multiloop — 5010 krokow w jednym dispatchu
+OCL: gotowy (1600 kompartmentow, 17600 chips, kernele fp64)
+OCL: kernel eliminacji drzew gotowy (100 drzew)
+OCL MULTILOOP (tree): 5010 krokow x 2 kernele | total 183.5 ms | 36.632 us/krok
+time = 0.050100 ; step = 5010          
+completed 5010 steps in 0.407839 cpu seconds
+RESULT_T_TOTAL= 0.6257962584
+RESULT_T_PER_STEP= 0.0001249094328
+RESULT_VM_FAR= -0.0798336889
+RESULT_VM_SOMA= -0.07354084898
+
+=== done: N= 100  NCOMP= 16  steps= 5000  chanmode= 4  ===
+OCL MULTILOOP SUMMARY (1 hsolve state(s))
+  batch dispatched : 1 kernel call covering 5010 steps
+  no-op steps      : 5009 (CPU Hines identity pass-through)
+  (timing per-dispatch printed at dispatch time above)
+OCL: zasoby zwolnione

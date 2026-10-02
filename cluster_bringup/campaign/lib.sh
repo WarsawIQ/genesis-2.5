@@ -10,7 +10,7 @@
 #
 # Files, under $CAMPAIGN_OUT:
 #   <exp>_<session>.csv         one row per run, header lines start with '#'
-#   rejected.csv                every rejected run with its reason
+#   rejected_<node>.csv         every rejected run with its reason
 #   runs/<session>/<arm>_r<rep>[_try2].log   full output of each run
 #   <exp>_<node>.open           the session to resume, while one is unfinished
 #
@@ -100,8 +100,8 @@ campaign_init() {   # $1 experiment id, e.g. E1
     else
         echo "# resumed: $(date -Is)" >> "$CSV"
     fi
-    [ -f "$CAMPAIGN_OUT/rejected.csv" ] || \
-        echo "session,experiment,arm,rep,try,wall_s,reason,log" > "$CAMPAIGN_OUT/rejected.csv"
+    [ -f "$CAMPAIGN_OUT/rejected_$NODE.csv" ] || \
+        echo "session,experiment,arm,rep,try,wall_s,reason,log" > "$CAMPAIGN_OUT/rejected_$NODE.csv"
     say "$EXP: session $SESSION, $DESCRIBE ($COMMIT), data $CSV"
 }
 
@@ -131,7 +131,7 @@ gpu_free() {   # 0 = free; waits and retries; 3 = gave up
     while :; do
         why=$(gpu_busy)
         [ -z "$why" ] && return 0
-        say "GPU busy ($why), try $t of $CAMPAIGN_WAIT_TRIES" | tee -a "$CAMPAIGN_OUT/busy.log"
+        say "GPU busy ($why), try $t of $CAMPAIGN_WAIT_TRIES" | tee -a "$CAMPAIGN_OUT/busy_$NODE.log"
         [ "$t" -ge "$CAMPAIGN_WAIT_TRIES" ] && return 3
         t=$((t + 1)); sleep "$CAMPAIGN_WAIT_S"
     done
@@ -194,7 +194,7 @@ run_rep() {
         say "$arm rep $rep try $try rejected: $reason"
         r=$(echo "$reason" | tr ',\n' ';;')
         echo "$SESSION,$EXP,$arm,$rep,$order,$wall,,,rejected: $r,$started" >> "$CSV"
-        echo "$SESSION,$EXP,$arm,$rep,$try,$wall,$r,$log" >> "$CAMPAIGN_OUT/rejected.csv"
+        echo "$SESSION,$EXP,$arm,$rep,$try,$wall,$r,$log" >> "$CAMPAIGN_OUT/rejected_$NODE.csv"
     done
     return 4
 }

@@ -38,7 +38,7 @@ for e in $PLAN; do
         0) what="complete" ;;
         2) what="refused a precondition" ;;
         3) what="gave up on a busy GPU; rerun to resume" ;;
-        4) what="replicates rejected twice; see rejected.csv" ;;
+        4) what="replicates rejected twice; see rejected_<node>.csv" ;;
         *) what="failed" ;;
     esac
     printf '%-4s rc %s  %s  (%d min)\n' "$e" "$rc" "$what" $((($(date +%s) - t0) / 60)) | tee -a "$LOG"

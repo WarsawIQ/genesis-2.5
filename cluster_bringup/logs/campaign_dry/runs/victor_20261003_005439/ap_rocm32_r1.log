@@ -1,0 +1,53 @@
+# experiment: E9
+# session: victor_20261003_005439
+# commit: 026eb3c5ae6fbf60c8fa5c660e6892fc94d24a88
+# describe: untagged
+# dirty: 0
+# build_generated_changed: 22
+# node: victor
+# cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# governor: powersave
+# loadavg: 2.07 1.37 1.16
+# gpu: none
+# arm: ap_rocm32
+# rep: 1
+# command: env OCL_ICD_VENDORS=/etc/OpenCL/vendors/amdocl64_60301_48.icd GENESIS_GPU_PRECISION=fp32 ./genesis/src/nxgenesis_ocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh1952_ap_verify.g 8 200
+Starting Genesis
+Executable:         /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/./genesis/src/nxgenesis_ocl
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh1952_ap_verify.g
+=== HH1952 AP Verify N= 8  steps= 200  ===
+/library
+/
+changing clock [0] from 1 to 1e-05
+time = 0.000000 ; step = 0          
+OCL: urzadzenie: gfx1150
+OCL: gotowy (8 kompartmentow, 88 chips, kernele fp32)
+time = 0.000100 ; step = 10          
+completed 10 steps in 0.311914 cpu seconds
+time = 0.002100 ; step = 210          
+completed 200 steps in 0.005143 cpu seconds
+
+--- Vm after  200  steps (+ 10 warmup) ---
+cell0 Vm      =  -0.02143507321
+min   Vm      =  -0.02143507321
+max   Vm      =  -0.02143507321
+spread(max-min)=  0
+NEURONS_AGREE: YES (spread < 1e-6 V)
+RESULT_VM= -0.02143507321
+OCL PROFILING SUMMARY (aggregated over all hsolve states)
+  steps profiled    : 210
+  kernel total      : 0.992 ms  (4.73 us/step)
+  vm upload (wall)  : 0.183 ms  (0.87 us/step, step-0 also had chip)
+  ocl_chip_update   : 11.167 ms  (wall incl. transfers)
+  GPU active frac   : 8.89%  (kernel / ocl_chip_update wall)
+  chip[] transfers  : skipped (persistent GPU buffer after step 0)
+  NOTE: ocl_chip_update is only the channel-update fraction
+        of total step time. Hines solver runs on CPU.
+OCL: zasoby zwolnione
