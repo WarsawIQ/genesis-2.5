@@ -38,6 +38,10 @@ need "$COBAHH_GPU_MECH/x86_64/special-core" "coreneuron/build_mechanisms.sh gpu"
 need "$ARBOR_COBAHH_CAT" "toolchains/45_arbor_cobahh_catalogue.sh"
 sh cluster_bringup/coreneuron/arbor_check.sh > "$W/arbor_check.log" 2>&1 \
     || { echo "REFUSED: Arbor does not load, see $W/arbor_check.log" >&2; exit 2; }
+env PYTHONPATH="$ARBOR_PY" LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:${LD_LIBRARY_PATH:-}" \
+    "$ARBOR_PYTHON" -c 'import arbor, sys; print(sorted(arbor.load_catalogue(sys.argv[1]).keys()))' \
+    "$ARBOR_COBAHH_CAT" >> "$W/arbor_check.log" 2>&1 \
+    || { echo "REFUSED: $ARBOR_COBAHH_CAT does not load here, see $W/arbor_check.log" >&2; exit 2; }
 
 for a in g_cpu_pub g_cpu_1s g_gpu32_1s g_gpu64_1s; do vanet2_workdir "$W/$a"; done
 # NEURON with the ChannelBuilder channels: a copy of the model without the

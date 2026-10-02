@@ -35,7 +35,7 @@ sanity_tree() {
     [ -n "$t" ] || { echo "no RESULT_T_PER_STEP line"; return 1; }
     d=$(grep "^=== done: N=" "$1" | head -1)
     [ -n "$d" ] || { echo "no closing '=== done' line"; return 1; }
-    n=$(echo "$d" | sed -n 's/.*N= *\([0-9]*\).*/\1/p')
+    n=$(echo "$d" | sed -n 's/^=== done: N= *\([0-9]*\).*/\1/p')
     [ -z "${EXPECT_N:-}" ] || [ "$n" = "$EXPECT_N" ] || { echo "built N=$n, asked for $EXPECT_N"; return 1; }
     if [ -n "${EXPECT_NCOMP:-}" ]; then
         c=$(echo "$d" | sed -n 's/.*NCOMP= *\([0-9,]*\).*/\1/p')

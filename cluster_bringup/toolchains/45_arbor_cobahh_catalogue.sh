@@ -23,10 +23,12 @@ print("catalogue", sys.argv[1], "mechanisms", names)
 sys.exit(0 if names else 1)' "$ARBOR_COBAHH_CAT"
 }
 
-if [ -f "$ARBOR_COBAHH_CAT" ] && [ -f "$OUT/.recipe_ok" ] && check 2>/dev/null; then
-    echo "catalogue already built: $ARBOR_COBAHH_CAT"
-    exit 0
+can_run() { [ "$ARB_ARCH" != icelake-server ] || grep -q avx512f /proc/cpuinfo; }
+if [ -f "$ARBOR_COBAHH_CAT" ] && [ -f "$OUT/.recipe_ok" ]; then
+    if ! can_run; then echo "catalogue built: $ARBOR_COBAHH_CAT (load it on a GPU node)"; exit 0; fi
+    check 2>/dev/null && { echo "catalogue already built: $ARBOR_COBAHH_CAT"; exit 0; }
 fi
+[ -e /usr/lib64/libhwloc.so ] || { echo "no /usr/lib64/libhwloc.so here: build on the login node, as 40_arbor_gpu.sh" >&2; exit 1; }
 ABC="$ARBOR_PREFIX/bin/arbor-build-catalogue"
 [ -f "$ABC" ] || { echo "no $ABC; run 40_arbor_gpu.sh" >&2; exit 1; }
 rm -rf "$OUT"; mkdir -p "$OUT"
@@ -35,6 +37,6 @@ cd "$OUT"
 # Through ARBOR_PYTHON: the script's "#!/usr/bin/env python3" finds the
 # system Python 3.6 on the cluster, which cannot import this Arbor.
 "$ARBOR_PYTHON" "$ABC" cobahh mech --gpu cuda
-check
+if can_run; then check; else echo "built; this CPU cannot load an $ARB_ARCH build, load it on a GPU node"; fi
 sha256sum "$ROOT"/cluster_bringup/arbor_vanet2/mech/* > "$OUT/.recipe_ok"
 echo "built $ARBOR_COBAHH_CAT"
