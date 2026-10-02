@@ -27,11 +27,14 @@ if [ -f "$ARBOR_COBAHH_CAT" ] && [ -f "$OUT/.recipe_ok" ] && check 2>/dev/null; 
     echo "catalogue already built: $ARBOR_COBAHH_CAT"
     exit 0
 fi
-command -v arbor-build-catalogue >/dev/null || { echo "no arbor-build-catalogue; run 40_arbor_gpu.sh" >&2; exit 1; }
+ABC="$ARBOR_PREFIX/bin/arbor-build-catalogue"
+[ -f "$ABC" ] || { echo "no $ABC; run 40_arbor_gpu.sh" >&2; exit 1; }
 rm -rf "$OUT"; mkdir -p "$OUT"
 cp -r "$ROOT/cluster_bringup/arbor_vanet2/mech" "$OUT/mech"
 cd "$OUT"
-arbor-build-catalogue cobahh mech --gpu cuda
+# Through ARBOR_PYTHON: the script's "#!/usr/bin/env python3" finds the
+# system Python 3.6 on the cluster, which cannot import this Arbor.
+"$ARBOR_PYTHON" "$ABC" cobahh mech --gpu cuda
 check
 sha256sum "$ROOT"/cluster_bringup/arbor_vanet2/mech/* > "$OUT/.recipe_ok"
 echo "built $ARBOR_COBAHH_CAT"
