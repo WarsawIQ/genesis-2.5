@@ -177,6 +177,8 @@ vanet2_cpu_published_20aug_s,48.91333333,s,measured
 vanet2_gpu_over_cpu,1.040168324,x,derived
 vanet2_vs_coreneuron_cpu,2.304216867,x,derived
 vanet2_vs_neuron_cpu,2.885542169,x,derived
+vanet2_published_vs_coreneuron_cpu,1.631130064,x,derived
+vanet2_published_vs_neuron_cpu,2.042643923,x,derived
 vanet2_coreneuron_over_neuron,1.252287582,x,derived
 vanet2_coreneuron_gpu_ahead,1.22962963,x,derived
 vanet2_coreneuron_gpu_over_own_cpu,2.833333333,x,derived

@@ -1,0 +1,17 @@
+# Numbers in the manuscript that are not results, read by lint_numbers.py.
+# One Python regular expression per line, then <TAB># and the reason it is allowed.
+# The pattern is searched in a window of 40 characters either side of the number,
+# with the number itself wrapped in the marker character █, e.g. █4000█ cells.
+# Keep the patterns narrow: an allowed number is never checked against the data.
+█(19|20)\d\d█	# a year
+(GENESIS|PGENESIS|NEURON|CoreNEURON|Arbor|ROCm|CUDA|Mesa|rusticl|OpenCL|NVHPC|Python|v)[~ ]?█\d+(\.\d+)*█	# a software version
+█\d+(\.\d+)*█\.\d	# the leading part of a dotted version
+(Section|Sections|Sec\.|Fig\.|Figs\.|Table|Tables|Eq\.|item|Step|Phase|C)[~ ]?█\d+(\.\d+)?█	# a cross-reference or list label typed as a number
+\^\{?-?█\d+█	# an exponent ($X^3$, $10^{-7}$): the base or the power of ten carries the result
+█10█\^	# the base of a power of ten
+O\(n\^█2█\)	# complexity class O(n^2)
+(Xeon|EPYC|Ryzen|Core)( \w+)*? █\d+\w*█	# a CPU model number
+█\d{4}█-\d\d-\d\d|\d{4}-█\d\d█(-\d\d)?	# a date
+(\$|\\,)?(N|K|n|k|NCOMP\}?\\?,?)\s*\$?(=|\\le|\\ge|<|>)\s*\$?\\?,?█	# a model parameter set by the run (N=, K=, NCOMP=)
+Brian~█2█	# the name Brian 2
+fp█(32|64)█|sm\\?_█\d+█	# precision and architecture names

@@ -10,8 +10,8 @@
 
 Reads reproduce/claims.csv and the data files it names. Writes
 reproduce/published.csv (read by compare.py), paper/numbers.tex (read by the
-manuscript through \\claim{id}) and the table between the claims-table markers
-in README.md.
+manuscript through \\claim{id}), the table between the claims-table markers
+in README.md and every <!--claim:id--> number in README.md.
 
 Validation stops at the first broken rule and writes nothing, so a missing,
 superseded or mistyped input can never leave a stale number behind.
@@ -36,6 +36,9 @@ README = os.path.join(ROOT, "README.md")
 SUPERSEDED = os.path.join(ROOT, "cluster_bringup", "logs", "SUPERSEDED.md")
 TABLE_BEGIN = "<!-- claims-table:begin -->"
 TABLE_END = "<!-- claims-table:end -->"
+# A number in README.md written as <!--claim:id-->21.0<!--/claim--> is rewritten
+# from the claim map on every run, like \claim{id} in the manuscript.
+INLINE_RE = re.compile(r"<!--claim:([^>]*)-->(.*?)<!--/claim-->")
 
 KINDS = {"measured", "derived", "cited", "prose"}
 HARDWARE = {"none", "nvidia", "a40", "a100", "a40+a100", "coreneuron-gpu",
@@ -172,27 +175,49 @@ def render_numbers(by_id, values):
     return "\n".join(out) + "\n"
 
 
+WHERE_TEXT = {
+    "abstract": "abstract",
+    "readme": "README",
+    "sec:3": "results text",
+    "sec:5": "impact text",
+    "sec:6": "conclusions",
+    "tab:cuda": "single-compartment speedups (table)",
+    "tab:multicomp": "dendritic-tree speedups (table)",
+    "fig:multicomp_speedup": "dendritic-tree speedups (figure)",
+    "tab:mcksweep": "speedup against run length (table)",
+    "tab:coreneuron": "spiking network against NEURON and CoreNEURON (table)",
+    "tab:mccross": "dendritic trees against NEURON and Arbor (table)",
+    "fig:crossover": "GPU crossover with Arbor (figure)",
+    "fig:construction_scaling": "model construction (figure)",
+    "fig:vmequiv": "membrane-potential equivalence (figure)",
+}
+
+
 def render_table(by_id):
     stages = {}
     for c in by_id.values():
         if c["kind"] == "derived":
             continue
-        key = c["stage"] or "(no stage: %s)" % c["kind"]
+        key = c["stage"] if c["kind"] != "prose" else ""
         s = stages.setdefault(key, {"n": 0, "hw": set(), "min": 0, "where": set()})
         s["n"] += 1
         s["hw"].add(c["hardware"])
         s["min"] = max(s["min"], int(c["minutes"] or 0))
         for w in c["where"].split(";"):
             if w:
-                s["where"].add(w)
-    rows = ["| What it reproduces | Script | Needs | Time |", "|---|---|---|---|"]
-    for key in sorted(stages):
+                s["where"].add(WHERE_TEXT.get(w, w))
+    rows = ["| Numbers | Where they appear | Script that measures them | Needs | Time |",
+            "|---:|---|---|---|---|"]
+    for key in sorted(stages, key=lambda k: (k == "", k)):
         s = stages[key]
+        where = "; ".join(sorted(s["where"]))
+        if key == "":
+            rows.append("| %d | %s | none yet: typed into the paper with no raw data kept; "
+                        "re-measured by the revision campaign | - | - |" % (s["n"], where))
+            continue
         hw = ", ".join(HARDWARE_TEXT[h] for h in sorted(s["hw"]))
-        where = ", ".join(sorted(s["where"]))
-        script = "`%s`" % key if not key.startswith("(") else key
-        rows.append("| %s (%d numbers) | %s | %s | %s |"
-                    % (where, s["n"], script, hw, "%d min" % s["min"] if s["min"] else "-"))
+        rows.append("| %d | %s | `%s` | %s | %s |"
+                    % (s["n"], where, key, hw, "%d min" % s["min"] if s["min"] else "-"))
     return "\n".join(rows)
 
 
@@ -202,6 +227,15 @@ def with_table(readme, table):
     head, rest = readme.split(TABLE_BEGIN, 1)
     _, tail = rest.split(TABLE_END, 1)
     return head + TABLE_BEGIN + "\n" + table + "\n" + TABLE_END + tail
+
+
+def with_inline(readme, by_id, values):
+    def sub(m):
+        cid = m.group(1)
+        if cid not in by_id:
+            raise ClaimError("README.md: <!--claim:%s--> names no claim" % cid)
+        return "<!--claim:%s-->%s<!--/claim-->" % (cid, fmt(values[cid], by_id[cid]["format"]))
+    return INLINE_RE.sub(sub, readme)
 
 
 def main(argv):
@@ -218,8 +252,12 @@ def main(argv):
     outputs = {
         PUBLISHED: render_published(by_id, values),
         NUMBERS: render_numbers(by_id, values),
-        README: with_table(readme, render_table(by_id)),
     }
+    try:
+        outputs[README] = with_table(with_inline(readme, by_id, values), render_table(by_id))
+    except ClaimError as e:
+        print("make_numbers: %s" % e, file=sys.stderr)
+        return 1
     changed = []
     for path, text in outputs.items():
         old = open(path).read() if os.path.exists(path) else None

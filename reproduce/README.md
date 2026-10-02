@@ -117,7 +117,11 @@ at large N, say -- that is worth reporting to karol@chlasta.pl.
 | `stages/` | one script per claim group, runnable on their own |
 | `claims.csv` | every published number: where it comes from, how it is computed, what it needs |
 | `published.csv` | the published values, generated from `claims.csv` and the data |
+| `make_numbers.py` | computes every published value from the data into `published.csv`, `paper/numbers.tex` and README.md |
+| `lint_numbers.py`, `lint_allow.txt` | finds numbers typed into a manuscript instead of printed by `\claim{}` |
 | `compare.py` | measured against published, with a verdict |
+| `check_paths.sh` | refuses machine-specific paths outside `cluster_bringup/env.sh` |
+| `tests/test_claims.sh` | breaks the map on purpose and checks that every tool refuses |
 | `results/` | written by the run: CSVs, logs, `summary.csv` |
 
 Each stage takes the results directory as its only argument, so any one of them
@@ -127,6 +131,11 @@ can be run on its own:
 mkdir -p reproduce/results
 sh reproduce/stages/50_spiking.sh reproduce/results
 ```
+
+Paths to toolkits, the comparison simulators and the ModelDB model are variables
+in `cluster_bringup/env.sh`; the simulators are built by the recipes in
+`cluster_bringup/toolchains/`, and what the cluster held before those recipes,
+with the defects found in it, is in `cluster_bringup/toolchains/as-found/`.
 
 The underlying benchmarks live in `cluster_bringup/`, and the cross-simulator
 harness, including how the NEURON and Arbor models were matched to the GENESIS

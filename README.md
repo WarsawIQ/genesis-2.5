@@ -15,16 +15,62 @@ behaves exactly as 2.4 did.
 > [Known issues](#known-issues) before you trust any output. Fixed on `master`
 > and in `v2.5.1`.
 
+## Reproducing the paper
+
+Every number in the paper and in this README is computed from raw data in this
+repository. [`reproduce/claims.csv`](reproduce/claims.csv) names, for each one,
+the data file, the rows and the formula; `python3 reproduce/make_numbers.py`
+recomputes them all into the manuscript and into this file. To measure them
+again on your own hardware:
+
+```sh
+sh reproduce/run_all.sh --cpu-only --quick   # ~2 min on a laptop, no GPU: solver fixes, construction, VAnet2 on one core
+sh reproduce/run_all.sh --quick              # ~15 min, adds the accelerator claims (NVIDIA GPU, CUDA 12.x)
+sh reproduce/run_all.sh                      # ~95 min, adds the sweeps and the spiking network
+```
+
+Each run prints every published value beside yours with a verdict. The CPU-only
+path also runs on every push, in [GitHub Actions](.github/workflows/cpu-only.yml).
+What reproduces which numbers, and what it needs:
+
+<!-- claims-table:begin -->
+| Numbers | Where they appear | Script that measures them | Needs | Time |
+|---:|---|---|---|---|
+| 1 | results text | `cluster_bringup/20_validate.sh` | any NVIDIA GPU, CUDA 12 | 5 min |
+| 52 | dendritic-tree speedups (figure); dendritic-tree speedups (table) | `cluster_bringup/51_weekend_campaign.sh` | NVIDIA A100, NVIDIA A40 | 240 min |
+| 12 | single-compartment speedups (table) | `cluster_bringup/53_singlecomp_walltime.sh` | NVIDIA A100, NVIDIA A40 | 30 min |
+| 24 | results text; speedup against run length (table) | `cluster_bringup/55_multicomp_ksweep.sh` | NVIDIA A40 | 60 min |
+| 6 | single-compartment speedups (table) | `cluster_bringup/56_opencl_cluster_bench.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
+| 52 | dendritic-tree speedups (figure); dendritic-tree speedups (table) | `cluster_bringup/clean_multicomp_sweep.sh` | NVIDIA A100, NVIDIA A40 | 240 min |
+| 8 | dendritic trees against NEURON and Arbor (table) | `cluster_bringup/coreneuron/bench_multicomp_cross.sh` | NVIDIA GPU with Arbor built for CUDA, any Linux machine | 15 min |
+| 1 | spiking network against NEURON and CoreNEURON (table) | `cluster_bringup/coreneuron/coreneuron_gpu_standalone.sh` | NVIDIA GPU with the NVHPC CoreNEURON build | 10 min |
+| 26 | GPU crossover with Arbor (figure); abstract; dendritic trees against NEURON and Arbor (table); results text | `cluster_bringup/coreneuron/crossover_sweep.sh` | NVIDIA GPU with Arbor built for CUDA | 30 min |
+| 3 | spiking network against NEURON and CoreNEURON (table) | `cluster_bringup/coreneuron/genesis_same_node.sh` | NVIDIA A100 | 10 min |
+| 2 | results text | `cluster_bringup/coreneuron/rate_vs_walltime.sh` | NVIDIA GPU with Arbor built for CUDA | 20 min |
+| 2 | spiking network against NEURON and CoreNEURON (table) | `cluster_bringup/coreneuron/spike_compare.sh` | NVIDIA A100 | 30 min |
+| 2 | speedup against run length (table) | `cluster_bringup/verify_k5000.sh` | NVIDIA A40 | 30 min |
+| 6 | model construction (figure); results text | `paper/scripts/plot_construction_scaling.py` | any Linux machine | 30 min |
+| 4 | results text | `paper/scripts/run_pgenesis_mpi_scaling.sh` | MPI cluster, up to 24 ranks | 60 min |
+| 1 | results text | `reproduce/stages/05_cpu.sh` | any Linux machine | 1 min |
+| 29 | impact text; membrane-potential equivalence (figure); results text; spiking network against NEURON and CoreNEURON (table) | none yet: typed into the paper with no raw data kept; re-measured by the revision campaign | - | - |
+<!-- claims-table:end -->
+
+The comparison simulators (NEURON, CoreNEURON for the GPU, Arbor) are built from
+recipes in [`cluster_bringup/toolchains/`](cluster_bringup/toolchains/), with
+every path in [`cluster_bringup/env.sh`](cluster_bringup/env.sh).
+[`reproduce/README.md`](reproduce/README.md) lists the four things that move
+timings enough to matter.
+
 ## TL;DR — what 2.5 gives you over 2.4
 
 | | |
 |---|---|
 | **GPU acceleration, opt-in** | OpenCL and CUDA backends for `hsolve` at `chanmode=4`/`5`. No model changes; leave them off and nothing differs from 2.4 |
-| **Dendritic trees on the GPU** | `hines_tree_eliminate` runs the real Hines elimination, one thread per neuron — 37.3× (A40) / 80.8× (A100) step-phase at 50,000 × 16 compartments |
-| **Isopotential networks on the GPU** | batched multi-step kernel, 21.0× / 21.9× end-to-end at N = 50,000, matching the fp64 CPU reference to ~1e-7 V |
+| **Dendritic trees on the GPU** | `hines_tree_eliminate` runs the real Hines elimination, one thread per neuron — <!--claim:multicomp_step_a40_n50000-->37.3<!--/claim-->× (A40) / <!--claim:multicomp_step_a100_n50000-->80.8<!--/claim-->× (A100) step-phase at 50,000 × 16 compartments |
+| **Isopotential networks on the GPU** | batched multi-step kernel, <!--claim:singlecomp_cuda_a40_n50000-->21.0<!--/claim-->× / <!--claim:singlecomp_cuda_a100_n50000-->21.9<!--/claim-->× end-to-end at N = 50,000, matching the fp64 CPU reference to ~1e-7 V |
 | **Three Hines-solver defects fixed** | `inject`-driven voltage transients were silently dropped in multi-neuron `hsolve` setups — a CPU bug, present since 2.4 |
-| **Model construction no longer quadratic** | five `O(n²)` linear scans removed; a 1.7-million-compartment model that never finished building now builds in 51.5 ± 0.6 s |
-| **Faster than NEURON on one CPU core** | Vogels–Abbott COBAHH, 4000 cells, 5 s: 1.63× vs CoreNEURON, 2.04× vs NEURON 9.0.2 |
+| **Model construction no longer quadratic** | five `O(n²)` linear scans removed; a 1.7-million-compartment model that never finished building now builds in <!--claim:construction_1700k_s-->51.5<!--/claim--> ± <!--claim:construction_1700k_s_sd-->0.6<!--/claim--> s |
+| **Faster than NEURON on one CPU core** | Vogels–Abbott COBAHH, 4000 cells, 5 s, one solver per layer: <!--claim:vanet2_vs_coreneuron_cpu-->2.30<!--/claim-->× vs CoreNEURON, <!--claim:vanet2_vs_neuron_cpu-->2.89<!--/claim-->× vs NEURON 9.0.2 |
 
 Both the solver fix and the construction fix apply whether or not you ever touch
 a GPU.
@@ -139,7 +185,7 @@ can do; **end-to-end** wall-clocks the whole process, model construction
 included, and is what you actually wait for. We quote both.
 
 For single-compartment (isopotential) networks, a batched multi-step
-"multiloop" kernel reaches 21.0x (A40) and 21.9x (A100) end-to-end at
+"multiloop" kernel reaches <!--claim:singlecomp_cuda_a40_n50000-->21.0<!--/claim-->x (A40) and <!--claim:singlecomp_cuda_a100_n50000-->21.9<!--/claim-->x (A100) end-to-end at
 N=50,000, matching the fp64 CPU reference to about 1e-7 V.
 
 That kernel updates each compartment independently, which is only correct
@@ -147,15 +193,19 @@ for isopotential cells. Real dendritic trees need the Hines tridiagonal
 elimination, so we added a second kernel, `hines_tree_eliminate`, that runs
 the same elimination the CPU solver does, one GPU thread per neuron. On the
 UMCS cluster, 10 replicates each, at N=50,000 neurons x 16 compartments that
-is 37.3x (A40) and 80.8x (A100) step-phase, still climbing with N, but
-3.6x and 3.9x end-to-end. The gap is not a kernel deficiency: these runs are
+is <!--claim:multicomp_step_a40_n50000-->37.3<!--/claim-->x (A40) and <!--claim:multicomp_step_a100_n50000-->80.8<!--/claim-->x (A100) step-phase, still climbing with N, but
+<!--claim:multicomp_e2e_a40_n50000-->3.62<!--/claim-->x and <!--claim:multicomp_e2e_a100_n50000-->3.90<!--/claim-->x end-to-end. The gap is not a kernel deficiency: these runs are
 only 200 steps, so the unaccelerated construction phase dominates, and the
 end-to-end figure rises toward the step-phase ceiling as runs lengthen.
 
 Against other simulators, on the Vogels-Abbott COBAHH network (4000 cells,
-5 s, single-threaded CPU on one cluster node) GENESIS 2.5 finishes in
-46.9 ± 2.1 s against 76.5 ± 0.3 s for CoreNEURON and 95.8 ± 0.2 s for
-NEURON 9.0.2 — 1.63x and 2.04x respectively. Both networks match in size,
+5 s, single-threaded CPU on one cluster node) GENESIS 2.5 runs the model as
+published, one solver per cell, in <!--claim:vanet2_genesis_published_s-->46.9<!--/claim--> s against
+<!--claim:vanet2_coreneuron_cpu_s-->76.5<!--/claim--> s for CoreNEURON and <!--claim:vanet2_neuron_cpu_s-->95.8<!--/claim--> s for NEURON 9.0.2, which is
+<!--claim:vanet2_published_vs_coreneuron_cpu-->1.63<!--/claim-->x and <!--claim:vanet2_published_vs_neuron_cpu-->2.04<!--/claim-->x faster. Built with one solver per layer, the
+form the paper uses, it takes <!--claim:vanet2_genesis_1solver_s-->33.2<!--/claim--> s: <!--claim:vanet2_vs_coreneuron_cpu-->2.30<!--/claim-->x and <!--claim:vanet2_vs_neuron_cpu-->2.89<!--/claim-->x. These wall
+times were not saved as data when they were measured; the revision re-measures
+every arm in one session. Both networks match in size,
 connectivity, stimulation protocol and firing rate (26.8 vs 27.9 Hz); the
 harness and the equivalence checks are in
 [`cluster_bringup/coreneuron/`](cluster_bringup/coreneuron/).
@@ -164,7 +214,7 @@ Pushing that multi-compartment benchmark toward a Blue Brain Project-scale
 population (~31,000 neurons) is what surfaced the O(n²) construction bug
 mentioned above — before the fix, that model didn't finish building at all;
 after, a 1.7-million-compartment, N=100,000 population builds in
-51.5 ± 0.6 s.
+<!--claim:construction_1700k_s-->51.5<!--/claim--> ± <!--claim:construction_1700k_s_sd-->0.6<!--/claim--> s.
 
 <p align="center">
   <img src="paper/figures/fig10_multicompartment_speedup.png" alt="Multi-compartment GPU tree-elimination speedup vs. CPU on the UMCS A40 and A100, log-log, showing step-phase and end-to-end series for each card" width="600">
@@ -367,27 +417,6 @@ The kernel-selection logic is in the manuscript's "Software architecture"
 section; the derivation of `hines_tree_eliminate` itself, including the
 dead ends, is in
 [`genesis/src/hines/GPU_HINES_SOLVE_DESIGN.md`](genesis/src/hines/GPU_HINES_SOLVE_DESIGN.md).
-
-## Reproducing the benchmarks
-
-One command re-measures the paper's numbers on your own hardware:
-
-```sh
-sh reproduce/run_all.sh --quick   # ~15 min, the accelerator claims
-sh reproduce/run_all.sh           # ~95 min, adds the sweeps and the spiking network
-```
-
-It builds, checks the fp32 accelerator against the fp64 CPU solver, measures the
-speedups, compares the spiking network's CPU and GPU arms on spike count,
-regenerates the figures from those measurements, and prints each published value
-beside yours with a verdict. Needs a CUDA 12.x toolkit and an NVIDIA GPU; no
-root, no scheduler.
-
-[`reproduce/README.md`](reproduce/README.md) maps every figure and table in the
-paper to what reproduces it, including the two rows this pack cannot reach and
-where their raw logs are, and lists the four things that move timings enough to
-matter.
-
 
 ## Why "2.5" and not "3.0"
 

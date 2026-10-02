@@ -52,5 +52,38 @@ elif grep -q -- "--strict: no raw data" "$T/out"; then
     echo "ok    --strict refuses while prose claims remain"
 else echo "FAIL  --strict"; cat "$T/out"; fail=1; fi
 
+# The manuscript side: a mistyped \claim id must stop the LaTeX build, and a
+# result typed by hand must be found by the lint. Needs pdflatex for the first;
+# PDFLATEX can name another command (e.g. "flatpak-spawn --host pdflatex").
+fresh
+cat > "$T/r/paper/claimtest.tex" <<'TEX'
+\documentclass{article}
+\input{numbers}
+\begin{document}
+A40: \claim{singlecomp_cuda_a40_n50000}. Typo: \claim{singlecomp_cuda_a40_n5000O}.
+\end{document}
+TEX
+PDFLATEX=${PDFLATEX:-pdflatex}
+if command -v "${PDFLATEX%% *}" >/dev/null 2>&1; then
+    (cd "$T/r/paper" && $PDFLATEX -interaction=nonstopmode -halt-on-error claimtest.tex) \
+        > "$T/out" 2>&1
+    if grep -q "claim singlecomp_cuda_a40_n5000O undefined" "$T/out"; then
+        echo "ok    mistyped \\claim id stops the LaTeX build"
+    else echo "FAIL  mistyped \\claim id: LaTeX did not stop on it"; tail -20 "$T/out"; fail=1; fi
+else
+    echo "skip  mistyped \\claim id (no $PDFLATEX)"
+fi
+
+cat > "$T/r/paper/linttest.tex" <<'TEX'
+\begin{document}
+GENESIS~2.5 reaches $\claim{ksweep_e2e_k5000}\times$ in 2026, and $41.7\times$ elsewhere.
+\end{document}
+TEX
+if (cd "$T/r" && python3 reproduce/lint_numbers.py paper/linttest.tex) > "$T/out" 2>&1; then
+    echo "FAIL  lint accepted a result typed by hand"; fail=1
+elif grep -q "linttest.tex:2: 41.7" "$T/out" && [ "$(grep -c 'linttest.tex' "$T/out")" = 1 ]; then
+    echo "ok    lint flags the typed result and nothing else"
+else echo "FAIL  lint output"; cat "$T/out"; fail=1; fi
+
 [ "$fail" = 0 ] && echo "all claim-map checks passed"
 exit "$fail"
