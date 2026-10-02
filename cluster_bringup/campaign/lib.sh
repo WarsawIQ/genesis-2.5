@@ -213,3 +213,85 @@ run_arms() {
     done
     return $_st
 }
+
+# ------------------------------------------------------------- helpers
+# VAnet2 needs the default schedule, so it cannot run under -nosimrc: each arm
+# gets a scratch copy of the model with its own .simrc (as reproduce/stages/50).
+vanet2_workdir() {   # $1 directory to create
+    rm -rf "$1"; mkdir -p "$1"
+    cp "$GENESIS_ROOT"/genesis/Scripts/VAnet2/*.g "$GENESIS_ROOT"/genesis/Scripts/VAnet2/*.p "$1"/
+    printf 'setenv SIMPATH . %s/genesis/startup %s/genesis/Scripts/neurokit %s/genesis/Scripts/neurokit/prototypes\nsetenv SIMNOTES %s/.notes\nsetenv GENESIS_HELP %s/genesis/Doc\nschedule\n' \
+        "$GENESIS_ROOT" "$GENESIS_ROOT" "$GENESIS_ROOT" "$1" "$GENESIS_ROOT" > "$1/.simrc"
+}
+
+# The banners each kind of arm must print (checked by run_rep).
+BANNER_CPU=cpu
+BANNER_CUDA32='^CUDA: ready \(.* fp32 kernels\);^CUDA: graph dispatch: tree loop on, per-step off'
+BANNER_CUDA64='^CUDA: ready \(.* fp64 kernels\);^CUDA: graph dispatch: tree loop on, per-step off'
+BANNER_OCL32='^OCL: gotowy \(.* kernele fp32\)'
+BANNER_OCL64='^OCL: gotowy \(.* kernele fp64\)'
+BANNER_ANY='.'          # another simulator: nothing of ours to check
+
+cuda_env() {   # the CUDA runtime on the library path for GPU binaries
+    [ -d "${CUDA_HOME:-}/lib64" ] && LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}" \
+        && export LD_LIBRARY_PATH
+    # Above 20000 compartments the batched tree solver would otherwise decline
+    # the model and fall back to per-step dispatch, a different code path.
+    export GENESIS_OCL_TREE_MAX_NCOMPTS=0
+}
+
+# tree_rep <arm> <rep> <order> <backend> <N> <K> <NCOMP> [VAR=value ...]
+# One run of the dendritic-tree benchmark (hh_multicompartment_createmap.g),
+# N neurons of NCOMP compartments for K steps, in the paper's arm definitions:
+# cpu = the fp64 CPU solver (chanmode 1, CPU-only binary); cuda32, cuda64 =
+# the CUDA tree kernel batched over the whole run; ocl32, ocl64 = the same with
+# OpenCL. Extra VAR=value pairs go into the run's environment (the mixed-tree
+# switches of E7, for instance). NCOMP may be "A,B" for a mixed population.
+tree_rep() {
+    _arm=$1 _rep=$2 _ord=$3 _be=$4 _n=$5 _k=$6 _nc=$7; shift 7
+    EXPECT_N=$_n EXPECT_STEPS=$_k EXPECT_NCOMP=$_nc
+    _s=genesis/Scripts/benchmark/hh_multicompartment_createmap.g
+    case "$_be" in
+        cpu)    run_rep "$_arm" "$_rep" "$_ord" 0 "$BANNER_CPU" sanity_tree \
+                    env GENESIS_BENCH_CHANMODE=1 GENESIS_BENCH_NCOMP="${_nc%%,*}" "$@" \
+                    timeout 7200 ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch "$_s" "$_n" "$_k" ;;
+        cuda32|cuda64)
+                _p=fp32; _b=$BANNER_CUDA32
+                [ "$_be" = cuda64 ] && _p=fp64 && _b=$BANNER_CUDA64
+                run_rep "$_arm" "$_rep" "$_ord" 1 "$_b" sanity_tree \
+                    env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP="${_nc%%,*}" \
+                    GENESIS_CUDA_MULTILOOP=$((_k + 10)) GENESIS_GPU_PRECISION=$_p "$@" \
+                    timeout 7200 ./genesis/src/nxgenesis -nosimrc -notty -batch "$_s" "$_n" "$_k" ;;
+        ocl32|ocl64)
+                _p=fp32; _b=$BANNER_OCL32
+                [ "$_be" = ocl64 ] && _p=fp64 && _b=$BANNER_OCL64
+                run_rep "$_arm" "$_rep" "$_ord" 1 "$_b" sanity_tree \
+                    env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP="${_nc%%,*}" \
+                    GENESIS_OCL_MULTILOOP=$((_k + 10)) GENESIS_GPU_PRECISION=$_p "$@" \
+                    timeout 7200 "${OCL_BIN:-./genesis/src/nxgenesis_ocl}" -nosimrc -notty -batch "$_s" "$_n" "$_k" ;;
+    esac
+}
+
+# need <path> <what makes it>: refuse a stage whose inputs are missing
+need() { [ -e "$1" ] || { echo "REFUSED: missing $1 ($2)" >&2; exit 2; }; }
+
+# A binary with no native code for the card either fails to launch or is
+# JIT-compiled from PTX and runs slow while still being timed as GPU (an A100
+# once measured 278.9 s against 4.6 s that way). Refuse before timing anything.
+need_sass() {   # $1 binary
+    has_gpu || { echo "REFUSED: no GPU on $NODE" >&2; exit 2; }
+    _cc=sm_$($NVSMI --query-gpu=compute_cap --format=csv,noheader | head -1 | tr -d '. ')
+    [ -x "$CUDA_HOME/bin/cuobjdump" ] || return 0
+    "$CUDA_HOME/bin/cuobjdump" --list-elf "$1" 2>/dev/null | grep -q "$_cc" \
+        || { echo "REFUSED: $1 has no $_cc code for this card" >&2; exit 2; }
+}
+
+# arbor_rep <arm> <rep> <order> <N> <K>: Arbor 0.10.0 on the GPU, the same
+# dendritic-tree model (cluster_bringup/coreneuron/hh_multicomp_arbor.py).
+arbor_rep() {
+    SANITY_RE='^RESULT_WALL_S=' SANITY_METRIC=arbor_wall_s
+    run_rep "$1" "$2" "$3" 1 "$BANNER_ANY" sanity_grep \
+        env -C "$GENESIS_ROOT/cluster_bringup/coreneuron" USE_GPU=1 PYTHONPATH="$ARBOR_PY" \
+        LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:${LD_LIBRARY_PATH:-}" \
+        timeout 3600 "$ARBOR_PYTHON" hh_multicomp_arbor.py "$4" "$5"
+}

@@ -64,7 +64,7 @@ echo
 echo "== 3. CoreNEURON standalone on the GPU =="
 export LD_LIBRARY_PATH="$NRN_GPU_BUILD/lib:$V/compilers/lib:$V/cuda/12.6/lib64:${LD_LIBRARY_PATH:-}"
 nvidia-smi --query-gpu=name,memory.used --format=csv,noheader
-for r in 1 2 3; do
+for r in $(seq 1 "${REPS:-3}"); do   # REPS=0 only prepares the dump
     S=$(date +%s%N)
     timeout 1800 "$CORE" --datpath "$DUMP" --gpu --tstop 5000 --dt 0.05 > "$RUN_DIR/cn_gpu_run_$r.log" 2>&1
     RC=$?

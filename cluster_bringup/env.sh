@@ -64,6 +64,9 @@ NRN_GPU_BUILD=${NRN_GPU_BUILD:-$NRN_GPU_SRC/build-gpu}
 ARBOR_PREFIX=${ARBOR_PREFIX:-$WORK_DIR/opt/arbor-gpu}
 ARB_ARCH=${ARB_ARCH:-icelake-server}
 ARBOR_PY=${ARBOR_PY:-$ARBOR_PREFIX/lib/python3.13/site-packages}
+# The COBAHH channels compiled into an Arbor catalogue, for the spiking-network
+# arm (toolchains/45_arbor_cobahh_catalogue.sh).
+ARBOR_COBAHH_CAT=${ARBOR_COBAHH_CAT:-$WORK_DIR/opt/arbor-cobahh/cobahh-catalogue.so}
 
 # ModelDB 83319 (Brette et al. 2007), unpacked, and the Vogels-Abbott COBAHH
 # model inside it. The GPU mechanisms are built into COBAHH_GPU_MECH with
@@ -78,5 +81,5 @@ MPIRUN=${MPIRUN:-mpirun}
 
 export GENESIS_ROOT WORK_DIR RUN_DIR SCRATCH CUDA_HOME OPENCL_CUDA_HOME
 export CMAKE GCC_TOOLSET MINIFORGE ARBOR_PYTHON NRN_PYTHON NRN_PIP_BIN NVHPC_ROOT NRN_GPU_SRC
-export NRN_GPU_BUILD ARBOR_PREFIX ARB_ARCH ARBOR_PY MODELDB_DIR COBAHH_DIR
+export NRN_GPU_BUILD ARBOR_PREFIX ARB_ARCH ARBOR_PY ARBOR_COBAHH_CAT MODELDB_DIR COBAHH_DIR
 export COBAHH_GPU_MECH MPIRUN

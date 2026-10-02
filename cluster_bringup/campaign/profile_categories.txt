@@ -1,0 +1,13 @@
+# Symbol -> category for the E6 profiles (perf report --sort symbol), first match wins.
+# One extended regular expression, a TAB, the category. Checked against the
+# symbols of the dry run; the full symbol lists are kept next to each profile,
+# so a reader can re-bucket them.
+# GENESIS hsolve
+^do_chip_hh|^hh_update|^h_calc|chip_channel|^do_chip	channel update
+^do_fast_hsolve|^do_crank_hsolve|^do_euler_hsolve|^do_vm_update|^h_forward|^h_back|compt_update	linear solve
+^h_dospike_event|^h_dosynchan|^h_eventaction|SynChan|synchan|Spike|spike|^MsgOut|^CallElement|^CallAction|^EventAction|^Randomspike|^ran	event delivery
+^Simulate|^SimStep|^Step|[Cc]lock|^Sched|^DoClocks	scheduler
+# CoreNEURON / NEURON
+^nrn_state_|^_nrn_state_|^nrn_cur_|^_nrn_cur_|^nrn_jacob_|_nahh|_khh|nrn_cur|nrn_state	channel update
+^nrn_solve_minimal|^triang|^bksub|^update$|^nrn_rhs|^nrn_lhs|^second_order_cur|^nrn_fixed_step	linear solve
+deliver_net_events|net_receive|NetCon|NetCvode|PreSyn|nrn_deliver|nrn_spike_exchange|TQueue|tqueue|interthread|ExpSyn|exp2syn	event delivery

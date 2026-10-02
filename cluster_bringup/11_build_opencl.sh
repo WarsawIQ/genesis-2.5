@@ -50,6 +50,10 @@ cp -f nxgenesis "$HERE/nxgenesis_nocl_ocl.bak"
 echo "== [2/2] OpenCL build =="
 make clean >/dev/null 2>&1
 make USE_OPENCL=1 EXTRALIBS="$EXTRALIBS" LEXLIB="$STUB" nxgenesis
+# A copy under its own name, which the CUDA build (10_build.sh, whose make
+# clean removes only nxgenesis) leaves alone, so the campaign can run CUDA and
+# OpenCL arms from one checkout.
+cp -f nxgenesis nxgenesis_ocl
 [ -x nxgenesis_nocl ] || cp -f "$HERE/nxgenesis_nocl_ocl.bak" nxgenesis_nocl
 
 # genesis/startup holds the scripts every GENESIS run loads through SIMPATH,

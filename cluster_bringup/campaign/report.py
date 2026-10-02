@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Write the report of one campaign session next to its CSV.
 
-    python3 cluster_bringup/campaign/report.py <E?_<session>.csv> [ratio ...]
+    python3 cluster_bringup/campaign/report.py <E?_<session>.csv> [--single=a,b] [ratio ...]
 
-A ratio is "name=numerator_arm/denominator_arm"; each one is reported as the
+--single names arms that run once by design (E6's profiled runs); they are
+not reported as incomplete. A ratio is "name=numerator_arm/denominator_arm"; each one is reported as the
 ratio of the arms' means with the relative sample SDs combined in quadrature,
 the one uncertainty definition used everywhere in the paper.
 
@@ -69,7 +70,11 @@ def main(argv):
             arms.append(r["arm"])
     valid = {a: [float(r["wall_s"]) for r in rows
                  if r["arm"] == a and r["status"] == "ok" and r["rep"] != "0"] for a in arms}
-    full = max((len(v) for v in valid.values()), default=0)
+    single = set()
+    for x in argv[1:]:
+        if x.startswith("--single="):
+            single.update(a for a in x[len("--single="):].split(",") if a)
+    full = max((len(v) for a, v in valid.items() if a not in single), default=0)
 
     out = ["# %s, session %s" % (exp, head.get("session", "?")), ""]
     out.append("Commit `%s` (%s%s), node %s, %s." % (
@@ -92,7 +97,7 @@ def main(argv):
         n, m, sd = stats(xs)
         rsd = sd / m * 100 if n > 1 else float("nan")
         note = []
-        if n < full:
+        if n < full and a not in single:
             note.append("incomplete")
         else:
             means[a] = (m, sd)
@@ -111,7 +116,8 @@ def main(argv):
                 (a, sa), (b, sb) = means[num], means[den]
                 v = a / b
                 u = v * math.sqrt((sa / a) ** 2 + (sb / b) ** 2)
-                out.append("| %s (%s / %s) | %.3f | %.3f |" % (name, num, den, v, u))
+                out.append("| %s (%s / %s) | %.3f | %s |" % (
+                    name, num, den, v, "%.3f" % u if u == u else "single run"))
             else:
                 out.append("| %s (%s / %s) | not computed: an arm is missing or incomplete | |"
                            % (name, num, den))

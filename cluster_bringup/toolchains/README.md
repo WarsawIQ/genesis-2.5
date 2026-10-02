@@ -15,6 +15,7 @@ bash cluster_bringup/toolchains/10_miniforge.sh          # Python 3.13 with head
 bash cluster_bringup/toolchains/20_nvhpc.sh              # NVHPC 24.11 (6.1 GB download)
 bash cluster_bringup/toolchains/30_neuron_gpu.sh         # NEURON 9.0.2 + CoreNEURON GPU
 bash cluster_bringup/toolchains/40_arbor_gpu.sh          # Arbor 0.10.0 with CUDA
+sh cluster_bringup/toolchains/45_arbor_cobahh_catalogue.sh   # the COBAHH channels as an Arbor catalogue (on a GPU node)
 bash cluster_bringup/coreneuron/build_mechanisms.sh      # COBAHH channels, CPU and GPU
 ```
 
@@ -29,6 +30,7 @@ commit, and exits at once if its result is already installed, so re-running is s
 | `20_nvhpc.sh` | 28 min, mostly the 6.1 GB download | 13 GB installed |
 | `30_neuron_gpu.sh` | 15 min | 1 GB |
 | `40_arbor_gpu.sh` | 2 min | 1 GB |
+| `45_arbor_cobahh_catalogue.sh` | not yet timed (new for the campaign) | small |
 
 A full rebuild from an empty directory was verified on 2026-09-30; see
 `../logs/toolchain_verify_20260930.md`.
