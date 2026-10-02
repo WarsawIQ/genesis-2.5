@@ -118,6 +118,9 @@ def evaluate(claims, strict):
                     raise ClaimError("%s: data file %s does not exist" % (cid, p))
                 if p in stale:
                     raise ClaimError("%s: data file %s is marked superseded" % (cid, p))
+                if "/campaign_dry/" in "/" + p:
+                    raise ClaimError("%s: data file %s is from a campaign dry run, "
+                                     "which tests the harness and is not a result" % (cid, p))
             if not c["stage"] or not c["session"]:
                 raise ClaimError("%s: measured claims need a stage and a session" % cid)
             row = dict(c)

@@ -46,6 +46,12 @@ printf 'bad_formula,test,derived,x,%%.1f,no_such_claim * 2,,,,,,,no_such_claim,,
 expect_fail "unknown input" "no_such_claim: unknown input"
 
 fresh
+mkdir -p "$T/r/cluster_bringup/logs/campaign_dry"
+cp "$T/r/cluster_bringup/logs/opencl_cluster_20260818.csv" "$T/r/cluster_bringup/logs/campaign_dry/x.csv"
+sed -i 's|cluster_bringup/logs/opencl_cluster_20260818.csv|cluster_bringup/logs/campaign_dry/x.csv|' "$T/r/reproduce/claims.csv"
+expect_fail "data from a campaign dry run" "from a campaign dry run"
+
+fresh
 if (cd "$T/r" && python3 reproduce/make_numbers.py --strict > "$T/out" 2>&1); then
     echo "ok    --strict passes (no prose claims left)"
 elif grep -q -- "--strict: no raw data" "$T/out"; then
