@@ -7,6 +7,7 @@
 // the per-step Hines tree solve scales with total compartments = N * NCOMP.
 //
 // Args:  [N_NEURONS] [N_STEPS] [NCOMP]
+// Env:   GENESIS_BENCH_NCOMP_MIX_A/_B, GENESIS_BENCH_MIX_ORDER  mixed tree sizes (below)
 // Env:   GENESIS_BENCH_CHANMODE  (1 = CPU Hines reference; 4 = accelerator/GPU, default)
 //        GENESIS_CUDA_MULTILOOP=<N_STEPS>  for the CUDA multiloop GPU arm
 //
@@ -67,10 +68,36 @@ if ({getenv GENESIS_BENCH_NOINJECT} >= 1)
     INJECT = 0.0
 end
 
+// Mixed tree sizes, for the work-imbalance measurement (campaign E7). With
+// GENESIS_BENCH_NCOMP_MIX_A and _B set, even-numbered neurons get A
+// compartments and odd-numbered ones B, so every warp of the GPU tree kernel
+// (one thread per tree) holds both sizes; GENESIS_BENCH_MIX_ORDER=1 builds all
+// A trees first and then all B trees instead, as the control in which almost
+// every warp is uniform. Unset, every neuron has NCOMP compartments and the
+// population is built by createmap as before.
+int MIX_A = {getenv GENESIS_BENCH_NCOMP_MIX_A}
+int MIX_B = {getenv GENESIS_BENCH_NCOMP_MIX_B}
+int MIX_ORDER = {getenv GENESIS_BENCH_MIX_ORDER}
+int MIXED = 0
+if ({MIX_A} >= 1 && {MIX_B} >= 1)
+    MIXED = 1
+end
+str NCOMP_LABEL = {NCOMP}
+int TOTAL_COMPS = {N_NEURONS * NCOMP}
+if ({MIXED})
+    // half of each size, so the two populations have the same total
+    if ({trunc {N_NEURONS / 2}} * 2 != {N_NEURONS})
+        echo "ERROR: mixed tree sizes need an even N_NEURONS, got " {N_NEURONS}
+        quit
+    end
+    NCOMP_LABEL = {MIX_A} @ "," @ {MIX_B}
+    TOTAL_COMPS = {N_NEURONS / 2 * (MIX_A + MIX_B)}
+end
+
 echo "=== HH Multicompartment Benchmark ==="
 echo "Neurons:   " {N_NEURONS}
-echo "Comp/neuron:" {NCOMP}
-echo "Total comps:" {N_NEURONS * NCOMP}
+echo "Comp/neuron:" {NCOMP_LABEL}
+echo "Total comps:" {TOTAL_COMPS}
 echo "Steps:     " {N_STEPS}
 echo "chanmode:  " {CHANMODE}
 echo ""
@@ -130,45 +157,76 @@ pushe /library/cell
 // used the right area, so the intent was never in doubt. Found 2026-08-18 by
 // comparing Vm against the NEURON and Arbor implementations of this model.
 float carea
-for (c = 0; c < {NCOMP}; c = c + 1)
-    comp = "/library/cell/c" @ {c}
-    create compartment {comp}
-    if ({c} == 0)
-        setfield {comp} Em {ELEAK} initVm {EREST_ACT} inject {INJECT} \
-            Rm {RM_DENS / soma_area} Cm {CM_DENS * soma_area} \
-            Ra {RA_DENS * SOMA_L / soma_xarea}
-        setfield {comp} dia {SOMA_D} len {SOMA_L}
-        carea = {soma_area}
-    else
-        setfield {comp} Em {ELEAK} initVm {EREST_ACT} \
-            Rm {RM_DENS / dend_area} Cm {CM_DENS * dend_area} \
-            Ra {RA_DENS * DEND_L / dend_xarea}
-        setfield {comp} dia {DEND_D} len {DEND_L}
-        carea = {dend_area}
-    end
-    copy /library/Na_chan {comp}/Na_chan
-    setfield {comp}/Na_chan Gbar {GNA_DENS * {carea}}
-    addmsg {comp}/Na_chan {comp} CHANNEL Gk Ek
-    addmsg {comp} {comp}/Na_chan VOLTAGE Vm
-    copy /library/K_chan {comp}/K_chan
-    setfield {comp}/K_chan Gbar {GK_DENS * {carea}}
-    addmsg {comp}/K_chan {comp} CHANNEL Gk Ek
-    addmsg {comp} {comp}/K_chan VOLTAGE Vm
-    if ({c} > 0)
-        prev = "/library/cell/c" @ {c - 1}
-        addmsg {prev} {comp} AXIAL Vm
-        addmsg {comp} {prev} RAXIAL Ra Vm
+function make_cell(cell, ncomp)
+    str cell
+    int ncomp
+    for (c = 0; c < {ncomp}; c = c + 1)
+        comp = {cell} @ "/c" @ {c}
+        create compartment {comp}
+        if ({c} == 0)
+            setfield {comp} Em {ELEAK} initVm {EREST_ACT} inject {INJECT} \
+                Rm {RM_DENS / soma_area} Cm {CM_DENS * soma_area} \
+                Ra {RA_DENS * SOMA_L / soma_xarea}
+            setfield {comp} dia {SOMA_D} len {SOMA_L}
+            carea = {soma_area}
+        else
+            setfield {comp} Em {ELEAK} initVm {EREST_ACT} \
+                Rm {RM_DENS / dend_area} Cm {CM_DENS * dend_area} \
+                Ra {RA_DENS * DEND_L / dend_xarea}
+            setfield {comp} dia {DEND_D} len {DEND_L}
+            carea = {dend_area}
+        end
+        copy /library/Na_chan {comp}/Na_chan
+        setfield {comp}/Na_chan Gbar {GNA_DENS * {carea}}
+        addmsg {comp}/Na_chan {comp} CHANNEL Gk Ek
+        addmsg {comp} {comp}/Na_chan VOLTAGE Vm
+        copy /library/K_chan {comp}/K_chan
+        setfield {comp}/K_chan Gbar {GK_DENS * {carea}}
+        addmsg {comp}/K_chan {comp} CHANNEL Gk Ek
+        addmsg {comp} {comp}/K_chan VOLTAGE Vm
+        if ({c} > 0)
+            prev = {cell} @ "/c" @ {c - 1}
+            addmsg {prev} {comp} AXIAL Vm
+            addmsg {comp} {prev} RAXIAL Ra Vm
+        end
     end
 end
 pope
 
-echo "Building cables via createmap..."
-createmap /library/cell /net {N_NEURONS} 1 -delta 10e-6 1
+str CELL0 = "/net/cell[0]"
+if ({MIXED})
+    create neutral /library/cellA
+    create neutral /library/cellB
+    make_cell /library/cellA {MIX_A}
+    make_cell /library/cellB {MIX_B}
+    echo "Building mixed cables (" {NCOMP_LABEL} ", order " {MIX_ORDER} ") by copy..."
+    int i
+    int odd = 0
+    str src
+    for (i = 0; i < {N_NEURONS}; i = i + 1)
+        src = "/library/cellA"
+        if ({MIX_ORDER} == 1)
+            if ({i} >= {N_NEURONS / 2})
+                src = "/library/cellB"
+            end
+        elif ({odd} == 1)
+            src = "/library/cellB"
+        end
+        copy {src} /net/cell{i}
+        odd = 1 - {odd}
+    end
+    CELL0 = "/net/cell0"
+    NCOMP = {MIX_A}
+else
+    make_cell /library/cell {NCOMP}
+    echo "Building cables via createmap..."
+    createmap /library/cell /net {N_NEURONS} 1 -delta 10e-6 1
+end
 
 setclock 0 {DT}
 useclock /net/##[] 0
 
-echo "Configuring single hsolve (chanmode=" {CHANMODE} ", N*NCOMP=" {N_NEURONS * NCOMP} " comps)..."
+echo "Configuring single hsolve (chanmode=" {CHANMODE} ", N*NCOMP=" {TOTAL_COMPS} " comps)..."
 create hsolve /net/solver
 setfield /net/solver path "/net/##[][TYPE=compartment]" chanmode {CHANMODE} calcmode 1
 call /net/solver SETUP
@@ -204,13 +262,13 @@ echo "RESULT_T_PER_STEP=" {t_per_step}
 // internal Vm array back into element fields on demand. Without this call
 // getfield always returns the untouched initVm regardless of what the
 // solver actually computed.
-str farcomp = "/net/cell[0]/c" @ {NCOMP - 1}
-call /net/solver HGET /net/cell[0]/c0
+str farcomp = {CELL0} @ "/c" @ {NCOMP - 1}
+call /net/solver HGET {CELL0}/c0
 call /net/solver HGET {farcomp}
 float vm_far = {getfield {farcomp} Vm}
 echo "RESULT_VM_FAR=" {vm_far}
-echo "RESULT_VM_SOMA=" {getfield /net/cell[0]/c0 Vm}
+echo "RESULT_VM_SOMA=" {getfield {CELL0}/c0 Vm}
 
 echo ""
-echo "=== done: N=" {N_NEURONS} " NCOMP=" {NCOMP} " steps=" {N_STEPS} " chanmode=" {CHANMODE} " ==="
+echo "=== done: N=" {N_NEURONS} " NCOMP=" {NCOMP_LABEL} " steps=" {N_STEPS} " chanmode=" {CHANMODE} " ==="
 quit

@@ -545,6 +545,11 @@ reset
 
    In the original simulation, this was done through the GUI.
 */
+/* Run length override for the long-run precision check (the 10 s run sets
+** 9.95): simulated seconds after the 0.05 s of driven input. Unset, getenv
+** casts to 0 and the published 4.95 s stands. */
+float e_tmax = {getenv GENESIS_VANET2_TMAX}
+
 if(batch)
     echo "RUNID: " {RUNID}
     set_frequency 70
@@ -555,6 +560,9 @@ if(batch)
     step_tmax
     set_frequency 0
      tmax = 4.95
+    if ({e_tmax} > 0)
+        tmax = {e_tmax}
+    end
     step_tmax
 end
  
