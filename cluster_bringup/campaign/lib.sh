@@ -41,6 +41,7 @@ header() {   # the run header of data-model.md, as '# key: value' lines
     echo "# commit: $COMMIT"
     echo "# describe: $DESCRIBE"
     echo "# dirty: $DIRTY"
+    echo "# build_generated_changed: $GENCHANGED"
     echo "# node: $NODE"
     echo "# cpu: $(sed -n 's/^model name[[:space:]]*: //p' /proc/cpuinfo | head -1)"
     echo "# governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo unknown)"
@@ -66,7 +67,12 @@ campaign_init() {   # $1 experiment id, e.g. E1
     cd "$GENESIS_ROOT" || exit 2
     COMMIT=$(git rev-parse HEAD)
     DESCRIBE=$(git describe --tags --exact-match 2>/dev/null || echo untagged)
-    DIRTY=$(git status --porcelain --untracked-files=no | wc -l | tr -d ' ')
+    # The build rewrites some tracked generated files (build_generated.txt);
+    # they are counted apart, and any other change makes the tree dirty.
+    _gen=$(grep -v '^#' cluster_bringup/campaign/build_generated.txt | sed 's/^/:(exclude)/')
+    DIRTY=$(git status --porcelain --untracked-files=no -- . $_gen | wc -l | tr -d ' ')
+    GENCHANGED=$(git status --porcelain --untracked-files=no | wc -l | tr -d ' ')
+    GENCHANGED=$((GENCHANGED - DIRTY))
     if [ "$CAMPAIGN_DRY" = 1 ]; then
         CAMPAIGN_OUT=${CAMPAIGN_OUT:-$GENESIS_ROOT/cluster_bringup/logs/campaign_dry}
     else

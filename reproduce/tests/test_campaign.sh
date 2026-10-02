@@ -135,5 +135,17 @@ if [ "$rc" = 0 ] && [ "$(csv)" = "$first" ] && [ "$(ls "$OUTDIR"/EX_testnode_*.c
     ok "resume: same session, same file, every replicate once"
 else bad "resume: rc $rc"; fi
 
+# 9. A changed source refuses; a file the build regenerates does not
+fresh
+echo "/* changed */" >> "$T/r/genesis/src/hines/hines_solve.c"
+stage CAMPAIGN_TAG=t; rc=$?
+(cd "$T/r" && git checkout -q -- genesis/src/hines/hines_solve.c && git tag t)
+echo "/* regenerated */" >> "$T/r/genesis/src/hines/hines_d@.c"
+stage CAMPAIGN_TAG=t REPS=1; rc2=$?
+if [ "$rc" = 2 ] && [ "$rc2" = 0 ] \
+   && grep -q "^# build_generated_changed: 1" "$T/r/cluster_bringup/logs/campaign_t"/EX_testnode_*.csv; then
+    ok "a changed source refuses; a regenerated build file is allowed and counted"
+else bad "dirty check: rc $rc then $rc2"; fi
+
 [ "$fail" = 0 ] && echo "all campaign harness checks passed"
 exit "$fail"
