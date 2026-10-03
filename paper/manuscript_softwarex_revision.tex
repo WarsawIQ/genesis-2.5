@@ -145,7 +145,7 @@ the hardware the user has.
 %% Fig. 1: architecture diagram (new; replaces the fp32/fp64 divergence figure).
 \begin{figure}[!h]
 \centering
-\pending{fig_architecture}
+\includegraphics[width=\textwidth]{figures/fig_architecture.pdf}
 \caption{How a model reaches the GPU. \texttt{hsolve} compiles the model into an opcode
 program at \texttt{SETUP}. A gate checks the program against what the kernels
 implement; anything else stays on the CPU. Accepted models run as one of three
