@@ -14,7 +14,8 @@ Only the body is checked: the preamble, comments, \\claim{}, citations,
 labels, references, URLs, file paths, code (\\texttt) and the bibliography
 are skipped.
 
-Exit 0 when every remaining number is allowed, 1 otherwise (each one listed as
+Every \\pending{id} (a number the campaign has not produced yet) is listed
+too. Exit 0 when every remaining number is allowed and nothing is pending, 1 otherwise (each one listed as
 file:line: number  context). Plain Python 3.6, standard library only.
 """
 
@@ -26,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ALLOW = os.path.join(HERE, "lint_allow.txt")
 
 # Commands whose argument is never a result. \claim is the point of the lint.
-SKIP_ARG = ("claim", "cite", "citep", "citet", "ref", "eqref", "label", "url",
+SKIP_ARG = ("claim", "pending", "cite", "citep", "citet", "ref", "eqref", "label", "url",
             "path", "texttt", "href", "includegraphics", "hspace", "vspace",
             "setlength", "addtolength", "ead", "address", "author", "doi",
             "begin", "end", "multicolumn", "multirow", "cline", "arraystretch",
@@ -63,10 +64,18 @@ def body_lines(text):
         yield i + 1, COMMENT_RE.sub("", lines[i])
 
 
+PENDING_RE = re.compile(r"\\pending\{([^}]*)\}")
+
+
 def lint(path, rules):
     found = []
     with open(path) as f:
         text = f.read()
+    # \pending{id} marks a number the campaign has not produced yet; each one
+    # left is a failure, so a draft cannot be submitted with a hole in it.
+    for n, line in body_lines(text):
+        for m in PENDING_RE.finditer(line):
+            found.append((n, "\\pending{%s}" % m.group(1), "not measured yet"))
     for n, line in body_lines(text):
         clean = OPT_RE.sub(" ", SKIP_RE.sub(" ", line))
         for m in NUM_RE.finditer(clean):

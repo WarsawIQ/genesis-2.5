@@ -15,3 +15,11 @@ O\(n\^█2█\)	# complexity class O(n^2)
 (\$|\\,)?(N|K|n|k|NCOMP\}?\\?,?)\s*\$?(=|\\le|\\ge|<|>)\s*\$?\\?,?█	# a model parameter set by the run (N=, K=, NCOMP=)
 Brian~█2█	# the name Brian 2
 fp█(32|64)█|sm\\?_█\d+█	# precision and architecture names
+█\d+█ replicates|\(E\d+, █\d+█ replicates	# a replicate count, part of the method
+Radeon[~ ]█890█M	# a product name
+█\d+█ September|September █\d+█	# a date in the text
+█\d+(\\,\d{3})?█ (steps|cells)	# a model parameter: run length or network size
+█\d+(\\,\d{3})?█\\times ?16|\$N\\times █16█	# a population size, N x compartments per tree
+█\d+(\\,\d{3})?█ compartments|█\d+(\.\d+)?█-million-compartment	# a model size
+█\d+█\\,s|█\d+█\\,s:	# a simulated duration set by the run
+tested █\d+(\.\d+)*█	# a tested software version
