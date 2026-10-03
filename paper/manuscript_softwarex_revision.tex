@@ -352,21 +352,58 @@ that the trajectories are chaotic and agree in statistics
 (KS distance of ISIs \pending{e5_ks_fp32}).]
 
 \item Reproducing these results %% R11
-[One paragraph: \texttt{reproduce/run\_all.sh} with the CPU-only, quick and full
-paths; the claim map; which results need which hardware (README table); the CPU-only
-path in CI on every commit; the toolchain recipes; the Code Ocean capsule.]
+Every number in this paper is a row of \path{reproduce/claims.csv}, naming the data
+file, the rows and the formula it comes from and the script that measures it;
+\path{make_numbers.py} computes the manuscript's values from those files, and a lint
+lists any number typed by hand. \texttt{sh reproduce/run\_all.sh} measures them
+again on the reader's hardware (about 15 minutes for the central claims, 95 for the
+sweeps; NVIDIA GPU, CUDA 12.x). \texttt{--cpu-only} reproduces the
+hardware-independent results in about two minutes on any Linux machine, and the same
+path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
+--rm genesis25-cpu}) with nothing installed; both run in the repository's CI on every
+commit. A generated table in the README says which results need which hardware. The
+comparison simulators and the reference model are built by committed recipes with
+pinned versions and checksums; rebuilding them from an empty directory reproduced the
+published CoreNEURON GPU run to the spike.
 \end{enumerate}
 
 %% ===================================================================== 4
 \item Impact
 %% 600 words. Construction scaling (Fig. 5) and the solver fixes reach every user,
 %% with or without a GPU.
-[Solver fixes: \texttt{inject}-driven transients were dropped for all but the first
-neuron of a multi-neuron \texttt{hsolve} in GENESIS~2.4. Model construction: wall time
-grew as compartments$^{\claim{construction_exponent_before}}$ and now grows as
-compartments$^{\pending{e3c_construction_exponent}}$ (Fig.~\ref{fig:construction}); a
-1.7-million-compartment model builds in \pending{e3c_construction_1700k_s}\,s.
-PGENESIS on MPI. Research the release makes possible: \ldots]
+Two of the release's changes reach every GENESIS user, with or without a GPU.
+First, the solver fixes: in GENESIS~2.4, putting several cells under one
+\texttt{hsolve} silently computed wrong voltages for every cell but one under backward
+Euler, and crashed under Crank--Nicolson. The configuration is natural for networks,
+so models may exist whose published results this touched; GENESIS~2.5 computes each
+cell exactly as if it were alone (shown by a committed test against a single-cell
+reference), and we have offered the two fixes, with the test, to the original
+project. \pending{upstream_pr_status}
+%% merge with the upstream_status sentence of Section 1 when the outcome is known.
+
+Second, construction. Building a model was quadratic in its size: wall time grew as
+compartments$^{\claim{construction_exponent_before}}$, which made population-scale
+models impractical regardless of compute power --- a 1.7-million-compartment
+population never finished building. Four scans of the element tree are now constant-
+or linear-time, construction grows as
+compartments$^{\pending{e3c_construction_exponent}}$, and the same population builds
+in \pending{e3c_construction_1700k_s}\,s (Fig.~\ref{fig:construction}). This holds
+for models built element by element, the common case; copying a whole prototype cell
+thousands of times under one parent remains quadratic, which we state because an
+unqualified ``linear'' would overclaim. Together with the tree kernel this moves
+population studies --- parameter sweeps over thousands of morphological neurons,
+PGENESIS runs partitioned over MPI ranks --- from a cluster queue onto the
+workstation a modeller already has, in the simulator their models are already
+written for. The practical regimes, including where the GPU does not help, are in
+Table~\ref{tab:regimes}.
+
+Beyond GENESIS, two elements of this work transfer. The refusal rule --- a backend
+that cannot compute a model says so and computes on the CPU, rather than
+approximating --- is, we think, the main lesson for anyone adding an accelerator to
+an existing solver; the first release approximated, and returned plausible wrong
+voltages. And the reproduction mechanism (a claim map from every published number to
+its raw data, regenerated into the text, checked in CI) is independent of GENESIS
+and transfers to any computational paper.
 
 \begin{figure}[!h]
 \centering
@@ -378,9 +415,20 @@ PGENESIS on MPI. Research the release makes possible: \ldots]
 
 %% ===================================================================== 5
 \item Conclusions
-%% 200 words.
-[What the release does, where it helps, where it does not, what comes next: spike
-delivery on the device, the upstream contribution.]
+%% ~170 words.
+GENESIS~2.5 gives a long-established simulator opt-in GPU execution without asking
+its users to migrate: the same SLI scripts, cell files and MPI workflows run
+unchanged, and \texttt{hsolve}'s own compiled program is what the CUDA and OpenCL
+kernels execute, in single or double precision chosen at run time. Populations of
+dendritic trees gain the most (up to \pending{e2_max_e2e_a100}$\times$ end to end);
+single detailed morphologies and zero-delay spiking networks gain nothing, and the
+measurements say why: too few trees to fill the device in the first case, host-side
+event delivery every step in the second --- which names the next step, spike delivery
+on the device. The solver and construction fixes stand on their own and have been
+offered to the original project. Every number in this paper regenerates from raw
+data in the repository, the hardware-independent ones on any Linux machine or in a
+container, so a reader can check what we claim before trusting it on their own
+models.
 
 \end{enumerate}
 
