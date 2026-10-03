@@ -45,8 +45,13 @@ env PYTHONPATH="$ARBOR_PY" LD_LIBRARY_PATH="$CUDA_HOME/lib64:$ARBOR_PREFIX/lib:$
 
 for a in g_cpu_pub g_cpu_1s g_gpu32_1s g_gpu64_1s; do vanet2_workdir "$W/$a"; done
 # NEURON with the ChannelBuilder channels: a copy of the model without the
-# compiled mechanisms, so NEURON falls back to the originals.
-rm -rf "$W/cobahh_cb"; cp -a "$COBAHH_DIR" "$W/cobahh_cb"; rm -rf "$W/cobahh_cb"/x86_64*
+# compiled mechanisms, so NEURON falls back to the originals. The model loads
+# ../common/init.hoc, so the copy must keep cobahh and common side by side
+# (copying cobahh alone left create_net undefined; found by the dry run).
+rm -rf "$W/cb"; mkdir -p "$W/cb"
+cp -a "$COBAHH_DIR" "$W/cb/cobahh"
+cp -a "$(dirname "$COBAHH_DIR")/common" "$W/cb/common"
+rm -rf "$W/cb/cobahh"/x86_64*
 # CoreNEURON GPU runs a model dumped once by NEURON.
 DUMP="$RUN_DIR/cobahh_coredat"
 if [ ! -f "$DUMP/files.dat" ]; then
@@ -83,9 +88,9 @@ arm() {   # <arm> <rep> <order>
         run_rep "$1" "$2" "$3" 0 "$BANNER_ANY" sanity_spikes \
             sh -c "cd '$COBAHH_DIR' && rm -f out.dat && PATH='$NRN_PIP_BIN':\$PATH exec timeout 3600 '$NRN_PYTHON' run_plain.py" ;;
     nrn_cb_cpu)
-        EXPECT_SPIKES=574138 SPIKES_OF=out_dat_spikes SPIKE_DIR=$W/cobahh_cb
+        EXPECT_SPIKES=574138 SPIKES_OF=out_dat_spikes SPIKE_DIR=$W/cb/cobahh
         run_rep "$1" "$2" "$3" 0 "$BANNER_ANY" sanity_spikes \
-            sh -c "cd '$W/cobahh_cb' && rm -f out.dat && PATH='$NRN_PIP_BIN':\$PATH exec timeout 3600 '$NRN_PYTHON' run_plain.py" ;;
+            sh -c "cd '$W/cb/cobahh' && rm -f out.dat && PATH='$NRN_PIP_BIN':\$PATH exec timeout 3600 '$NRN_PYTHON' run_plain.py" ;;
     cn_cpu)
         EXPECT_SPIKES=558824 SPIKES_OF=out_dat_spikes SPIKE_DIR=$COBAHH_DIR
         run_rep "$1" "$2" "$3" 0 "$BANNER_ANY" sanity_spikes \
