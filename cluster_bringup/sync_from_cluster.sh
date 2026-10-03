@@ -24,12 +24,18 @@ HOST=${CLUSTER_HOST:-miranda}
 REMOTE=${CLUSTER_ROOT:-genesis-2.5-git}
 LOGS="$ROOT/cluster_bringup/logs"
 
-ssh -o BatchMode=yes "$HOST" "test -d '$REMOTE/cluster_bringup/logs'" 2>/dev/null \
+# Only over an existing master connection (ssh -fN $HOST), never by logging in
+# again: repeated failed logins get the address blocked by the cluster (it
+# happened on 2026-10-03, from a polling loop after the master had expired).
+ssh -O check "$HOST" >/dev/null 2>&1 \
+    || { echo "no ssh master connection to $HOST; run 'ssh -fN $HOST' once, then retry" >&2; exit 1; }
+
+ssh -o BatchMode=yes -o ControlMaster=no "$HOST" "test -d '$REMOTE/cluster_bringup/logs'" 2>/dev/null \
     || { echo "no $REMOTE/cluster_bringup/logs on $HOST" >&2; exit 1; }
 
 # Only ssh, tar and sha256sum are needed on either side (rsync is not always
 # available where the repository is checked out).
-remote_sums=$(ssh -o BatchMode=yes "$HOST" \
+remote_sums=$(ssh -o BatchMode=yes -o ControlMaster=no "$HOST" \
     "cd '$REMOTE/cluster_bringup/logs' && find . -type f -print0 | xargs -0 sha256sum" 2>/dev/null)
 
 new_files=""; conflicts=""
@@ -50,7 +56,7 @@ echo "$remote_sums" | {
 echo "== logs: new files from $HOST:$REMOTE =="
 if [ -s "$LOGS/.sync_new.$$" ]; then
     tr '\n' '\0' < "$LOGS/.sync_new.$$" \
-        | ssh -o BatchMode=yes "$HOST" "cd '$REMOTE/cluster_bringup/logs' && tar cf - --null -T -" 2>/dev/null \
+        | ssh -o BatchMode=yes -o ControlMaster=no "$HOST" "cd '$REMOTE/cluster_bringup/logs' && tar cf - --null -T -" 2>/dev/null \
         | (cd "$LOGS" && tar xpf -)
     sed 's/^/  new  /' "$LOGS/.sync_new.$$"
 else
@@ -63,7 +69,7 @@ fi
 rm -f "$LOGS/.sync_new.$$" "$LOGS/.sync_conflict.$$"
 
 echo "== reproduce/results =="
-stamp=$(ssh -o BatchMode=yes "$HOST" \
+stamp=$(ssh -o BatchMode=yes -o ControlMaster=no "$HOST" \
     "cd '$REMOTE/reproduce/results' 2>/dev/null && [ -f summary.csv ] \
      && echo umcs_\$(date -r summary.csv +%Y%m%d_%H%M%S)" 2>/dev/null)
 if [ -n "$stamp" ]; then
@@ -72,7 +78,7 @@ if [ -n "$stamp" ]; then
         echo "  already collected: cluster_bringup/logs/reproduce/$stamp"
     else
         mkdir -p "$dest"
-        ssh -o BatchMode=yes "$HOST" "cd '$REMOTE/reproduce/results' && tar cf - ." 2>/dev/null \
+        ssh -o BatchMode=yes -o ControlMaster=no "$HOST" "cd '$REMOTE/reproduce/results' && tar cf - ." 2>/dev/null \
             | (cd "$dest" && tar xpf -) \
             && echo "  collected: cluster_bringup/logs/reproduce/$stamp"
     fi
