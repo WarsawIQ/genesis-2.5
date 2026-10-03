@@ -161,11 +161,11 @@ host every step.}
 The backends sit behind one entry point in \texttt{hsolve}
 (Fig.~\ref{fig:architecture}). The SLI interpreter, the element tree, the scheduler
 and the PGENESIS MPI layer are those of GENESIS~2.4. A user selects a backend with
-\texttt{chanmode} and environment variables; nothing in a model script changes.
+\texttt{chanmode} and environment variables. Nothing in a model script changes.
 
 An accepted model runs on one of three paths. \emph{Per step}: the device updates
 channels and solves each step, and the host delivers synaptic events and spikes between
-steps; this is the path of any network whose cells exchange spikes. \emph{Multiloop}:
+steps. This is the path of any network whose cells exchange spikes. \emph{Multiloop}:
 for isopotential cells without synaptic input, one launch runs $K$ steps.
 \emph{Tree loop}: for populations of dendritic trees, the channel update and \hte{}
 run back to back for $K$ steps. On the two batched paths the state goes to the device
@@ -176,7 +176,7 @@ costs one transfer instead of $K$.
 \begin{enumerate}
 \item \emph{The kernels interpret the solver's own program.} Both backends execute the
       opcode program \texttt{hsolve} already builds, so every model it accepts runs
-      unchanged. GPU-native simulators generate code per mechanism instead; interpreting
+      unchanged. GPU-native simulators generate code per mechanism instead. Interpreting
       costs divergence and a fixed setup time (Section~3), and is why existing
       models need no porting.
 \item \emph{The tree solve needs no synchronisation.} The elimination program of a
@@ -188,7 +188,7 @@ costs one transfer instead of $K$.
       returned plausible wrong voltages. Such programs are now detected at
       \texttt{SETUP} and computed on the CPU.
 \item \emph{The device owns the state it computes.} With synaptic input the host
-      writes only the slots it owns each step; uploading the whole state, as the first
+      writes only the slots it owns each step. Uploading the whole state, as the first
       release did, overwrote gating variables the kernel had just updated.
 \end{enumerate}
 
@@ -203,7 +203,7 @@ grouped by size take \pending{e7_block_over_uniform}$\times$ (E7).
 streams through the interpreter, so heterogeneous cells cost more than their
 compartment count suggests.
 \emph{Transfers.} On the batched paths transfers are fixed per batch, not per step
-(above); on the per-step path they are paid every step.
+(above). On the per-step path they are paid every step.
 \emph{Launch overhead.} In the tree loop the host spends about
 \pending{f2_host_us_per_step}\,\textmu s per step against about
 \pending{f2_kernel_us_per_step}\,\textmu s of kernel time. CUDA Graphs, which replay
@@ -217,13 +217,13 @@ the launches. Moving spike delivery to the device is the next step for that work
 \item Software functionalities
 
 \textbf{Precision.} %% R4
-Single precision is the default; \texttt{GENESIS\_GPU\_PRECISION=fp64} selects double
+Single precision is the default. \texttt{GENESIS\_GPU\_PRECISION=fp64} selects double
 precision at run time in the same binary, and a device without it refuses with a
 message and computes on the CPU. In fp64 the GPU reproduces the CPU solver to every
 printed digit on our verification models; in fp32 it agrees to
 \pending{fp32_single_ap_v}\,V over one action potential. Synaptic weights and
 plasticity are computed by the synapse objects on the host in double precision in every
-mode; only the resulting activation reaches the device. What double precision costs
+mode. Only the resulting activation reaches the device. What double precision costs
 on each card, and how the two precisions compare over a 10\,s run, are measured in
 Section~3.
 
@@ -234,7 +234,7 @@ implementations, AMD ROCm and Mesa rusticl (E9). The two differ even in what the
 offer on the same chip: ROCm exposes double precision and rusticl does not, so under
 rusticl a request for fp64 is refused and the model computes on the CPU. On an
 integrated GPU that also drives the display, a tree dispatch above about
-\pending{e9_igpu_cap_compartments} compartments trips the driver's watchdog; the
+\pending{e9_igpu_cap_compartments} compartments trips the driver's watchdog. The
 backend therefore declines the batched tree dispatch for larger models there, says so,
 and runs them step by step, unless \texttt{GENESIS\_OCL\_TREE\_MAX\_NCOMPTS} says
 otherwise.
@@ -369,10 +369,10 @@ again on the reader's hardware (about 15 minutes for the central claims, 95 for 
 sweeps; NVIDIA GPU, CUDA 12.x). \texttt{--cpu-only} reproduces the
 hardware-independent results in about two minutes on any Linux machine, and the same
 path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
---rm genesis25-cpu}) with nothing installed; both run in the repository's CI on every
+--rm genesis25-cpu}) with nothing installed. Both run in the repository's CI on every
 commit. A generated table in the README says which results need which hardware. The
 comparison simulators and the reference model are built by committed recipes with
-pinned versions and checksums; rebuilding them from an empty directory reproduced the
+pinned versions and checksums. Rebuilding them from an empty directory reproduced the
 published CoreNEURON GPU run to the spike.
 \end{enumerate}
 
@@ -397,7 +397,7 @@ population never finished building. Four scans of the element tree are now const
 or linear-time, construction grows as
 compartments$^{\pending{e3c_construction_exponent}}$, and the same population builds
 in \pending{e3c_construction_1700k_s}\,s (Fig.~\ref{fig:construction}). This holds
-for models built element by element, the common case; copying a whole prototype cell
+for models built element by element, the common case. Copying a whole prototype cell
 thousands of times under one parent remains quadratic; we say so rather than claim
 ``linear'' outright. Together with the tree kernel this moves
 population studies (parameter sweeps over thousands of morphological neurons,
