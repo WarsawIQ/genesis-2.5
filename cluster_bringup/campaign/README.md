@@ -72,7 +72,9 @@ Toolchains on UMCS: `WORK_DIR=$HOME/tc-verify-20260929`, built from
    CUDA (graphs off and on) and OpenCL, fp64 within 1e-10 V of the CPU
    solver (Constitution III). Outputs go to `logs/verify_against_base/`.
 3. CI green on the candidate commit.
-4. Then, and only on Karol's word: merge into `master`, tag `v2.6.0-rc1`,
+4. Update `CITATION.cff` (version, date) — `.zenodo.json` carries the rest of the
+   deposit metadata.
+5. Then, and only on Karol's word: merge into `master`, tag `v2.6.0-rc1`,
    push the tag. From then on only documentation, analysis and packaging change.
 
 All cluster access goes through one `ssh -fN miranda` master connection;

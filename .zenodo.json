@@ -1,31 +1,11 @@
 {
-  "title": "GENESIS 2.5: optimisation and opt-in OpenCL/CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator",
-  "upload_type": "software",
-  "license": "GPL-2.0-or-later",
-  "creators": [
-    {
-      "name": "Chlasta, Karol",
-      "affiliation": "Kozminski University; WarsawIQ"
-    },
-    {
-      "name": "Wójcik, Grzegorz Marcin",
-      "affiliation": "Maria Curie-Skłodowska University in Lublin"
-    }
-  ],
-  "keywords": [
-    "GENESIS",
-    "PGENESIS",
-    "OpenCL",
-    "CUDA",
-    "GPU acceleration",
-    "compartmental neural simulation",
-    "Hines solver"
-  ],
-  "related_identifiers": [
-    {
-      "identifier": "https://github.com/WarsawIQ/genesis-2.5",
-      "relation": "isSupplementTo",
-      "scheme": "url"
-    }
-  ]
+    "title": "GENESIS 2.5: optimisation and opt-in OpenCL/CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator",
+    "upload_type": "software",
+    "license": "GPL-2.0-or-later",
+    "creators": [
+        {"name": "Chlasta, Karol", "affiliation": "Kozminski University; WarsawIQ"},
+        {"name": "Wójcik, Grzegorz Marcin", "affiliation": "Maria Curie-Skłodowska University"}
+    ],
+    "description": "GENESIS 2.4 / PGENESIS 2.4 with opt-in CUDA and OpenCL backends for the hsolve compartmental solver, including a GPU Hines tree elimination for populations of dendritic trees, run-time selection of single or double precision, fixes to the CPU Hines solver, linear-time model construction, and a reproduction package that regenerates every published number from raw data in the repository (reproduce/claims.csv; the CPU-only results run on any Linux machine or in the bundled container).",
+    "keywords": ["GENESIS", "PGENESIS", "compartmental neural simulation", "Hines solver", "GPU", "CUDA", "OpenCL"]
 }
