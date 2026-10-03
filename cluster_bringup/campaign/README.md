@@ -56,3 +56,25 @@ Both default to the published behaviour when unset.
   `GENESIS_BENCH_MIX_ORDER` (`hh_multicompartment_createmap.g`): half the neurons
   with A compartments and half with B, alternating (order 0) or in two blocks
   (order 1). N must be even.
+
+## Before the tag: dry run and freeze gate
+
+Toolchains on UMCS: `WORK_DIR=$HOME/tc-verify-20260929`, built from
+`cluster_bringup/toolchains/` and verified on 2026-09-30. The Arbor catalogue
+(`toolchains/45_arbor_cobahh_catalogue.sh`) is built on a GPU node.
+
+1. Dry run on each node, from its own checkout of the candidate commit:
+   `CAMPAIGN_DRY=1 sh cluster_bringup/campaign/prepare_node.sh && CAMPAIGN_DRY=1 sh cluster_bringup/campaign/run_night.sh`;
+   on the laptop `CAMPAIGN_DRY=1 sh cluster_bringup/campaign/E9_890m.sh`.
+   Every stage must end `complete`; the dry data go to `logs/campaign_dry/`.
+2. Freeze gate on inf02 and inf03: `BASE=<checkout of ce21b63> sh cluster_bringup/82_verify_against_base.sh`
+   from the candidate checkout. fp32 must be byte-identical to the base with
+   CUDA (graphs off and on) and OpenCL, fp64 within 1e-10 V of the CPU
+   solver (Constitution III). Outputs go to `logs/verify_against_base/`.
+3. CI green on the candidate commit.
+4. Then, and only on Karol's word: merge into `master`, tag `v2.6.0-rc1`,
+   push the tag. From then on only documentation, analysis and packaging change.
+
+All cluster access goes through one `ssh -fN miranda` master connection;
+`sync_from_cluster.sh` refuses to run without it. No script or loop may log
+in by itself.
