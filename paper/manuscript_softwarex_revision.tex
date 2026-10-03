@@ -117,9 +117,9 @@ the whole release as its next version. \pending{upstream_status}
 its engine CoreNEURON~\cite{kumbhar2019coreneuron} and Arbor~\cite{arbor2019} run
 compartmental models on GPUs and are strong choices for a new model. For an existing
 GENESIS model each means re-expressing it in another description, and establishing
-that the port computes the same thing is itself experimental work: for the published
-network used below it took a transcription of the channels and a check of spike trains
-(Section~3). NEST~\cite{gewaltig2007nest} and Brian~2~\cite{stimberg2019brian} simulate
+that the port computes the same thing is itself experimental work. For the published
+network used below, it took a transcription of the channels and a comparison of spike
+trains (Section~3). NEST~\cite{gewaltig2007nest} and Brian~2~\cite{stimberg2019brian} simulate
 point neurons. GENESIS~2.5 offers acceleration without migration: the same scripts on
 the hardware the user has.
 
@@ -307,7 +307,7 @@ and fp64, both cards (E2).}
 Table~\ref{tab:sim} lists every arm of the spiking-network comparison, measured in
 one session on one node in interleaved order, so no ratio in it mixes machines or
 days. On the dendritic trees, GENESIS and Arbor trade a fixed cost for a marginal
-one, so neither is faster in general: on the A100 the two cross at
+one, so neither is faster in general. On the A100 the two cross at
 \pending{e4_crossover_ms_a100}\,ms of simulated time in fp32, and at
 \pending{e4_crossover_ms_fp64_a100}\,ms when GENESIS also computes in double
 (Fig.~\ref{fig:crossover}). CPU profiles (E6) say why the ranking differs between
@@ -384,9 +384,9 @@ Two of the release's changes reach every GENESIS user, with or without a GPU.
 First, the solver fixes: in GENESIS~2.4, putting several cells under one
 \texttt{hsolve} silently computed wrong voltages for every cell but one under backward
 Euler, and crashed under Crank--Nicolson. The configuration is natural for networks,
-so models may exist whose published results this touched; GENESIS~2.5 computes each
-cell exactly as if it were alone (shown by a committed test against a single-cell
-reference), and we have offered the two fixes, with the test, to the original
+so models may exist whose published results this touched. GENESIS~2.5 computes each
+cell exactly as if it were alone, shown by a committed test against a single-cell
+reference, and we have offered the two fixes, with the test, to the original
 project. \pending{upstream_pr_status}
 %% merge with the upstream_status sentence of Section 1 when the outcome is known.
 
@@ -425,10 +425,10 @@ and would serve any computational paper.
 %% ~170 words.
 GENESIS~2.5 gives a long-established simulator opt-in GPU execution without asking
 its users to migrate: the same SLI scripts, cell files and MPI workflows run
-unchanged, and \texttt{hsolve}'s own compiled program is what the CUDA and OpenCL
-kernels execute, in single or double precision chosen at run time. Populations of
-dendritic trees gain the most (up to \pending{e2_max_e2e_a100}$\times$ end to end);
-single detailed morphologies and zero-delay spiking networks gain nothing, and the
+unchanged. The CUDA and OpenCL kernels execute \texttt{hsolve}'s own compiled
+program, in single or double precision chosen at run time. Populations of dendritic
+trees gain the most, up to \pending{e2_max_e2e_a100}$\times$ end to end. Single
+detailed morphologies and zero-delay spiking networks gain nothing, and the
 measurements say why: too few trees to fill the device in the first case, host-side
 event delivery every step in the second. The next step for that workload is spike
 delivery on the device. The solver and construction fixes stand on their own and have been
