@@ -21,7 +21,11 @@ GENESIS_ROOT=${GENESIS_ROOT:-${ROOT:-$(git rev-parse --show-toplevel 2>/dev/null
 # Root for installed tools (cluster_bringup/toolchains/) and scratch runs. Point
 # it at an empty directory to rebuild everything from scratch.
 WORK_DIR=${WORK_DIR:-$HOME}
-RUN_DIR=${RUN_DIR:-$WORK_DIR/runs}
+# Scratch for runs. The UMCS nodes share one home, so the default carries the
+# node's name: two nodes running the same script at once must never share a
+# scratch directory (on 2026-10-03 both gates wrote one VAnet2 trace file and
+# the freeze gate failed on truncated, interleaved output).
+RUN_DIR=${RUN_DIR:-$WORK_DIR/runs/$(hostname -s)}
 SCRATCH=${SCRATCH:-${TMPDIR:-/tmp}}
 
 # CUDA. The GENESIS CUDA backend is built and measured with 12.8; the OpenCL
