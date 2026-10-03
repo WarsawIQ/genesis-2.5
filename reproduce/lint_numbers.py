@@ -11,7 +11,8 @@ dt = 0.05 ms, version numbers, years, references) are allowed by the patterns
 in reproduce/lint_allow.txt, one per line, each with the reason it is allowed.
 
 Only the body is checked: the preamble, comments, \\claim{}, citations,
-labels, references, URLs, file paths, code (\\texttt) and the bibliography
+labels, references, URLs, file paths, code (\\texttt, \\verb, verbatim) and the
+bibliography
 are skipped.
 
 Every \\pending{id} (a number the campaign has not produced yet) is listed
@@ -36,6 +37,7 @@ SKIP_RE = re.compile(r"\\(?:%s)\*?(?:\[[^\]]*\])*(?:\{[^{}]*(?:\{[^{}]*\}[^{}]*)
                      % "|".join(SKIP_ARG))
 OPT_RE = re.compile(r"\[(?:width|height|scale|angle|trim)=[^\]]*\]")
 COMMENT_RE = re.compile(r"(?<!\\)%.*$")
+VERB_RE = re.compile(r"\\verb(.).*?\1")
 # 160\,000 and 160{,}000 are one number; so are 1.5 and 10^{-7}.
 NUM_RE = re.compile(r"(?<![A-Za-z0-9_.@])\d+(?:(?:\\,|\{,\}|,)\d{3})*(?:\.\d+)?")
 
@@ -58,10 +60,17 @@ def body_lines(text):
     """Yield (line number, text) for the document body, comments removed."""
     lines = text.split("\n")
     start = next((i for i, l in enumerate(lines) if "\\begin{document}" in l), -1) + 1
+    verbatim = False
     for i in range(start, len(lines)):
         if "\\end{document}" in lines[i] or "\\begin{thebibliography}" in lines[i]:
             break
-        yield i + 1, COMMENT_RE.sub("", lines[i])
+        if "\\begin{verbatim}" in lines[i]:
+            verbatim = True
+        if verbatim:                       # code, not results
+            if "\\end{verbatim}" in lines[i]:
+                verbatim = False
+            continue
+        yield i + 1, VERB_RE.sub(" ", COMMENT_RE.sub("", lines[i]))
 
 
 PENDING_RE = re.compile(r"\\pending\{([^}]*)\}")

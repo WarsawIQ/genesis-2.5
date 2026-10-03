@@ -49,7 +49,7 @@ models, scripts or MPI workflows. On a population of 160\,000 compartments the
 accelerator runs \pending{e2_max_e2e_a100}$\times$ faster end to end than the CPU
 solver; in double precision it reproduces the CPU solver to every printed digit.
 Spiking networks that exchange spikes every step gain nothing on the GPU, and we
-say why. The release also makes model construction linear and fixes three defects
+say why. The release also makes model construction linear and fixes two defects
 in the Hines solver of GENESIS~2.4.
 \end{abstract}
 
@@ -127,8 +127,10 @@ the hardware the user has.
 \item CUDA and OpenCL backends for \texttt{hsolve}, selected at run time, in single or
       double precision, falling back to the CPU for anything they cannot compute.
 \item \hte{}, a GPU Hines elimination for populations of dendritic trees.
-\item Three fixes to the Hines solver of GENESIS~2.4 and linear model construction,
-      which apply with or without a GPU.
+\item Two fixes to the Hines solver of GENESIS~2.4, which with several cells under
+      one solver computed wrong voltages (backward Euler) or crashed
+      (Crank--Nicolson), and model construction in linear time; both apply with or
+      without a GPU and are offered to the original project.
 \item A comparison with NEURON, CoreNEURON and Arbor in which every arm is measured in
       one session, and a reproduction package that regenerates every number in this
       paper from raw data (Section~3.4).
@@ -156,9 +158,34 @@ host every step.}
 \end{figure}
 
 The backends sit behind one entry point in \texttt{hsolve}
-(Fig.~\ref{fig:architecture}). A user selects them with \texttt{chanmode} and
-environment variables; nothing in a model script changes. [Short description of the
-three dispatch paths and of what stays on the host.]
+(Fig.~\ref{fig:architecture}). The SLI interpreter, the element tree, the scheduler
+and the PGENESIS MPI layer are those of GENESIS~2.4. A user selects a backend with
+\texttt{chanmode} and environment variables; nothing in a model script changes.
+
+An accepted model runs on one of three paths. \emph{Per step}: the device updates
+channels and solves each step, and the host delivers synaptic events and spikes between
+steps; this is the path of any network whose cells exchange spikes. \emph{Multiloop}:
+for isopotential cells without synaptic input, one launch runs $K$ steps.
+\emph{Tree loop}: for populations of dendritic trees, the channel update and \hte{}
+run back to back for $K$ steps. On the two batched paths the state goes to the device
+once and the membrane potentials come back once per batch, so a run of $K$ steps
+costs one transfer instead of $K$.
+
+\item Using it
+A model needs no change beyond the solver mode that GENESIS~2.4 already has. An
+existing script that builds its solver as
+
+{\small\begin{verbatim}
+create hsolve /net/solver
+setfield /net/solver path "/net/##[][TYPE=compartment]" chanmode 4
+call /net/solver SETUP
+\end{verbatim}}
+
+runs on the GPU when started with the accelerated binary. Batching and precision are
+chosen when the run starts, for example
+\verb|GENESIS_CUDA_MULTILOOP=<K> GENESIS_GPU_PRECISION=fp64 nxgenesis -batch model.g|.
+The start-up lines name the backend, the precision and the dispatch path in use, and
+a model the device cannot compute is reported and run on the CPU.
 
 \item Design decisions %% R2
 \begin{enumerate}
@@ -187,25 +214,43 @@ message and computes on the CPU. In fp64 the GPU reproduces the CPU solver to ev
 printed digit on our verification models; in fp32 it agrees to
 \pending{fp32_single_ap_v}\,V over one action potential. Synaptic weights and
 plasticity are computed by the synapse objects on the host in double precision in every
-mode; only the resulting activation reaches the device. [Cost of fp64 per card (E2, E4)
-and the 10\,s run (E5) are in Section~3.]
+mode; only the resulting activation reaches the device. What double precision costs
+on each card, and how the two precisions compare over a 10\,s run, are measured in
+Section~3.
 
 \item Execution model %% R6
-[One thread per tree: the slowest tree in a warp sets its time
-(E7: mixed trees \pending{e7_inter_over_uniform}$\times$ slower than uniform trees of the
-same total). Divergence: compartments with different channel sets follow different
-opcode streams. Transfers: state goes to the device once and returns once per batch of
-$K$ steps. Launch overhead: about \pending{f2_host_us_per_step}\,µs of host time per step against about \pending{f2_kernel_us_per_step}\,µs of
-kernel time in the tree loop; CUDA Graphs, on by default for the tree loop since they
-change no result, recover \pending{e8_gain_tree_k5000_a100}\% on the A100 and
-\pending{e8_gain_tree_k5000_a40}\% on the A40 (E8). The spiking network gains nothing
-from graphs (\pending{e8_gain_spiking_a100}\%): its cost is the host's spike delivery
-and the synchronisation it forces every step.]
+Four properties of the device code decide where it pays off.
+\emph{Work imbalance.} \hte{} runs one thread per tree, so the threads of a warp wait
+for the largest tree among them. A population that mixes trees of 8 and 64
+compartments in every warp takes \pending{e7_inter_over_uniform}$\times$ as long per
+step as uniform trees with the same total number of compartments; the same mixed trees
+grouped by size take \pending{e7_block_over_uniform}$\times$ (E7).
+\emph{Divergence.} Compartments with different channel sets follow different opcode
+streams through the interpreter, so heterogeneous cells cost more than their
+compartment count suggests.
+\emph{Transfers.} On the batched paths transfers are fixed per batch, not per step
+(above); on the per-step path they are paid every step.
+\emph{Launch overhead.} In the tree loop the host spends about
+\pending{f2_host_us_per_step}\,\textmu s per step against about
+\pending{f2_kernel_us_per_step}\,\textmu s of kernel time. CUDA Graphs, which replay
+a recorded sequence of launches, recover \pending{e8_gain_tree_k5000_a100}\% of the
+run time on the A100 and \pending{e8_gain_tree_k5000_a40}\% on the A40 (E8). They do
+not change a single result, so they are on by default for the tree loop. On the
+spiking network they gain nothing within error (\pending{e8_gain_spiking_a100}\%): its
+cost is the host's event delivery and the synchronisation it forces every step, not
+the launches. Moving spike delivery to the device is the next step for that workload.
 
 \item Portability %% R7
-[OpenCL on NVIDIA A40/A100 and on an AMD Radeon 890M under ROCm and Mesa rusticl (E9):
-correctness on all, fp64 under ROCm only, the integrated GPU's size cap and what happens
-above it.]
+The OpenCL backend runs the same kernels on any OpenCL~1.2 device. We test it on the
+NVIDIA A40 and A100 and on the AMD Radeon~890M integrated GPU under two independent
+implementations, AMD ROCm and Mesa rusticl (E9). The two differ even in what they
+offer on the same chip: ROCm exposes double precision and rusticl does not, so under
+rusticl a request for fp64 is refused and the model computes on the CPU. On an
+integrated GPU that also drives the display, a tree dispatch above about
+\pending{e9_igpu_cap_compartments} compartments trips the driver's watchdog; the
+backend therefore declines the batched tree dispatch for larger models there, says so,
+and runs them step by step, unless \texttt{GENESIS\_OCL\_TREE\_MAX\_NCOMPTS} says
+otherwise.
 \end{enumerate}
 
 %% ===================================================================== 3

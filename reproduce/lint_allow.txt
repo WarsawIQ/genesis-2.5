@@ -23,3 +23,4 @@ Radeon[~ ]█890█M	# a product name
 █\d+(\\,\d{3})?█ compartments|█\d+(\.\d+)?█-million-compartment	# a model size
 █\d+█\\,s|█\d+█\\,s:	# a simulated duration set by the run
 tested █\d+(\.\d+)*█	# a tested software version
+trees of █\d+█ and \d+|trees of \d+ and █\d+█	# tree sizes of a test population, a model parameter
