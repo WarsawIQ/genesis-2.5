@@ -1,0 +1,13 @@
+node inf03  gpu NVIDIA A100-PCIE-40GB, 0 MiB  started 2026-10-03T17:30:26+02:00
+base ce21b63  head 7013593
+cuda base golden recorded (rc 0)
+cuda fp32 vs base: rc 0  PASS: 14 values unchanged on NVIDIA A100-PCIE-40GB
+cuda fp64 vs CPU:  rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+cuda fp32 graphs on:   rc 0  PASS: 14 values unchanged on NVIDIA A100-PCIE-40GB
+cuda fp64 graphs on:   rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+graph probe: rc 0  written: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/cuda_graph_probe_inf03_20261003_173812.csv
+opencl base golden recorded (rc 0)
+opencl fp32 vs base: rc 0  PASS: 14 values unchanged on NVIDIA A100-PCIE-40GB
+opencl fp64 vs CPU:  rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+CUDA build restored
+finished 2026-10-03T17:53:49+02:00

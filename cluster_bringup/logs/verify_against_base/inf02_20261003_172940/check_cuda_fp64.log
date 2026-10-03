@@ -1,0 +1,6 @@
+branch|RESULT_VM_FAR         cpu -0.0671207429  gpu -0.0671207429  |diff| 0.00e+00 ok
+branch|RESULT_VM_SOMA        cpu -0.0660303971  gpu -0.0660303971  |diff| 0.00e+00 ok
+multi|RESULT_VM_SOMA         cpu -0.0735408490  gpu -0.0735408490  |diff| 0.00e+00 ok
+multi|RESULT_VM_FAR          cpu -0.0798336889  gpu -0.0798336889  |diff| 0.00e+00 ok
+ap|RESULT_VM                 cpu -0.0214348588  gpu -0.0214348588  |diff| 0.00e+00 ok
+PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)

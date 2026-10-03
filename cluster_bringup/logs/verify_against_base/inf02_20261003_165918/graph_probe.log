@@ -1,0 +1,9 @@
+grep: /storage2/home/kchlasta/runs/graph_probe_vanet2/out_g0_r1.log: No such file or directory
+written: /storage2/home/kchlasta/campaign-dry-inf02/cluster_bringup/logs/cuda_graph_probe_inf02_20261003_170701.csv
+spiking,100000,0  mean wall 42.709 s (n=5)
+spiking,100000,1  mean wall 43.100 s (n=5)
+tree,50000,0  mean wall 8.496 s (n=5)
+tree,50000,1  mean wall 8.339 s (n=5)
+tree,5000,0  mean wall 2.183 s (n=5)
+tree,5000,1  mean wall 2.150 s (n=5)
+# distinct spike trains over all spiking runs: 2 (1 means identical)

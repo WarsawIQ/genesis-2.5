@@ -1,0 +1,8 @@
+written: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/cuda_graph_probe_inf03_20261003_170754.csv
+spiking,100000,0  mean wall 48.326 s (n=5)
+spiking,100000,1  mean wall 47.126 s (n=5)
+tree,50000,0  mean wall 4.664 s (n=5)
+tree,50000,1  mean wall 4.518 s (n=5)
+tree,5000,0  mean wall 1.827 s (n=5)
+tree,5000,1  mean wall 1.712 s (n=5)
+# distinct spike trains over all spiking runs: 1 (1 means identical)

@@ -1,0 +1,11 @@
+--- /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/verify_against_base/inf03_20261003_170003/golden_base_cuda.txt	2026-10-03 17:02:23.148905734 +0200
++++ /tmp/tmp.Qakm8cU08h	2026-10-03 17:04:41.884203065 +0200
+@@ -12,5 +12,5 @@
+ branch_cpu|RESULT_VM_SOMA= -0.06603039703
+ branch_gpu|RESULT_VM_FAR= -0.06712071855
+ branch_gpu|RESULT_VM_SOMA= -0.06603036904
+-vanet2_cpu|vm_md5=1440eb862079f69f891c5a57a99af681
+-vanet2_cpu|vm_lines=50001
++vanet2_cpu|vm_md5=22e8e4987d0c5cfa733b7013465e8505
++vanet2_cpu|vm_lines=33695
+FAIL: accelerator output changed (diff above)

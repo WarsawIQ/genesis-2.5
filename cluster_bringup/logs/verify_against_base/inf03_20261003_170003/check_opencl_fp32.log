@@ -1,0 +1,11 @@
+--- /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/verify_against_base/inf03_20261003_170003/golden_base_opencl.txt	2026-10-03 17:19:14.296660652 +0200
++++ /tmp/tmp.H572xJS3wx	2026-10-03 17:21:28.554583562 +0200
+@@ -12,5 +12,5 @@
+ branch_cpu|RESULT_VM_SOMA= -0.06603039703
+ branch_gpu|RESULT_VM_FAR= -0.06712071115
+ branch_gpu|RESULT_VM_SOMA= -0.06603036164
+-vanet2_cpu|vm_md5=1440eb862079f69f891c5a57a99af681
+-vanet2_cpu|vm_lines=50001
++vanet2_cpu|vm_md5=e90c0c777d477c68ef4a0e50c7c3b7a0
++vanet2_cpu|vm_lines=37776
+FAIL: accelerator output changed (diff above)
