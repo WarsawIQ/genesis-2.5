@@ -29,8 +29,15 @@ sh reproduce/run_all.sh --quick              # ~15 min, adds the accelerator cla
 sh reproduce/run_all.sh                      # ~95 min, adds the sweeps and the spiking network
 ```
 
+Or without installing anything, in a container ([`Dockerfile`](Dockerfile)):
+
+```sh
+docker build -t genesis25-cpu . && docker run --rm genesis25-cpu
+```
+
 Each run prints every published value beside yours with a verdict. The CPU-only
-path also runs on every push, in [GitHub Actions](.github/workflows/cpu-only.yml).
+path and the container both run on every push, in
+[GitHub Actions](.github/workflows/cpu-only.yml).
 What reproduces which numbers, and what it needs:
 
 <!-- claims-table:begin -->

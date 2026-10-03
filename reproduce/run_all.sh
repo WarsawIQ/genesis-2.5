@@ -69,9 +69,13 @@ uname -srm
 gcc --version | head -1
 if [ "$CPU_ONLY" = 1 ]; then
     say "build (CPU only)"
-    sh cluster_bringup/12_build_cpu.sh > "$RESULTS/build.log" 2>&1 \
-        || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
-    echo "built genesis/src/nxgenesis_nocl"
+    if [ -x genesis/src/nxgenesis_nocl ] && [ "${SKIP_BUILD:-0}" = 1 ]; then
+        echo "using the existing binary (SKIP_BUILD=1; the container builds it once, at image build)"
+    else
+        sh cluster_bringup/12_build_cpu.sh > "$RESULTS/build.log" 2>&1 \
+            || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
+        echo "built genesis/src/nxgenesis_nocl"
+    fi
     say "claims that need no GPU"
     sh "$HERE/stages/05_cpu.sh" "$RESULTS" "$MODE" | tee "$RESULTS/cpu.txt"
     if [ "$WITH_NEURON" = 1 ]; then

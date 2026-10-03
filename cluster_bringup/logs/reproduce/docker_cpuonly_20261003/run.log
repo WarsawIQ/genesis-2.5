@@ -1,0 +1,37 @@
+# docker: Docker version 29.8.1, build 4a63305
+# image: genesis25-cpu, 714MB, id 6ea0c266bc4e
+# host: Linux 7.0.0-111030-tuxedo x86_64, AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# started: 2026-10-03T11:00:10+02:00
+
+=== environment ===
+Linux 7.0.0-111030-tuxedo x86_64
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+=== build (CPU only) ===
+using the existing binary (SKIP_BUILD=1; the container builds it once, at image build)
+
+=== claims that need no GPU ===
+Hines fixes: 8 neurons under one hsolve, all injected: NEURONS_AGREE YES (spread < 1e-6 V)
+construction: wall time ~ compartments^0.98 over 4 runs
+VAnet2 on one core: as published 37.0 s, one solver per layer 24.4 s, ratio 1.52
+
+=== measured against published ===
+claim                        table            published    measured    delta  verdict
+------------------------------------------------------------------------------------
+cpu_ap_vm                    sec:3              -0.0214  -0.0214349      -0%  ok
+construction_exponent_after  sec:3                0.991       0.981      -1%  ok
+vanet2_genesis_published_s   tab:coreneuron        46.9       36.98     -21%  ok
+vanet2_genesis_1solver_s     tab:coreneuron        33.2       24.38     -27%  OUTSIDE
+vanet2_1solver_speedup       abstract              1.41        1.52      +8%  ok
+
+4/5 claims reproduced within tolerance; 250 of the paper's 255 not covered by this run
+
+A claim outside tolerance is usually hardware, not a defect:
+  - a GPU shared with another job inflates every GPU figure
+  - a cold card runs 1.2-1.8x slower than a warm one
+  - absolute timings track the host CPU and card model
+Check nvidia-smi and re-run before concluding anything.
+
+Raw results: /genesis/reproduce/results
+0.02user 0.01system 1:10.25elapsed 0%CPU (0avgtext+0avgdata 30824maxresident)k
+400inputs+8outputs (3major+3371minor)pagefaults 0swaps

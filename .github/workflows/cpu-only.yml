@@ -36,3 +36,15 @@ jobs:
         with:
           name: cpu-only-results
           path: reproduce/results/
+
+  # The same claims from the container (reviewer point 11: reproducible with
+  # nothing installed), so the Dockerfile is tested continuously too.
+  container:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t genesis25-cpu .
+      - name: Reproduce the CPU claims in the container
+        run: docker run --rm genesis25-cpu

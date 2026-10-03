@@ -114,6 +114,7 @@ at large N, say -- that is worth reporting to karol@chlasta.pl.
 | path | what it is |
 |---|---|
 | `run_all.sh` | the entry point |
+| `../Dockerfile` | the CPU-only path in a container: `docker build -t genesis25-cpu . && docker run --rm genesis25-cpu` |
 | `stages/` | one script per claim group, runnable on their own |
 | `claims.csv` | every published number: where it comes from, how it is computed, what it needs |
 | `published.csv` | the published values, generated from `claims.csv` and the data |
