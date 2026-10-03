@@ -29,6 +29,7 @@ jobs:
           sh reproduce/tests/test_claims.sh
           sh reproduce/tests/test_campaign.sh
           sh reproduce/tests/test_campaign_plots.sh
+          sh reproduce/tests/test_campaign_claims.sh
       - name: Reproduce the CPU claims
         run: sh reproduce/run_all.sh --cpu-only --quick
       - name: Keep the results
