@@ -1,0 +1,43 @@
+# experiment: E1
+# session: inf03_20261003_162129
+# commit: cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6
+# describe: untagged
+# dirty: 36
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.12 0.65 0.79
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: nrn_cb_cpu
+# rep: 0
+# command: sh -c cd '/storage2/home/kchlasta/tc-verify-20260929/runs/campaign_E1/cobahh_cb' && rm -f out.dat && PATH='/storage2/home/kchlasta/.local/bin':$PATH exec timeout 3600 'python3.12' run_plain.py
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON: Couldn't find: ../common/init.hoc
+ in init.hoc near line 7
+ {load_file("../common/init.hoc")}
+                                  ^
+NEURON: create_net undefined function
+ in init.hoc near line 15
+ create_net()  // in common/net.hoc
+                                   ^
+        create_net()
+      xopen("init.hoc")
+    execute1("{xopen("in...")
+  load_file("init.hoc")
+NEURON: hoc_Load_file init.hoc
+ in init.hoc near line 0
+ ^
+        load_file("init.hoc")
+Traceback (most recent call last):
+  File "/storage2/home/kchlasta/tc-verify-20260929/runs/campaign_E1/cobahh_cb/run_plain.py", line 5, in <module>
+    h.load_file("init.hoc")
+RuntimeError: hocobj_call error: hoc_execerror: hoc_Load_file init.hoc

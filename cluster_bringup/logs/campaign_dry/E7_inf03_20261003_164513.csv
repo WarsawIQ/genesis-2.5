@@ -1,0 +1,32 @@
+# experiment: E7
+# session: inf03_20261003_164513
+# commit: cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6
+# describe: untagged
+# dirty: 36
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.07 1.02 0.86
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+inf03_20261003_164513,E7,gpu_uni36,0,1,0.4301,t_per_step_s,0.0009756493427,ok,2026-10-03T16:45:13+02:00
+inf03_20261003_164513,E7,gpu_mix_inter,0,2,0.4449,t_per_step_s,0.001047246655,ok,2026-10-03T16:45:14+02:00
+inf03_20261003_164513,E7,gpu_mix_block,0,3,0.4504,t_per_step_s,0.00106704746,ok,2026-10-03T16:45:14+02:00
+inf03_20261003_164513,E7,cpu_uni36,0,4,0.8831,t_per_step_s,0.003369176955,ok,2026-10-03T16:45:15+02:00
+inf03_20261003_164513,E7,cpu_mix_inter,0,5,0.9246,t_per_step_s,0.003560690085,ok,2026-10-03T16:45:16+02:00
+inf03_20261003_164513,E7,gpu_mix_inter,1,1,0.4385,t_per_step_s,0.001010864831,ok,2026-10-03T16:45:17+02:00
+inf03_20261003_164513,E7,gpu_mix_block,1,2,0.4516,t_per_step_s,0.00107626844,ok,2026-10-03T16:45:18+02:00
+inf03_20261003_164513,E7,cpu_uni36,1,3,0.9045,t_per_step_s,0.003462774413,ok,2026-10-03T16:45:19+02:00
+inf03_20261003_164513,E7,cpu_mix_inter,1,4,0.9266,t_per_step_s,0.003570592971,ok,2026-10-03T16:45:20+02:00
+inf03_20261003_164513,E7,gpu_uni36,1,5,0.4364,t_per_step_s,0.001000333471,ok,2026-10-03T16:45:21+02:00
+# ended: 2026-10-03T16:45:22+02:00
+# sm_clock_mhz_after: 765 / 1410
+# complete: yes

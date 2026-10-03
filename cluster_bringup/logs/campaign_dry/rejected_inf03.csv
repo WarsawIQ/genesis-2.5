@@ -1,0 +1,9 @@
+session,experiment,arm,rep,try,wall_s,reason,log
+inf03_20261003_162129,E1,nrn_cb_cpu,0,1,0.2440,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r0.log
+inf03_20261003_162129,E1,nrn_cb_cpu,0,2,0.1185,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r0_try2.log
+inf03_20261003_162129,E1,nrn_cb_cpu,1,1,0.1760,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r1.log
+inf03_20261003_162129,E1,nrn_cb_cpu,1,2,0.1283,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r1_try2.log
+inf03_20261003_162129,E1,nrn_cb_cpu,0,1,0.1960,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r0.log
+inf03_20261003_162129,E1,nrn_cb_cpu,0,2,0.1169,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r0_try2.log
+inf03_20261003_162129,E1,nrn_cb_cpu,1,1,0.1229,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r1.log
+inf03_20261003_162129,E1,nrn_cb_cpu,1,2,0.1274,exit code 1;,/storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261003_162129/nrn_cb_cpu_r1_try2.log

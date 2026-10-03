@@ -1,0 +1,6 @@
+[16:21:29] E1: session inf03_20261003_162129, untagged (cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E1_inf03_20261003_162129.csv
+[16:26:00] nrn_cb_cpu rep 0 try 1 rejected: exit code 1
+[16:26:00] nrn_cb_cpu rep 0 try 2 rejected: exit code 1
+[16:33:46] nrn_cb_cpu rep 1 try 1 rejected: exit code 1
+[16:33:46] nrn_cb_cpu rep 1 try 2 rejected: exit code 1
+report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E1_inf03_20261003_162129_report.md

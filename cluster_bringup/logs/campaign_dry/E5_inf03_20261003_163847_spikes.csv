@@ -1,0 +1,4 @@
+run,file,spikes,rate_hz,isi_mean_ms,isi_cv,isi_median_ms,isi_p05_ms,isi_p95_ms,vs,identical,first_divergence_s,spikes_identical_before,count_diff_pct,ks_isi,cell_count_corr
+cpu_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/campaign_E5/cpu/spikes_r1.txt,59663,29.8315,19.7787,2.2112,7.3000,5.0500,87.7325,cpu_r1,yes,,59663,0.0000,0.00000,1.00000
+g32_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/campaign_E5/g32/spikes_r1.txt,62403,31.2015,19.6954,2.1416,7.3000,5.0500,87.2450,cpu_r1,no,0.000050,0,4.5925,0.02269,0.88067
+g64_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/campaign_E5/g64/spikes_r1.txt,61182,30.5910,21.6493,2.2283,7.4000,5.0500,99.6000,cpu_r1,no,0.000050,0,2.5460,0.03061,0.90017

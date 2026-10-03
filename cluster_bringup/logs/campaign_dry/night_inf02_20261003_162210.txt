@@ -1,0 +1,6 @@
+# night on inf02, v2.5.4-76-gcff9bf6, plan: E2 E3 E4 E8, started 2026-10-03T16:22:10+02:00
+E2   rc 0  complete  (0 min)
+E3   rc 0  complete  (0 min)
+E4   rc 0  complete  (0 min)
+E8   rc 0  complete  (3 min)
+# ended 2026-10-03T16:26:28+02:00

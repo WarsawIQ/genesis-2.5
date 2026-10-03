@@ -1,0 +1,71 @@
+# experiment: E2
+# session: inf02_20261003_162210
+# commit: cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6
+# describe: untagged
+# dirty: 36
+# build_generated_changed: 27
+# node: inf02
+# cpu: Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz
+# governor: performance
+# loadavg: 1.02 0.54 0.21
+# gpu: NVIDIA A40
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 1740 / 1740
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: g32_k1000
+# rep: 1
+# command: env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 GENESIS_CUDA_MULTILOOP=1010 GENESIS_GPU_PRECISION=fp32 timeout 7200 ./genesis/src/nxgenesis -nosimrc -notty -batch genesis/Scripts/benchmark/hh_multicompartment_createmap.g 1000 1000
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf02/./genesis/src/nxgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_multicompartment_createmap.g
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 63
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 67
+** Error - Error promoting '' to INT, using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 78
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 79
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 80
+** Error - CastToInt: Error casting '', using 0
+=== HH Multicompartment Benchmark ===
+Neurons:    1000
+Comp/neuron: 16
+Total comps: 16000
+Steps:      1000
+chanmode:   4
+
+/library
+/
+/library/cell
+/
+Building cables via createmap...
+changing clock [0] from 1 to 1e-05
+Configuring single hsolve (chanmode= 4 , N*NCOMP= 16000  comps)...
+ncompts:  16000
+time = 0.000000 ; step = 0          
+CUDA: device: NVIDIA A40 (sm_86, 84 SMs)
+CUDA: graph dispatch: tree loop on, per-step off
+CUDA: ready (16000 compartments, 176000 chips, fp32 kernels)
+CUDA: multiloop mode -- 1010 steps per dispatch
+CUDA: tree-elimination kernel ready (1000 trees)
+CUDA MULTILOOP (tree): 1010 steps x 2 kernels | total 30.3 ms | 30.009 us/step
+time = 0.010100 ; step = 1010          
+completed 1010 steps in 0.038845 cpu seconds
+RESULT_T_TOTAL= 0.2728247941
+RESULT_T_PER_STEP= 0.0002701235585
+RESULT_VM_FAR= -0.07569970191
+RESULT_VM_SOMA= -0.06777824461
+
+=== done: N= 1000  NCOMP= 16  steps= 1000  chanmode= 4  ===

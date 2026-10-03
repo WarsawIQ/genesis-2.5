@@ -1,0 +1,58 @@
+# experiment: E3c
+# session: inf03_20261003_165005
+# commit: cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6
+# describe: untagged
+# dirty: 36
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 0.91
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 765 / 1410
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: con_n4000
+# rep: 0
+# command: env GENESIS_BENCH_CHANMODE=1 timeout 3600 ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g 4000 20 4 4
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/./genesis/src/nxgenesis_nocl
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g
+=== HH Branching Multicompartment Benchmark ===
+Neurons:       4000
+Branches/cell: 4
+Comp/branch:   4
+Comp/neuron:   17
+Steps:         20
+chanmode:      1
+
+/library
+/
+Building branched cells...
+changing clock [0] from 1 to 1e-05
+Configuring single hsolve (chanmode= 1 , total comps= 68000 )...
+ncompts:  68000
+time = 0.000000 ; step = 0          
+time = 0.000300 ; step = 30          
+completed 30 steps in 0.328621 cpu seconds
+RESULT_T_TOTAL= 0.4296061695
+RESULT_T_PER_STEP= 0.01432020565
+<genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 177
+** Error - Solver : HPUT/HGET calls should only be used when chanmode >= 2. '/net/solver'
+<genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 178
+** Error - Solver : HPUT/HGET calls should only be used when chanmode >= 2. '/net/solver'
+RESULT_VM_FAR= -0.06827127524
+RESULT_VM_SOMA= -0.0670966934
+
+=== done: N= 4000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===

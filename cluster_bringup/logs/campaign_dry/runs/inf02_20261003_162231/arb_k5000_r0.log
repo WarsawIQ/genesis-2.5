@@ -1,0 +1,27 @@
+# experiment: E4
+# session: inf02_20261003_162231
+# commit: cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6
+# describe: untagged
+# dirty: 36
+# build_generated_changed: 27
+# node: inf02
+# cpu: Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz
+# governor: performance
+# loadavg: 1.07 0.58 0.24
+# gpu: NVIDIA A40
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 1740 / 1740
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: arb_k5000
+# rep: 0
+# command: env -C /storage2/home/kchlasta/campaign-dry-inf02/cluster_bringup/coreneuron USE_GPU=1 PYTHONPATH=/storage2/home/kchlasta/tc-verify-20260929/opt/arbor-gpu/lib/python3.13/site-packages LD_LIBRARY_PATH=/storage/opt/cuda/cuda-12.8/lib64:/storage2/home/kchlasta/tc-verify-20260929/opt/arbor-gpu/lib:/storage/opt/cuda/cuda-12.8/lib64: timeout 3600 /storage2/home/kchlasta/tc-verify-20260929/opt/miniforge/bin/python3 hh_multicomp_arbor.py 1000 5000
+RESULT_N=1000 RESULT_NCOMP=16 RESULT_TOTAL_COMPS=16000 RESULT_STEPS=5000
+RESULT_GPU=1 RESULT_HAS_GPU=True
+RESULT_CTX=<arbor.context:num_threads1,has_gpuTrue,has_mpiFalse,num_ranks1>
+RESULT_BUILD_S=0.240
+RESULT_RUN_S=0.326
+RESULT_WALL_S=0.566

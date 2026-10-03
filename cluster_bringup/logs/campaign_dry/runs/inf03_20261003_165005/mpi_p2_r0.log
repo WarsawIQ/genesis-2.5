@@ -1,0 +1,56 @@
+# experiment: E3c
+# session: inf03_20261003_165005
+# commit: cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6
+# describe: untagged
+# dirty: 36
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 0.91
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: mpi_p2
+# rep: 0
+# command: timeout 1800 /usr/lib64/mpich/bin/mpirun -np 2 pgenesis/bin/Linux/nxpgenesis -nosimrc -notty -batch genesis/Scripts/benchmark/hh1952_mpi_scaling.g 2400 2 5000 0
+In process 0 TERM is undefined.
+Starting Genesis
+In process 1 TERM is undefined.
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+mynode = 0, totalnodes = 2, nnodes = 2
+/library
+mynode = 1, totalnodes = 2, nnodes = 2
+/
+/library
+/
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.131522 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.131745 cpu seconds
+PGENESIS_DONE

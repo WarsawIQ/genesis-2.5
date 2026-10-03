@@ -1,0 +1,7 @@
+[16:38:47] E5: session inf03_20261003_163847, untagged (cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E5_inf03_20261003_163847.csv
+run               spikes  rate Hz   ISI ms     CV diverges s       KS  count %
+cpu_r1             59663  29.8315  19.7787 2.2112      never  0.00000   0.0000
+g32_r1             62403  31.2015  19.6954 2.1416   0.000050  0.02269   4.5925
+g64_r1             61182  30.5910  21.6493 2.2283   0.000050  0.03061   2.5460
+written: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E5_inf03_20261003_163847_spikes.csv
+report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E5_inf03_20261003_163847_report.md
