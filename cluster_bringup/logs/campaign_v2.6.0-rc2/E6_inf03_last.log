@@ -1,0 +1,26 @@
+[13:44:39] E6: session inf03_20261007_134439, v2.6.0-rc2 (7b42dc4251c099c828a93cd08f251e1be9ad1505), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_v2.6.0-rc2/E6_inf03_20261007_134439.csv
+category,percent
+other,34.39
+linear solve,2.40
+scheduler,4.25
+event delivery,12.06
+channel update,46.98
+total,100.08
+category,percent
+other,67.82
+event delivery,5.14
+channel update,26.89
+total,99.85
+category,percent
+other,89.07
+linear solve,10.95
+scheduler,0.02
+event delivery,0.06
+total,100.10
+category,percent
+other,70.45
+linear solve,0.02
+event delivery,0.67
+channel update,28.72
+total,99.86
+report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_v2.6.0-rc2/E6_inf03_20261007_134439_report.md

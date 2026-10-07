@@ -1,0 +1,35 @@
+# experiment: E5
+# session: inf03_20261007_132509
+# commit: 7b42dc4251c099c828a93cd08f251e1be9ad1505
+# describe: v2.6.0-rc2
+# dirty: 0
+# build_generated_changed: 31
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 1.00
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+inf03_20261007_132509,E5,cpu,0,1,87.2434,spikes,1087089,ok,2026-10-07T13:25:09+02:00
+inf03_20261007_132509,E5,g32,0,2,93.8935,spikes,1090251,ok,2026-10-07T13:26:37+02:00
+inf03_20261007_132509,E5,g64,0,3,102.9013,spikes,1091920,ok,2026-10-07T13:28:11+02:00
+inf03_20261007_132509,E5,g32,1,1,98.4372,spikes,1090251,ok,2026-10-07T13:29:54+02:00
+inf03_20261007_132509,E5,g64,1,2,100.4471,spikes,1091920,ok,2026-10-07T13:31:33+02:00
+inf03_20261007_132509,E5,cpu,1,3,89.9098,spikes,1087089,ok,2026-10-07T13:33:14+02:00
+inf03_20261007_132509,E5,g64,2,1,97.9458,spikes,1091920,ok,2026-10-07T13:34:44+02:00
+inf03_20261007_132509,E5,cpu,2,2,87.8726,spikes,1087089,ok,2026-10-07T13:36:22+02:00
+inf03_20261007_132509,E5,g32,2,3,93.6113,spikes,1090251,ok,2026-10-07T13:37:50+02:00
+inf03_20261007_132509,E5,cpu,3,1,84.1845,spikes,1087089,ok,2026-10-07T13:39:24+02:00
+inf03_20261007_132509,E5,g32,3,2,95.4836,spikes,1090251,ok,2026-10-07T13:40:49+02:00
+inf03_20261007_132509,E5,g64,3,3,98.3842,spikes,1091920,ok,2026-10-07T13:42:25+02:00
+# ended: 2026-10-07T13:44:38+02:00
+# sm_clock_mhz_after: 210 / 1410
+# complete: yes

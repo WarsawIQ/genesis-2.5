@@ -1,0 +1,125 @@
+# experiment: E3c
+# session: inf03_20261007_160925
+# commit: 7b42dc4251c099c828a93cd08f251e1be9ad1505
+# describe: v2.6.0-rc2
+# dirty: 0
+# build_generated_changed: 31
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.08 1.02 1.01
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: mpi_p6
+# rep: 0
+# command:  timeout 1800 /usr/lib64/mpich/bin/mpirun -np 6 pgenesis/bin/Linux/nxpgenesis -nosimrc -notty -batch genesis/Scripts/benchmark/hh1952_mpi_scaling.g 2400 6 5000 0
+In process 0 TERM is undefined.
+Starting Genesis
+In process 1 TERM is undefined.
+Starting Genesis
+In process 2 TERM is undefined.
+Starting Genesis
+In process 3 TERM is undefined.
+Starting Genesis
+In process 4 TERM is undefined.
+Starting Genesis
+In process 5 TERM is undefined.
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+mynode = 0, totalnodes = 6, nnodes = 6
+mynode = 4, totalnodes = 6, nnodes = 6
+/library
+/library
+/
+/
+mynode = 2, totalnodes = 6, nnodes = 6
+mynode = 3, totalnodes = 6, nnodes = 6
+mynode = 5, totalnodes = 6, nnodes = 6
+mynode = 1, totalnodes = 6, nnodes = 6
+/library
+/library
+/library
+/library
+/
+/
+/
+/
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.045745 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.045652 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.045820 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.044704 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.044931 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.046435 cpu seconds
+PGENESIS_DONE
