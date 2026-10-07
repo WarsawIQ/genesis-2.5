@@ -15,14 +15,14 @@
 #   <exp>_<node>.open           the session to resume, while one is unfinished
 #
 # Environment (see cluster_bringup/campaign/README.md):
-#   CAMPAIGN_TAG   tag HEAD must be at (default v2.6.0-rc1)
+#   CAMPAIGN_TAG   tag HEAD must be at (default v2.6.0-rc2)
 #   CAMPAIGN_DRY   1 = untagged or dirty tree allowed, data go to campaign_dry/
 #   CAMPAIGN_WAIT_S, CAMPAIGN_WAIT_TRIES   busy-GPU retry (600 s, 6 tries)
 #   NVIDIA_SMI     nvidia-smi to call (the tests substitute a stub)
 
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
-CAMPAIGN_TAG=${CAMPAIGN_TAG:-v2.6.0-rc1}
+CAMPAIGN_TAG=${CAMPAIGN_TAG:-v2.6.0-rc2}
 CAMPAIGN_DRY=${CAMPAIGN_DRY:-0}
 CAMPAIGN_WAIT_S=${CAMPAIGN_WAIT_S:-600}
 CAMPAIGN_WAIT_TRIES=${CAMPAIGN_WAIT_TRIES:-6}
@@ -33,6 +33,30 @@ NODE=${CAMPAIGN_NODE:-$(hostname -s)}
 say() { echo "[$(date +%H:%M:%S)] $*"; }
 
 has_gpu() { command -v "${NVSMI%% *}" >/dev/null 2>&1 && $NVSMI -L >/dev/null 2>&1; }
+
+# Every run is bound to the GPU's own NUMA node, CPU arms included, so both arms
+# of a speedup use the same socket and memory. Unbound, a single-threaded run
+# landed on either socket of inf02, whose two sockets differ by ~17% under load
+# (night 1, 2026-10-03: CPU arms bimodal, RSD 8-11%; numa_check.sh measured
+# 24.6-25.0 s on one socket and 28.6-29.1 s on the other, and 28.6-28.8 s bound
+# to the GPU's node). CAMPAIGN_NUMA: auto (the GPU's node), a node number, or
+# off. Where no node can be found (one socket, no GPU) nothing is bound.
+numa_node() {
+    case "${CAMPAIGN_NUMA:-auto}" in
+        off) return 0 ;;
+        auto) ;;
+        *) echo "$CAMPAIGN_NUMA"; return 0 ;;
+    esac
+    has_gpu || return 0
+    command -v numactl >/dev/null 2>&1 || return 0
+    _bus=$($NVSMI --query-gpu=pci.bus_id --format=csv,noheader 2>/dev/null | head -1 \
+           | tr 'A-F' 'a-f' | sed 's/^0000\(....:\)/\1/')
+    _f=/sys/bus/pci/devices/$_bus/numa_node
+    [ -r "$_f" ] || _f=/sys/bus/pci/devices/0000$(echo "$_bus" | sed 's/^[0-9a-f]\{4\}//')/numa_node
+    [ -r "$_f" ] || return 0
+    _n=$(cat "$_f")
+    [ "$_n" -ge 0 ] 2>/dev/null && echo "$_n"
+}
 
 # ------------------------------------------------------------------ header
 header() {   # the run header of data-model.md, as '# key: value' lines
@@ -46,6 +70,7 @@ header() {   # the run header of data-model.md, as '# key: value' lines
     echo "# cpu: $(sed -n 's/^model name[[:space:]]*: //p' /proc/cpuinfo | head -1)"
     echo "# governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo unknown)"
     echo "# loadavg: $(cut -d' ' -f1-3 /proc/loadavg)"
+    echo "# numa_bind: ${NUMA_NODE:-none}"
     if has_gpu; then
         echo "# gpu: $($NVSMI --query-gpu=name --format=csv,noheader | head -1)"
         echo "# driver: $($NVSMI --query-gpu=driver_version --format=csv,noheader | head -1)"
@@ -92,6 +117,9 @@ campaign_init() {   # $1 experiment id, e.g. E1
         SESSION=${NODE}_$(date +%Y%m%d_%H%M%S)
         echo "$SESSION" > "$OPEN"
     fi
+    NUMA_NODE=$(numa_node)
+    NUMA_PREFIX=""
+    [ -n "$NUMA_NODE" ] && NUMA_PREFIX="numactl --cpunodebind=$NUMA_NODE --membind=$NUMA_NODE"
     CSV="$CAMPAIGN_OUT/${EXP}_${SESSION}.csv"
     RUNS="$CAMPAIGN_OUT/runs/$SESSION"
     mkdir -p "$RUNS"
@@ -172,9 +200,11 @@ run_rep() {
         if [ "$gpu" = 1 ]; then gpu_free || return 3; fi
         log="$RUNS/${arm}_r${rep}$([ "$try" = 2 ] && echo _try2).log"
         started=$(date -Is)
-        { header; echo "# arm: $arm"; echo "# rep: $rep"; echo "# command: $*"; } > "$log"
+        { header; echo "# arm: $arm"; echo "# rep: $rep"; echo "# command: $([ "${NUMA_SKIP:-0}" = 1 ] || echo "$NUMA_PREFIX") $*"; } > "$log"
         t0=$(date +%s%N)
-        "$@" >> "$log" 2>&1 </dev/null
+        _pre=$NUMA_PREFIX
+        [ "${NUMA_SKIP:-0}" = 1 ] && _pre=""   # multi-rank MPI spans sockets on purpose
+        $_pre "$@" >> "$log" 2>&1 </dev/null
         rc=$?
         t1=$(date +%s%N)
         wall=$(awk "BEGIN{printf \"%.4f\", ($t1 - $t0) / 1e9}")

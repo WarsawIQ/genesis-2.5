@@ -29,13 +29,13 @@ need "$PGEN" "PGENESIS build, cluster_bringup/70_pgenesis_build_status.md"
 arm() {   # con_n<N>, mpi_p<P>
     case "$1" in
     con_n*)
-        EXPECT_N=${1#con_n} EXPECT_STEPS=20; unset EXPECT_NCOMP
+        EXPECT_N=${1#con_n} EXPECT_STEPS=20 NUMA_SKIP=0; unset EXPECT_NCOMP
         run_rep "$1" "$2" "$3" 0 "$BANNER_CPU" sanity_tree \
             env GENESIS_BENCH_CHANMODE=1 timeout 3600 ./genesis/src/nxgenesis_nocl -nosimrc -notty \
             -batch genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g "$EXPECT_N" 20 4 4 ;;
     mpi_p*)
         p=${1#mpi_p}
-        SANITY_RE='^PGENESIS_DONE' SANITY_METRIC=ranks
+        SANITY_RE='^PGENESIS_DONE' SANITY_METRIC=ranks NUMA_SKIP=1   # ranks span sockets
         run_rep "$1" "$2" "$3" 0 "$BANNER_CPU" sanity_grep \
             timeout 1800 "$MPIRUN" -np "$p" "$PGEN" -nosimrc -notty \
             -batch genesis/Scripts/benchmark/hh1952_mpi_scaling.g 2400 "$p" 5000 0 ;;

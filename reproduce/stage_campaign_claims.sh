@@ -17,7 +17,7 @@
 # manuscript; the lint lists what is still open.
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-CAMPAIGN_LOGS=${CAMPAIGN_LOGS:-$ROOT/cluster_bringup/logs/campaign_v2.6.0-rc1}
+CAMPAIGN_LOGS=${CAMPAIGN_LOGS:-$ROOT/cluster_bringup/logs/campaign_v2.6.0-rc2}
 CLAIMS=${CLAIMS:-$ROOT/reproduce/claims.csv}
 STAGED="$ROOT/reproduce/claims_campaign_staged.csv"
 T=$(mktemp "${TMPDIR:-/tmp}/staged.XXXXXX")

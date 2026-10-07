@@ -147,5 +147,18 @@ if [ "$rc" = 2 ] && [ "$rc2" = 0 ] \
     ok "a changed source refuses; a regenerated build file is allowed and counted"
 else bad "dirty check: rc $rc then $rc2"; fi
 
+# 10. Every run is bound to one NUMA node when one is named; MPI arms are not
+fresh
+if command -v numactl >/dev/null 2>&1 && numactl --cpunodebind=0 --membind=0 true 2>/dev/null; then
+    stage CAMPAIGN_DRY=1 CAMPAIGN_NUMA=0 REPS=1; rc=$?
+    L=$(ls "$OUTDIR"/runs/*/armA_r1.log | head -1)
+    if [ "$rc" = 0 ] && grep -q "^# numa_bind: 0" "$(csv)" \
+       && grep -q "^# command: numactl --cpunodebind=0 --membind=0 " "$L"; then
+        ok "runs are bound to the named NUMA node, and the header says so"
+    else bad "NUMA binding: rc $rc"; fi
+else
+    echo "skip  NUMA binding (numactl cannot bind here)"
+fi
+
 [ "$fail" = 0 ] && echo "all campaign harness checks passed"
 exit "$fail"

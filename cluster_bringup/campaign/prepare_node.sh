@@ -17,7 +17,7 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
 cd "$GENESIS_ROOT" || exit 2
 NODE=$(hostname -s)
-TAG=${CAMPAIGN_TAG:-v2.6.0-rc1}
+TAG=${CAMPAIGN_TAG:-v2.6.0-rc2}
 OUT=cluster_bringup/logs/campaign_$TAG/build_$NODE
 [ "${CAMPAIGN_DRY:-0}" = 1 ] && OUT=cluster_bringup/logs/campaign_dry/build_$NODE
 mkdir -p "$OUT"

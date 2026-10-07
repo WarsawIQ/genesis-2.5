@@ -1,7 +1,8 @@
 # Tracked files the GENESIS build rewrites or deletes (code generator, bison,
 # netcdf configure, make clean). The campaign's clean-tree check ignores them
 # and records how many changed; any other change refuses the run.
-# Found on the UMCS cluster, 2026-10-03, after 10_build.sh and 11_build_opencl.sh.
+# Found on the UMCS cluster, 2026-10-03, after 10_build.sh and 11_build_opencl.sh;
+# the four pgenesis files are rewritten by 13_build_pgenesis.sh (nxinstall).
 genesis/src/buffer/buffer_d@.c
 genesis/src/chemesis/chem_d@.c
 genesis/src/concen/concen_d@.c
@@ -29,3 +30,7 @@ genesis/src/ss/y.output
 genesis/src/ss/y.tab.c
 genesis/src/ss/y.tab.h
 genesis/src/user/user_d@.c
+pgenesis/lib/Usermake
+pgenesis/lib/pgenesis.ext
+pgenesis/src/startup/mpicmd
+pgenesis/src/startup/mpidebugcmd

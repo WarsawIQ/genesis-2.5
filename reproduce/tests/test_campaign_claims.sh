@@ -16,7 +16,7 @@ bad() { echo "FAIL  $1"; shift; [ $# -gt 0 ] && printf '%s\n' "$@"; fail=1; }
 
 mkdir -p "$T/r"
 (cd "$ROOT" && git ls-files -co --exclude-standard | tar cf - -T -) | (cd "$T/r" && tar xf -)
-CAMP="$T/r/cluster_bringup/logs/campaign_v2.6.0-rc1"
+CAMP="$T/r/cluster_bringup/logs/campaign_v2.6.0-rc2"
 python3 "$ROOT/reproduce/tests/fixtures/make_campaign_fixture.py" "$CAMP" > /dev/null
 
 # 1. an experiment whose night has not happened yet is waited for, not faked
