@@ -1,0 +1,75 @@
+# experiment: E3
+# session: inf03_20261003_232917
+# commit: be3ec7cf9f14cab1fc5ab901cab904ec6c23f5c7
+# describe: v2.6.0-rc1
+# dirty: 0
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.97 0.99 1.00
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 765 / 1410
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: t2_ocl_n500
+# rep: 1
+# command: env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 GENESIS_OCL_MULTILOOP=210 GENESIS_GPU_PRECISION=fp32 timeout 7200 ./genesis/src/nxgenesis_ocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh_multicompartment_createmap.g 500 200
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/./genesis/src/nxgenesis_ocl
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_multicompartment_createmap.g
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 63
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 67
+** Error - Error promoting '' to INT, using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 78
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 79
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 80
+** Error - CastToInt: Error casting '', using 0
+=== HH Multicompartment Benchmark ===
+Neurons:    500
+Comp/neuron: 16
+Total comps: 8000
+Steps:      200
+chanmode:   4
+
+/library
+/
+/library/cell
+/
+Building cables via createmap...
+changing clock [0] from 1 to 1e-05
+Configuring single hsolve (chanmode= 4 , N*NCOMP= 8000  comps)...
+ncompts:  8000
+time = 0.000000 ; step = 0          
+OCL: urzadzenie: NVIDIA A100-PCIE-40GB
+OCL: tryb multiloop — 210 krokow w jednym dispatchu
+OCL: gotowy (8000 kompartmentow, 88000 chips, kernele fp32)
+OCL: kernel eliminacji drzew gotowy (500 drzew)
+OCL MULTILOOP (tree): 210 krokow x 2 kernele | total 14.8 ms | 70.603 us/krok
+time = 0.002100 ; step = 210          
+completed 210 steps in 0.031991 cpu seconds
+RESULT_T_TOTAL= 0.2093250304
+RESULT_T_PER_STEP= 0.0009967858593
+RESULT_VM_FAR= -0.002736758906
+RESULT_VM_SOMA= 0.02544301748
+
+=== done: N= 500  NCOMP= 16  steps= 200  chanmode= 4  ===
+OCL MULTILOOP SUMMARY (1 hsolve state(s))
+  batch dispatched : 1 kernel call covering 210 steps
+  no-op steps      : 209 (CPU Hines identity pass-through)
+  (timing per-dispatch printed at dispatch time above)
+OCL: zasoby zwolnione

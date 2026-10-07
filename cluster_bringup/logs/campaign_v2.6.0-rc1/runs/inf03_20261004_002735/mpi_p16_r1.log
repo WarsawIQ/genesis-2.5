@@ -1,0 +1,294 @@
+# experiment: E3c
+# session: inf03_20261004_002735
+# commit: be3ec7cf9f14cab1fc5ab901cab904ec6c23f5c7
+# describe: v2.6.0-rc1
+# dirty: 0
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 1.00
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: mpi_p16
+# rep: 1
+# command: timeout 1800 /usr/lib64/mpich/bin/mpirun -np 16 pgenesis/bin/Linux/nxpgenesis -nosimrc -notty -batch genesis/Scripts/benchmark/hh1952_mpi_scaling.g 2400 16 5000 0
+In process 3 TERM is undefined.
+Starting Genesis
+In process 4 TERM is undefined.
+Starting Genesis
+In process 5 TERM is undefined.
+Starting Genesis
+In process 6 TERM is undefined.
+Starting Genesis
+In process 7 TERM is undefined.
+Starting Genesis
+In process 8 TERM is undefined.
+Starting Genesis
+In process 0 TERM is undefined.
+Starting Genesis
+In process 1 TERM is undefined.
+Starting Genesis
+In process 2 TERM is undefined.
+Starting Genesis
+In process 9 TERM is undefined.
+Starting Genesis
+In process 10 TERM is undefined.
+Starting Genesis
+In process 11 TERM is undefined.
+Starting Genesis
+In process 12 TERM is undefined.
+Starting Genesis
+In process 13 TERM is undefined.
+Starting Genesis
+In process 14 TERM is undefined.
+Starting Genesis
+In process 15 TERM is undefined.
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/pgenesis/bin/Linux/nxpgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Initializing parallel library version 1.1.1.1
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Initializing parallel library version 1.1.1.1
+Simulation Script:  genesis/Scripts/benchmark/hh1952_mpi_scaling.g
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+Initializing parallel library version 1.1.1.1
+mynode = 0, totalnodes = 16, nnodes = 16
+mynode = 2, totalnodes = 16, nnodes = 16
+mynode = 4, totalnodes = 16, nnodes = 16
+mynode = 6, totalnodes = 16, nnodes = 16
+mynode = 12, totalnodes = 16, nnodes = 16
+mynode = 14, totalnodes = 16, nnodes = 16
+mynode = 15, totalnodes = 16, nnodes = 16
+mynode = 11, totalnodes = 16, nnodes = 16
+mynode = 1, totalnodes = 16, nnodes = 16
+/library
+/library
+/library
+/library
+/library
+/library
+/library
+/library
+/library
+mynode = 10, totalnodes = 16, nnodes = 16
+/
+/
+/
+/
+mynode = 7, totalnodes = 16, nnodes = 16
+/
+mynode = 5, totalnodes = 16, nnodes = 16
+mynode = 3, totalnodes = 16, nnodes = 16
+/library
+mynode = 9, totalnodes = 16, nnodes = 16
+mynode = 13, totalnodes = 16, nnodes = 16
+mynode = 8, totalnodes = 16, nnodes = 16
+/library
+/
+/library
+/
+/library
+/
+/library
+/
+/library
+/library
+/
+/
+/
+/
+/
+/
+/
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+changing clock [0] from 1 to 1e-05
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.000000 ; step = 0          
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018075 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018055 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018071 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018050 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018091 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.017446 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018121 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018149 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018146 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.017929 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.017520 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.018196 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.039243 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.040042 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.039350 cpu seconds
+time = 0.050000 ; step = 5000          
+completed 5000 steps in 0.040185 cpu seconds
+PGENESIS_DONE

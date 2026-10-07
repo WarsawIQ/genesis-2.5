@@ -1,0 +1,10 @@
+run,file,spikes,rate_hz,isi_mean_ms,isi_cv,isi_median_ms,isi_p05_ms,isi_p95_ms,vs,identical,first_divergence_s,spikes_identical_before,count_diff_pct,ks_isi,cell_count_corr
+cpu_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/cpu/spikes_r1.txt,1087089,27.1772,32.8432,4.6280,7.3500,5.0500,126.2000,cpu_r1,yes,,1087089,0.0000,0.00000,1.00000
+cpu_r2,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/cpu/spikes_r2.txt,1087089,27.1772,32.8432,4.6280,7.3500,5.0500,126.2000,cpu_r1,yes,,1087089,0.0000,0.00000,1.00000
+cpu_r3,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/cpu/spikes_r3.txt,1087089,27.1772,32.8432,4.6280,7.3500,5.0500,126.2000,cpu_r1,yes,,1087089,0.0000,0.00000,1.00000
+g32_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g32/spikes_r1.txt,1090251,27.2563,33.2016,4.7220,7.3500,5.0500,126.3500,cpu_r1,no,0.000050,0,0.2909,0.00185,0.99197
+g32_r2,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g32/spikes_r2.txt,1090251,27.2563,33.2016,4.7220,7.3500,5.0500,126.3500,cpu_r1,no,0.000050,0,0.2909,0.00185,0.99197
+g32_r3,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g32/spikes_r3.txt,1090251,27.2563,33.2016,4.7220,7.3500,5.0500,126.3500,cpu_r1,no,0.000050,0,0.2909,0.00185,0.99197
+g64_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g64/spikes_r1.txt,1091920,27.2980,33.5303,4.8176,7.3500,5.0500,129.3500,cpu_r1,no,0.000050,0,0.4444,0.00242,0.99137
+g64_r2,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g64/spikes_r2.txt,1091920,27.2980,33.5303,4.8176,7.3500,5.0500,129.3500,cpu_r1,no,0.000050,0,0.4444,0.00242,0.99137
+g64_r3,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g64/spikes_r3.txt,1091920,27.2980,33.5303,4.8176,7.3500,5.0500,129.3500,cpu_r1,no,0.000050,0,0.4444,0.00242,0.99137

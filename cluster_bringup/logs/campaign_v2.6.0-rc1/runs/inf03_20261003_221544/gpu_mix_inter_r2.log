@@ -1,0 +1,65 @@
+# experiment: E7
+# session: inf03_20261003_221544
+# commit: be3ec7cf9f14cab1fc5ab901cab904ec6c23f5c7
+# describe: v2.6.0-rc1
+# dirty: 0
+# build_generated_changed: 27
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 1.05
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 1410 / 1410
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: gpu_mix_inter
+# rep: 2
+# command: env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=8 GENESIS_CUDA_MULTILOOP=2010 GENESIS_GPU_PRECISION=fp32 GENESIS_BENCH_NCOMP_MIX_A=8 GENESIS_BENCH_NCOMP_MIX_B=64 GENESIS_BENCH_MIX_ORDER=0 timeout 7200 ./genesis/src/nxgenesis -nosimrc -notty -batch genesis/Scripts/benchmark/hh_multicompartment_createmap.g 10000 2000
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/./genesis/src/nxgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_multicompartment_createmap.g
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 63
+** Error - CastToInt: Error casting '', using 0
+<genesis/Scripts/benchmark/hh_multicompartment_createmap.g> line 67
+** Error - Error promoting '' to INT, using 0
+=== HH Multicompartment Benchmark ===
+Neurons:    10000
+Comp/neuron: 8,64
+Total comps: 360000
+Steps:      2000
+chanmode:   4
+
+/library
+/
+/library/cell
+/
+Building mixed cables ( 8,64 , order  0 ) by copy...
+changing clock [0] from 1 to 1e-05
+Configuring single hsolve (chanmode= 4 , N*NCOMP= 360000  comps)...
+ncompts:  360000
+time = 0.000000 ; step = 0          
+CUDA: device: NVIDIA A100-PCIE-40GB (sm_80, 108 SMs)
+CUDA: graph dispatch: tree loop on, per-step off
+CUDA: ready (360000 compartments, 3960000 chips, fp32 kernels)
+CUDA: multiloop mode -- 2010 steps per dispatch
+CUDA: tree-elimination kernel ready (10000 trees)
+CUDA MULTILOOP (tree): 2010 steps x 2 kernels | total 552.5 ms | 274.874 us/step
+time = 0.020100 ; step = 2010          
+completed 2010 steps in 0.606504 cpu seconds
+RESULT_T_TOTAL= 0.7825021744
+RESULT_T_PER_STEP= 0.0003893045644
+RESULT_VM_FAR= -0.07705426216
+RESULT_VM_SOMA= -0.07295959443
+
+=== done: N= 10000  NCOMP= 8,64  steps= 2000  chanmode= 4  ===
