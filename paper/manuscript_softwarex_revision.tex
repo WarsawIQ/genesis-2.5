@@ -291,7 +291,7 @@ the CPU solver (E3, 10 replicates).}
 
 \begin{figure}[!h]
 \centering
-\pending{fig_trees}
+\includegraphics[width=\textwidth]{figures/fig_trees.pdf}
 \caption{Dendritic trees, $N\times16$ compartments, 200 steps: speedup over the CPU
 solver, end to end and step phase, on the A40 and A100 (E3).}
 \label{fig:trees}
@@ -299,7 +299,7 @@ solver, end to end and step phase, on the A40 and A100 (E3).}
 
 \begin{figure}[!h]
 \centering
-\pending{fig_runlength}
+\includegraphics[width=0.62\textwidth]{figures/fig_runlength.pdf}
 \caption{End-to-end speedup against run length, $10\,000\times16$ compartments, fp32
 and fp64, both cards (E2).}
 \label{fig:runlength}
@@ -334,7 +334,7 @@ interleaved).}
 
 \begin{figure}[!h]
 \centering
-\pending{fig_crossover}
+\includegraphics[width=\textwidth]{figures/fig_crossover.pdf}
 \caption{GENESIS and Arbor on the same GPU against run length, GENESIS in fp32 and fp64
 (E4).}
 \label{fig:crossover}
@@ -421,9 +421,11 @@ and would serve any computational paper.
 
 \begin{figure}[!h]
 \centering
-\pending{fig_construction}
-\caption{Model construction time against model size before and after the fix
-(E3c; the ``before'' curve is the code before the fix, measured in August 2026).}
+\includegraphics[width=0.62\textwidth]{figures/fig_construction.pdf}
+\caption{Model construction time against model size: GENESIS~2.4 before the fixes
+(measured on a laptop in August 2026; the code is no longer in the release) and
+v2.6.0 on inf03 (E3c, 3 replicates). The two curves come from different machines, so
+compare their slopes, not their heights.}
 \label{fig:construction}
 \end{figure}
 

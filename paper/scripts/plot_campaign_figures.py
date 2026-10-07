@@ -35,6 +35,15 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, LogLocator
+
+
+def plain_log(ax, axis="y"):
+    """Log axis with ticks written as plain numbers (2, 5, 10), not 2x10^0."""
+    a = ax.yaxis if axis == "y" else ax.xaxis
+    a.set_major_locator(LogLocator(base=10, subs=(1, 2, 5)))
+    a.set_minor_formatter(FuncFormatter(lambda v, _: ""))
+    a.set_major_formatter(FuncFormatter(lambda v, _: ("%g" % v)))
 
 INK = "#222222"
 CARD_COLOR = {"A40": "#1e7f4f", "A100": "#345995"}
@@ -135,6 +144,7 @@ def fig_trees(sessions, dest):
                     errplot(ax, s, "%s %s" % (c, tag), CARD_COLOR.get(c, INK), ls=ls)
         ax.set_xscale("log")
         ax.set_yscale("log")
+        plain_log(ax)
         ax.set_xlabel("neurons ($\\times$16 compartments)")
         ax.set_title(title, fontsize=9)
     axes[0].set_ylabel("speedup over the CPU solver")
@@ -159,6 +169,7 @@ def fig_crossover(sessions, dest):
                     errplot(ax, s, tag, color, ls=ls)
         ax.set_xscale("log")
         ax.set_yscale("log")
+        plain_log(ax)
         ax.set_xlabel("simulation steps $K$")
         ax.set_title(c, fontsize=9)
         ax.legend(frameon=False, fontsize=8)
@@ -176,11 +187,12 @@ def fig_construction(sessions, before_csv, dest):
                 if r["variant"] == "before":
                     acc.setdefault(int(r["ncompts"]), []).append(float(r["total_wallclock_s"]))
         errplot(ax, {k: stats(v) for k, v in sorted(acc.items())},
-                "before the fixes (August 2026)", "#8a8f98", ls="--", marker="s")
+                "GENESIS 2.4, before the fixes (laptop, August 2026)", "#8a8f98", ls="--", marker="s")
     for head, rows in sessions:
         s = arm_series(rows, r"con_n(\d+)$")
         s17 = {k * 17: v for k, v in s.items()}   # 17 compartments per cell
-        errplot(ax, s17, "v2.6.0 (%s)" % head.get("node", "?"), CARD_COLOR["A100"])
+        errplot(ax, s17, "%s (%s)" % (head.get("describe", "v2.6.0"), head.get("node", "?")),
+                CARD_COLOR["A100"])
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("compartments")
