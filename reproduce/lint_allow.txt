@@ -25,3 +25,5 @@ Radeon[~ ]█890█M	# a product name
 tested █\d+(\.\d+)*█	# a tested software version
 trees of █\d+█ and \d+|trees of \d+ and █\d+█	# tree sizes of a test population, a model parameter
 about █\d+█ minutes|claims, █\d+█ for the	# how long the reproduction pack runs, documented in run_all.sh
+^\s*█\d+(\\,\d{3})?█ &	# a table row label: the model size of that row
+& █1█ \\\\|below █1█ is	# the reference arm of a relative column, 1 by definition

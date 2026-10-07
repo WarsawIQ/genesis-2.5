@@ -283,7 +283,16 @@ on the A100, and double precision costs \claim{e2_fp64_cost_a40}$\times$ and
 
 \begin{table}[!h]
 \centering\small
-\pending{tab_single}
+\begin{tabular}{rcccc}
+\toprule
+ & \multicolumn{2}{c}{NVIDIA A40} & \multicolumn{2}{c}{NVIDIA A100} \\
+$N$ & CUDA & OpenCL & CUDA & OpenCL \\
+\midrule
+500 & \claim{e3_t1_cuda_a40_n500}\,$\pm$\,\claim{e3_t1_cuda_a40_n500_sd} & \claim{e3_t1_ocl_a40_n500}\,$\pm$\,\claim{e3_t1_ocl_a40_n500_sd} & \claim{e3_t1_cuda_a100_n500}\,$\pm$\,\claim{e3_t1_cuda_a100_n500_sd} & \claim{e3_t1_ocl_a100_n500}\,$\pm$\,\claim{e3_t1_ocl_a100_n500_sd} \\
+5\,000 & \claim{e3_t1_cuda_a40_n5000}\,$\pm$\,\claim{e3_t1_cuda_a40_n5000_sd} & \claim{e3_t1_ocl_a40_n5000}\,$\pm$\,\claim{e3_t1_ocl_a40_n5000_sd} & \claim{e3_t1_cuda_a100_n5000}\,$\pm$\,\claim{e3_t1_cuda_a100_n5000_sd} & \claim{e3_t1_ocl_a100_n5000}\,$\pm$\,\claim{e3_t1_ocl_a100_n5000_sd} \\
+50\,000 & \claim{e3_t1_cuda_a40_n50000}\,$\pm$\,\claim{e3_t1_cuda_a40_n50000_sd} & \claim{e3_t1_ocl_a40_n50000}\,$\pm$\,\claim{e3_t1_ocl_a40_n50000_sd} & \claim{e3_t1_cuda_a100_n50000}\,$\pm$\,\claim{e3_t1_cuda_a100_n50000_sd} & \claim{e3_t1_ocl_a100_n50000}\,$\pm$\,\claim{e3_t1_ocl_a100_n50000_sd} \\
+\bottomrule
+\end{tabular}
 \caption{Single-compartment network, $K=50\,000$ steps: speedup of each backend over
 the CPU solver (E3, 10 replicates).}
 \label{tab:single}
@@ -325,10 +334,25 @@ the linear solve dominates, \pending{e6_shares_genesis_tree} against
 
 \begin{table}[!h]
 \centering\small
-\pending{tab_sim}
+\begin{tabular}{llrr}
+\toprule
+Simulator & Hardware & Wall time (s) & Relative \\
+\midrule
+GENESIS 2.5, one solver per cell (as published) & CPU & \claim{e1_g_cpu_pub_s}\,$\pm$\,\claim{e1_g_cpu_pub_s_sd} & \claim{e1_g_cpu_pub_rel} \\
+GENESIS 2.5, one solver per layer & CPU & \claim{e1_g_cpu_1s_s}\,$\pm$\,\claim{e1_g_cpu_1s_s_sd} & 1 \\
+GENESIS 2.5, one solver per layer, fp32 & A100 & \claim{e1_g_gpu32_1s_s}\,$\pm$\,\claim{e1_g_gpu32_1s_s_sd} & \claim{e1_g_gpu32_1s_rel} \\
+GENESIS 2.5, one solver per layer, fp64 & A100 & \claim{e1_g_gpu64_1s_s}\,$\pm$\,\claim{e1_g_gpu64_1s_s_sd} & \claim{e1_g_gpu64_1s_rel} \\
+NEURON 9.0.2, NMODL channels & CPU & \claim{e1_nrn_cpu_s}\,$\pm$\,\claim{e1_nrn_cpu_s_sd} & \claim{e1_nrn_cpu_rel} \\
+NEURON 9.0.2, ChannelBuilder channels & CPU & \claim{e1_nrn_cb_cpu_s}\,$\pm$\,\claim{e1_nrn_cb_cpu_s_sd} & \claim{e1_nrn_cb_cpu_rel} \\
+CoreNEURON 9.0.2 & CPU & \claim{e1_cn_cpu_s}\,$\pm$\,\claim{e1_cn_cpu_s_sd} & \claim{e1_cn_cpu_rel} \\
+CoreNEURON 9.0.2 & A100 & \claim{e1_cn_gpu_s}\,$\pm$\,\claim{e1_cn_gpu_s_sd} & \claim{e1_cn_gpu_rel} \\
+Arbor 0.10.0 & A100 & \claim{e1_arbor_gpu_s}\,$\pm$\,\claim{e1_arbor_gpu_s_sd} & \claim{e1_arbor_gpu_rel} \\
+\bottomrule
+\end{tabular}
 \caption{Vogels--Abbott COBAHH network~\cite{vogels2005signal,brette2007simulation},
 4000 cells, 5\,s: wall time of every arm in one session on inf03 (E1, 5 replicates,
-interleaved).}
+interleaved). Relative: wall time over that of GENESIS with one solver per layer on
+the CPU; below 1 is faster.}
 \label{tab:sim}
 \end{table}
 
