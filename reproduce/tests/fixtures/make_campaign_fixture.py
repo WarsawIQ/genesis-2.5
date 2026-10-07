@@ -10,7 +10,8 @@ staged claims have known expected values (asserted in
 reproduce/tests/test_campaign_claims.sh):
 
     e2_max_e2e_a40 = 62.5     e2_max_e2e_a100 = 83.3
-    e2_fp64_cost_a40 = 1.30   e4_crossover_k_a40 = 1000 (fp64: 4000)
+    e2_fp64_cost_a40 = 1.30   e4_crossover_k_a40 = 2000
+    e4_fp64_over_arbor_a40 = 31.3/25.6 = 1.22 (fp64 never crosses Arbor)
     e7_inter_over_uniform = 1.30, block 1.05, cpu control 1.00
     e8 tree gain at K=5000 = 5%, spiking gain = 0.42%
     e3c exponent = 1.00, construction_1700k_s = 10.0
@@ -59,9 +60,9 @@ def main(d):
                for p, w, m in (("t2_cpu_n%d", 6.0, 5.0), ("t2_cuda_n%d", 1.5 * f, 0.1 * f),
                                ("t2_ocl_n%d", 1.7 * f, 0.12 * f))])
         write(d, "E4", node, gpu,
-              [(p % k, a + b * k * f, 0) for k in (1000, 5000, 20000)
-               for p, a, b in (("g32_k%d", 1.2, 0.0002), ("g64_k%d", 1.3, 0.0004),
-                               ("arb_k%d", 0.9, 0.0005))])
+              [(p % k, a + b * k * f, 0) for k in (1000, 5000, 20000, 50000)
+               for p, a, b in (("g32_k%d", 1.2, 0.0002), ("g64_k%d", 1.3, 0.0006),
+                               ("arb_k%d", 0.6, 0.0005))])
         write(d, "E8", node, gpu,
               [("tree_k5000_g0", 4.2, 0), ("tree_k5000_g1", 4.0, 0),
                ("tree_k50000_g0", 8.24, 0), ("tree_k50000_g1", 8.0, 0),

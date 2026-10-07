@@ -123,12 +123,24 @@ def _arm_xy(c, extra):
 
 
 def crossover(c):
-    """x at which the fitted lines of arms num and den cross."""
-    a1, b1 = _fit(*_arm_xy(c, c["num"]))
-    a2, b2 = _fit(*_arm_xy(c, c["den"]))
+    """x at which the fitted lines of arms num and den cross.
+
+    Refuses a crossing outside the measured range of x: that is an
+    extrapolation, not a measurement, and a crossing at negative x means the
+    two arms never cross at all (one is slower at every length measured).
+    """
+    x1, y1 = _arm_xy(c, c["num"])
+    x2, y2 = _arm_xy(c, c["den"])
+    a1, b1 = _fit(x1, y1)
+    a2, b2 = _fit(x2, y2)
     if b1 == b2:
         raise ExtractError("parallel lines never cross")
-    return (a2 - a1) / (b1 - b2)
+    x = (a2 - a1) / (b1 - b2)
+    lo, hi = min(x1 + x2), max(x1 + x2)
+    if not lo <= x <= hi:
+        raise ExtractError("the lines cross at x = %.4g, outside the measured range "
+                           "%g-%g: no crossover was measured" % (x, lo, hi))
+    return x
 
 
 def intercept(c):

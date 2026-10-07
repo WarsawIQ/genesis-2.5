@@ -17,12 +17,18 @@ bad() { echo "FAIL  $1"; shift; [ $# -gt 0 ] && printf '%s\n' "$@"; fail=1; }
 mkdir -p "$T/r"
 (cd "$ROOT" && git ls-files -co --exclude-standard | tar cf - -T -) | (cd "$T/r" && tar xf -)
 CAMP="$T/r/cluster_bringup/logs/campaign_v2.6.0-rc2"
+# Start from the state before any campaign data: the copy may already hold the
+# real sessions and their staged rows, which the fixture would collide with.
+rm -rf "$CAMP"
+cut -d, -f1 "$T/r/reproduce/claims_campaign_staged.csv" | tail -n +2 | sed "s/^/^/; s/$/,/" > "$T/staged_ids"
+grep -v -f "$T/staged_ids" "$T/r/reproduce/claims.csv" > "$T/claims" || true
+mv "$T/claims" "$T/r/reproduce/claims.csv"
 python3 "$ROOT/reproduce/tests/fixtures/make_campaign_fixture.py" "$CAMP" > /dev/null
 
 # 1. an experiment whose night has not happened yet is waited for, not faked
 mkdir -p "$T/hold"; mv "$CAMP"/E7_*.csv "$T/hold/"
 out=$(cd "$T/r" && sh reproduce/stage_campaign_claims.sh)
-if echo "$out" | grep -q "waiting for data: E7_INF03" && echo "$out" | grep -q "^added 2[0-9] claim rows"; then
+if echo "$out" | grep -q "waiting for data: E7_INF03" && echo "$out" | grep -q "^added [12][0-9] claim rows"; then
     ok "staging without E7: the rest lands, E7 is reported as waiting"
 else bad "partial staging" "$out"; fi
 (cd "$T/r" && python3 reproduce/make_numbers.py > "$T/out" 2>&1) \
@@ -31,7 +37,7 @@ else bad "partial staging" "$out"; fi
 # 2. the missing experiment arrives; only its rows are added
 mv "$T/hold"/* "$CAMP"/
 out=$(cd "$T/r" && sh reproduce/stage_campaign_claims.sh)
-if echo "$out" | grep -q "^added 3 claim rows, 2[0-9] already present$"; then
+if echo "$out" | grep -q "^added 3 claim rows, [12][0-9] already present$"; then
     ok "the late experiment adds exactly its own rows"
 else bad "late staging" "$out"; fi
 (cd "$T/r" && python3 reproduce/make_numbers.py > /dev/null 2>&1) || bad "make_numbers after E7"
@@ -47,8 +53,8 @@ check() {   # id, expected, relative tolerance %
 check e2_max_e2e_a40 62.5 10
 check e2_max_e2e_a100 83.3 10
 check e2_fp64_cost_a40 1.30 6
-check e4_crossover_k_a40 1000 20
-check e4_crossover_k_fp64_a40 4000 20
+check e4_crossover_k_a40 2000 20
+check e4_fp64_over_arbor_a40 1.22 6
 check e7_inter_over_uniform 1.30 6
 check e7_cpu_inter_over_uniform 1.00 6
 check e8_gain_tree_k5000_a100 5.0 60

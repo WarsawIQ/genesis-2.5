@@ -51,6 +51,19 @@ cp "$T/r/cluster_bringup/logs/opencl_cluster_20260818.csv" "$T/r/cluster_bringup
 sed -i 's|cluster_bringup/logs/opencl_cluster_20260818.csv|cluster_bringup/logs/campaign_dry/x.csv|' "$T/r/reproduce/claims.csv"
 expect_fail "data from a campaign dry run" "from a campaign dry run"
 
+# a crossover outside the measured range is an extrapolation, and refused
+fresh
+python3 - "$T/r/xo.csv" <<'PY'
+import sys
+with open(sys.argv[1], "w") as f:
+    f.write("family,k,wall_s\n")
+    for k in (1000, 5000, 20000):          # slow is slower at every k: no crossing
+        f.write("fast,%d,%.3f\nslow,%d,%.3f\n" % (k, 1.0 + 1e-4 * k, k, 1.5 + 2e-4 * k))
+PY
+printf 'bad_crossover,test,measured,steps,%%.0f,crossover,xo.csv,,family=slow,family=fast,k,wall_s,,s1,x.sh,none,1,10,,\n' \
+    >> "$T/r/reproduce/claims.csv"
+expect_fail "crossover outside the measured range" "bad_crossover: the lines cross at x = .*outside the measured range"
+
 fresh
 if (cd "$T/r" && python3 reproduce/make_numbers.py --strict > "$T/out" 2>&1); then
     echo "ok    --strict passes (no prose claims left)"

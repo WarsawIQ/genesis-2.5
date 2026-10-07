@@ -7,12 +7,10 @@ e2_fp64_cost_a40,sec:3,measured,x,%.2f,ratio,{{E2_INF02}},k=10000,family=g64,fam
 e2_fp64_cost_a100,sec:3,measured,x,%.2f,ratio,{{E2_INF03}},k=10000,family=g64,family=g32,,wall_s,,{{S:E2_INF03}},cluster_bringup/campaign/E2_ksweep.sh,a100,60,15,,
 e4_crossover_k_a40,sec:3,measured,steps,%.0f,crossover,{{E4_INF02}},,family=g32,family=arb,k,wall_s,,{{S:E4_INF02}},cluster_bringup/campaign/E4_fp64_cost.sh,a40,25,40,,where GENESIS fp32 and Arbor cross in run length
 e4_crossover_ms_a40,sec:3;fig:crossover,derived,ms,%.0f,e4_crossover_k_a40 / 100,,,,,,,e4_crossover_k_a40,,,a40,,40,,dt is 10 us so 100 steps are 1 ms
-e4_crossover_k_fp64_a40,sec:3,measured,steps,%.0f,crossover,{{E4_INF02}},,family=g64,family=arb,k,wall_s,,{{S:E4_INF02}},cluster_bringup/campaign/E4_fp64_cost.sh,a40,25,40,,both sides in double precision
-e4_crossover_ms_fp64_a40,sec:3,derived,ms,%.0f,e4_crossover_k_fp64_a40 / 100,,,,,,,e4_crossover_k_fp64_a40,,,a40,,40,,
+e4_fp64_over_arbor_a40,sec:3;fig:crossover,measured,x,%.2f,ratio,{{E4_INF02}},k=50000,family=g64,family=arb,,wall_s,,{{S:E4_INF02}},cluster_bringup/campaign/E4_fp64_cost.sh,a40,25,15,,GENESIS fp64 over Arbor at the longest run; >1 means Arbor is faster. In double precision the two never cross: Arbor is faster at every length measured
 e4_crossover_k_a100,sec:3,measured,steps,%.0f,crossover,{{E4_INF03}},,family=g32,family=arb,k,wall_s,,{{S:E4_INF03}},cluster_bringup/campaign/E4_fp64_cost.sh,a100,25,40,,
 e4_crossover_ms_a100,sec:3;fig:crossover,derived,ms,%.0f,e4_crossover_k_a100 / 100,,,,,,,e4_crossover_k_a100,,,a100,,40,,
-e4_crossover_k_fp64_a100,sec:3,measured,steps,%.0f,crossover,{{E4_INF03}},,family=g64,family=arb,k,wall_s,,{{S:E4_INF03}},cluster_bringup/campaign/E4_fp64_cost.sh,a100,25,40,,
-e4_crossover_ms_fp64_a100,sec:3,derived,ms,%.0f,e4_crossover_k_fp64_a100 / 100,,,,,,,e4_crossover_k_fp64_a100,,,a100,,40,,
+e4_fp64_over_arbor_a100,sec:3;fig:crossover,measured,x,%.2f,ratio,{{E4_INF03}},k=50000,family=g64,family=arb,,wall_s,,{{S:E4_INF03}},cluster_bringup/campaign/E4_fp64_cost.sh,a100,25,15,,GENESIS fp64 over Arbor at the longest run; >1 means Arbor is faster. In double precision the two never cross: Arbor is faster at every length measured
 e7_inter_over_uniform,sec:2,measured,x,%.2f,ratio,{{E7_INF03}},,family=gpu_mix_inter,family=gpu_uni36,,metric_value,,{{S:E7_INF03}},cluster_bringup/campaign/E7_imbalance.sh,a100,30,20,,step phase; mixed 8/64 trees in every warp against uniform 36
 e7_block_over_uniform,sec:2,measured,x,%.2f,ratio,{{E7_INF03}},,family=gpu_mix_block,family=gpu_uni36,,metric_value,,{{S:E7_INF03}},cluster_bringup/campaign/E7_imbalance.sh,a100,30,20,,the same trees grouped by size
 e7_cpu_inter_over_uniform,sec:2,measured,x,%.2f,ratio,{{E7_INF03}},,family=cpu_mix_inter,family=cpu_uni36,,metric_value,,{{S:E7_INF03}},cluster_bringup/campaign/E7_imbalance.sh,a100,30,15,,control: the CPU must see the same work (ratio near 1)
