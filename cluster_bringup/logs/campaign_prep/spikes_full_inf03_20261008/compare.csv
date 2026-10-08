@@ -1,0 +1,4 @@
+run,file,spikes,rate_hz,isi_mean_ms,isi_cv,isi_median_ms,isi_p05_ms,isi_p95_ms,vs,identical,first_divergence_s,spikes_identical_before,count_diff_pct,ks_isi,cell_count_corr
+cpu,cluster_bringup/logs/campaign_prep/spikes_full_inf03_20261008/cpu.txt.gz,545371,27.2685,31.0768,3.9131,7.3500,5.0500,124.2000,cpu,yes,,545371,0.0000,0.00000,1.00000
+cuda64,cluster_bringup/logs/campaign_prep/spikes_full_inf03_20261008/cuda64.txt.gz,553896,27.6948,30.6937,3.9376,7.3000,5.0500,123.6000,cpu,no,0.002650,236,1.5632,0.00551,0.98883
+cuda32,cluster_bringup/logs/campaign_prep/spikes_full_inf03_20261008/cuda32.txt.gz,547155,27.3577,31.2364,3.9628,7.3500,5.0500,125.9175,cpu,no,0.002650,236,0.3271,0.00180,0.98586

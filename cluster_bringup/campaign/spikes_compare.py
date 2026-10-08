@@ -22,6 +22,7 @@ Writes one row per file to out.csv and prints a table. Plain Python 3.6.
 """
 
 import csv
+import gzip
 import math
 import sys
 
@@ -30,7 +31,8 @@ TOL_S = 25e-6   # half of dt = 0.05 ms
 
 def load(path):
     spikes = []
-    with open(path) as f:
+    opener = gzip.open if path.endswith(".gz") else open
+    with opener(path, "rt") as f:
         for line in f:
             p = line.split()
             if len(p) >= 2:
