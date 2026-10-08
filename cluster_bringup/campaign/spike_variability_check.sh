@@ -28,7 +28,7 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 cd "$GENESIS_ROOT" || exit 2
 TMAX=${TMAX:-4.95}
 SEEDS=${SEEDS:-1 2 3 4}
-OUT=cluster_bringup/logs/campaign_prep/spike_variability_$(hostname -s)_$(date +%Y%m%d_%H%M%S)
+OUT=$GENESIS_ROOT/cluster_bringup/logs/campaign_prep/spike_variability_$(hostname -s)_$(date +%Y%m%d_%H%M%S)
 mkdir -p "$OUT"
 W=$RUN_DIR/spike_variability; rm -rf "$W"; mkdir -p "$W"
 BIN=$GENESIS_ROOT/genesis/src/nxgenesis_nocl
