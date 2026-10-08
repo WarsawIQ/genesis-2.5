@@ -64,6 +64,15 @@ float out_dt = 0.0001   // output every 0.1 msec (also used to clock input)
 // int seed = 0  // Simulation will give different random numbers each time
 int seed = 1404706052 // This is to insure that it will reproduce the results
                       // Change to explore effect of different randomizations
+/* GENESIS_VANET2_SEED, when set and non-zero, replaces the seed: a different
+** draw of the connections and of the random input spikes (weights and delays
+** are fixed). A different seed is a different network. Unset, the published
+** seed stands. */
+int e_seed = {getenv GENESIS_VANET2_SEED}
+if ({e_seed} != 0)
+    seed = {e_seed}
+    echo "VAnet2 seed: " {seed}
+end
 if (use_sprng)
     setrand -sprng
 end
