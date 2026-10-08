@@ -1053,6 +1053,15 @@ int ocl_chip_update(Hsolve *hsolve)
  * (findsolvefield, HGET itp.). Nie musisz wywolywac po kazdym kroku —
  * wystarczy przed momentem, gdy CPU potrzebuje aktualnych wartosci.
  */
+/* After RESET the host's chip[] is the truth: the next step uploads it
+   instead of trusting the device's copy (until 2026-10-08 it never did, so a
+   model run twice restarted from where the first run ended). */
+void ocl_invalidate(Hsolve *hsolve)
+{
+    OclHsolveState *st = (OclHsolveState *)hsolve->accel_state;
+    if (st) st->chip_on_gpu = 0;
+}
+
 void ocl_sync_chip(Hsolve *hsolve)
 {
     OclHsolveState *st = (OclHsolveState *)hsolve->accel_state;

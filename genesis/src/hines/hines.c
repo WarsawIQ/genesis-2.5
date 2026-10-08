@@ -95,6 +95,8 @@ static char rcsid[] = "$Id: hines.c,v 1.4 2006/01/10 08:59:01 svitak Exp $";
 #define ACCEL_CHIP_UPDATE cuda_chip_update
 #elif defined(USE_OPENCL)
 #define ACCEL_CHIP_UPDATE ocl_chip_update
+extern void ocl_sync_chip(Hsolve *hsolve);
+extern void ocl_invalidate(Hsolve *hsolve);
 #endif
 
 /* We would like to acknowlege the advice of Dr. Michael Mascagni
@@ -334,6 +336,8 @@ Action	*action;
 #ifdef USE_CUDA
 			/* the device's vm and chip copies are stale now */
 			cuda_invalidate(hsolve);
+#elif defined(USE_OPENCL)
+			ocl_invalidate(hsolve);
 #endif
 			if (hsolve->readflag==HDUPLICATE_T) copychipdiags(hsolve);
 			if (hsolve->ndiffs) {
@@ -518,6 +522,14 @@ Action	*action;
 		    ErrorMessage("Solver","HPUT/HGET cannot find element.",hsolve);
 		    return(FAILURE);
 		}
+		/* The accelerator may hold the current state: bring it to the
+		** host first. Syncing also hands ownership back to the host, so
+		** whatever HPUT writes is uploaded at the next step. */
+#ifdef USE_CUDA
+		cuda_sync_chip(hsolve);
+#elif defined(USE_OPENCL)
+		if (hsolve->accel_state) ocl_sync_chip(hsolve);
+#endif
 		if (action->type == HPUT) {
 		    hput_elm(hsolve,comptno,cindex);
 		} else {

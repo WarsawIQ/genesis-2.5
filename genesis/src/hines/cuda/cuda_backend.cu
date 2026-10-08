@@ -888,6 +888,17 @@ void cuda_backend_set_last_batch_time(void *sth, double t)
 { CudaState *st = (CudaState *)sth; if (st) st->last_batch_time = t; }
 
 
+/* Bring the device's vm[] to the host when the device owns it (solve on the
+   device); the next step uploads the host's copy again. */
+void cuda_backend_sync_vm(void *sth, double *vm_out)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st || !st->initialized || !st->solve_on_device || !st->vm_on_gpu) return;
+    cudaMemcpy(st->f_vm, st->d_vm, st->ncompts * st->esz, cudaMemcpyDeviceToHost);
+    g2d(st, st->f_vm, vm_out, st->ncompts);
+    st->vm_on_gpu = 0;
+}
+
 /* The host has rewritten vm[] and chip[] (RESET): the next step uploads both
    instead of trusting the device's copies. */
 void cuda_backend_invalidate(void *sth)

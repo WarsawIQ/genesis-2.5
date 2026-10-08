@@ -104,6 +104,7 @@ extern OclDeviceState ocl_dev;
 int  ocl_init(Hsolve *hsolve);
 int  ocl_chip_update(Hsolve *hsolve);
 void ocl_sync_chip(Hsolve *hsolve); /* download chip[] to CPU on demand */
+void ocl_invalidate(Hsolve *hsolve); /* after RESET: re-upload chip */
 void ocl_cleanup(void);
 
 #endif /* USE_OPENCL */

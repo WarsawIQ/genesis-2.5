@@ -601,6 +601,7 @@ int cuda_chip_update(Hsolve *hsolve)
 }
 
 extern void cuda_backend_invalidate(void *sth);
+extern void cuda_backend_sync_vm(void *sth, double *vm_out);
 
 /* After RESET the host's vm[] and chip[] are the truth; the device copies are
    replaced at the next step. */
@@ -612,8 +613,11 @@ void cuda_invalidate(Hsolve *hsolve)
 
 void cuda_sync_chip(Hsolve *hsolve)
 {
+    if (!hsolve->accel_state) return;
     if (cuda_backend_chip_on_gpu(hsolve->accel_state))
         cuda_backend_sync_chip(hsolve->accel_state, hsolve->chip);
+    /* with the solve on the device, vm[] lives there too */
+    cuda_backend_sync_vm(hsolve->accel_state, hsolve->vm);
 }
 
 void cuda_cleanup(void)

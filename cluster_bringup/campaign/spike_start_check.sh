@@ -57,7 +57,7 @@ for a in "cpu nxgenesis_nocl" "cuda32 nxgenesis GENESIS_GPU_PRECISION=fp32" \
          "cuda64 nxgenesis GENESIS_GPU_PRECISION=fp64" "ocl32 nxgenesis_ocl GENESIS_GPU_PRECISION=fp32"; do
     set -- $a
     [ -x "genesis/src/$2" ] || continue
-    r=$(env $3 timeout 600 ./genesis/src/$2 -nosimrc -notty -batch \
+    r=$(env ${3:-} timeout 600 ./genesis/src/$2 -nosimrc -notty -batch \
         genesis/Scripts/benchmark/hh_reset_rerun_check.g 8 300 </dev/null 2>&1 \
         | grep -E "^RESET_RERUN" | tr '\n' ' ')
     printf '%-10s %s\n' "$1" "${r:-NO RESULT}" >> "$OUT"
