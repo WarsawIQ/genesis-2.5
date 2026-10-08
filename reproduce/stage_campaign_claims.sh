@@ -7,7 +7,8 @@
 #
 # reproduce/claims_campaign_staged.csv holds the claim rows written before the
 # campaign, with {{E2_INF02}}-style placeholders where the session file's name
-# belongs (the name carries the session's timestamp, unknown until it runs).
+# belongs (the name carries the session's timestamp, unknown until it runs);
+# {{SPK:E5_INF03}} names that session's spike comparison (spikes_compare.py).
 # This script finds each experiment's session CSV under the campaign folder,
 # derives its tidy table (cluster_bringup/campaign/tidy.py), substitutes the
 # paths and session ids, and appends the rows whose data exist to
@@ -25,7 +26,7 @@ trap 'rm -f "$T" "$T.sed"' EXIT
 
 : > "$T.sed"
 missing=""
-for tok in $(grep -o '{{[A-Za-z0-9]*_[A-Z0-9]*}}' "$STAGED" | sort -u | tr -d '{}'); do
+for tok in $(grep -o '{{[A-Z]*:\{0,1\}[A-Za-z0-9]*_[A-Z0-9]*}}' "$STAGED" | sed 's/^{{[A-Z]*:/{{/' | sort -u | tr -d '{}'); do
     exp=${tok%_*}; node=$(echo "${tok##*_}" | tr 'A-Z' 'a-z')
     set -- $(ls "$CAMPAIGN_LOGS/${exp}_${node}_"*.csv 2>/dev/null | grep -v '_tidy\|_spikes\|_report')
     if [ $# -eq 0 ]; then missing="$missing $tok"; continue; fi
@@ -35,6 +36,8 @@ for tok in $(grep -o '{{[A-Za-z0-9]*_[A-Z0-9]*}}' "$STAGED" | sort -u | tr -d '{
     rel=${tidy#"$ROOT"/}
     sess=$(basename "$1" .csv); sess=${sess#"${exp}"_}
     printf 's|{{%s}}|%s|g\ns|{{S:%s}}|%s|g\n' "$tok" "$rel" "$tok" "$sess" >> "$T.sed"
+    spk=${1%.csv}_spikes.csv
+    [ -f "$spk" ] && printf 's|{{SPK:%s}}|%s|g\n' "$tok" "${spk#"$ROOT"/}" >> "$T.sed"
 done
 
 added=0; skipped=0

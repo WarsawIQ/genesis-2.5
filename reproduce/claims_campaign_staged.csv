@@ -23,3 +23,28 @@ e8_gain_spiking_a100,sec:2,derived,pct,%.1f,(e8_spk_ratio_a100 - 1) * 100,,,,,,,
 e3c_construction_exponent,sec:4;fig:construction,measured,exponent,%.2f,loglog_slope,{{E3c_INF03}},family=con,,,n,wall_s,,{{S:E3c_INF03}},cluster_bringup/campaign/E3c_cpu.sh,none,45,10,,1.0 is linear; against cells (x17 compartments; the exponent is the same)
 e3c_construction_1700k_s,sec:4,measured,s,%.1f,mean,{{E3c_INF03}},family=con;n=100000,,,,wall_s,,{{S:E3c_INF03}},cluster_bringup/campaign/E3c_cpu.sh,none,45,30,,1.7 million compartments
 e3c_construction_1700k_s_sd,sec:4,measured,s,%.1f,sd,{{E3c_INF03}},family=con;n=100000,,,,wall_s,,{{S:E3c_INF03}},cluster_bringup/campaign/E3c_cpu.sh,none,45,100,,
+e5_rate_cpu_hz,sec:3,measured,Hz,%.1f,mean,{{SPK:E5_INF03}},run=cpu_r1,,,,rate_hz,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,5,,10 s of VAnet2 on the fp64 CPU solver
+e5_div_g64_s,sec:3,measured,s,%.5f,mean,{{SPK:E5_INF03}},run=g64_r1,,,,first_divergence_s,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,50,,CUDA fp64; first departure from the CPU's spike train
+e5_div_g64_ms,sec:3,derived,ms,%.2f,e5_div_g64_s * 1000,,,,,,,e5_div_g64_s,,,a100,,50,,
+e5_count_g64_pct,sec:3,measured,pct,%+.1f,mean,{{SPK:E5_INF03}},run=g64_r1,,,,count_diff_pct,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,CUDA fp64; spike count against the CPU
+e5_ks_g64,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=g64_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,CUDA fp64; KS distance of the pooled ISI distributions
+e5_div_g32_s,sec:3,measured,s,%.5f,mean,{{SPK:E5_INF03}},run=g32_r1,,,,first_divergence_s,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,50,,CUDA fp32; first departure from the CPU's spike train
+e5_div_g32_ms,sec:3,derived,ms,%.2f,e5_div_g32_s * 1000,,,,,,,e5_div_g32_s,,,a100,,50,,
+e5_count_g32_pct,sec:3,measured,pct,%+.1f,mean,{{SPK:E5_INF03}},run=g32_r1,,,,count_diff_pct,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,CUDA fp32; spike count against the CPU
+e5_ks_g32,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=g32_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,CUDA fp32; KS distance of the pooled ISI distributions
+e5_div_pcell_s,sec:3,measured,s,%.5f,mean,{{SPK:E5_INF03}},run=pcell_r1,,,,first_divergence_s,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,50,,"the CPU with one solver per cell: the same network, another update order; first departure from the CPU's spike train"
+e5_div_pcell_ms,sec:3,derived,ms,%.2f,e5_div_pcell_s * 1000,,,,,,,e5_div_pcell_s,,,a100,,50,,
+e5_count_pcell_pct,sec:3,measured,pct,%+.1f,mean,{{SPK:E5_INF03}},run=pcell_r1,,,,count_diff_pct,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,"the CPU with one solver per cell: the same network, another update order; spike count against the CPU"
+e5_ks_pcell,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=pcell_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,"the CPU with one solver per cell: the same network, another update order; KS distance of the pooled ISI distributions"
+e5_rate_sd1_hz,sec:3,measured,Hz,%.1f,mean,{{SPK:E5_INF03}},run=sd1_r1,,,,rate_hz,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,20,,GENESIS_VANET2_SEED=1
+e5_ks_sd1,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=sd1_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,GENESIS_VANET2_SEED=1
+e5_rate_sd2_hz,sec:3,measured,Hz,%.1f,mean,{{SPK:E5_INF03}},run=sd2_r1,,,,rate_hz,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,20,,GENESIS_VANET2_SEED=2
+e5_ks_sd2,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=sd2_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,GENESIS_VANET2_SEED=2
+e5_rate_sd3_hz,sec:3,measured,Hz,%.1f,mean,{{SPK:E5_INF03}},run=sd3_r1,,,,rate_hz,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,20,,GENESIS_VANET2_SEED=3
+e5_ks_sd3,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=sd3_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,GENESIS_VANET2_SEED=3
+e5_rate_sd4_hz,sec:3,measured,Hz,%.1f,mean,{{SPK:E5_INF03}},run=sd4_r1,,,,rate_hz,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,20,,GENESIS_VANET2_SEED=4
+e5_ks_sd4,sec:3,measured,x,%.3f,mean,{{SPK:E5_INF03}},run=sd4_r1,,,,ks_isi,,{{S:E5_INF03}},cluster_bringup/campaign/E5_long_run.sh,a100,35,300,,GENESIS_VANET2_SEED=4
+e5_rate_seed_min_hz,sec:3,derived,Hz,%.1f,"min(e5_rate_sd1_hz, e5_rate_sd2_hz, e5_rate_sd3_hz, e5_rate_sd4_hz)",,,,,,,e5_rate_sd1_hz;e5_rate_sd2_hz;e5_rate_sd3_hz;e5_rate_sd4_hz,,,a100,,20,,four other seeds
+e5_rate_seed_max_hz,sec:3,derived,Hz,%.1f,"max(e5_rate_sd1_hz, e5_rate_sd2_hz, e5_rate_sd3_hz, e5_rate_sd4_hz)",,,,,,,e5_rate_sd1_hz;e5_rate_sd2_hz;e5_rate_sd3_hz;e5_rate_sd4_hz,,,a100,,20,,four other seeds
+e5_ks_seed_min,sec:3,derived,x,%.3f,"min(e5_ks_sd1, e5_ks_sd2, e5_ks_sd3, e5_ks_sd4)",,,,,,,e5_ks_sd1;e5_ks_sd2;e5_ks_sd3;e5_ks_sd4,,,a100,,300,,four other seeds
+e5_ks_seed_max,sec:3,derived,x,%.3f,"max(e5_ks_sd1, e5_ks_sd2, e5_ks_sd3, e5_ks_sd4)",,,,,,,e5_ks_sd1;e5_ks_sd2;e5_ks_sd3;e5_ks_sd4,,,a100,,300,,four other seeds

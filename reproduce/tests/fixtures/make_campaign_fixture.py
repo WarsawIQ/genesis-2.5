@@ -3,7 +3,7 @@
 
     python3 reproduce/tests/fixtures/make_campaign_fixture.py <outdir>
 
-Writes E2, E3, E4, E7, E8 and E3c session CSVs in the harness format
+Writes E2, E3, E4, E5, E7, E8 and E3c session CSVs in the harness format
 (cluster_bringup/campaign/lib.sh) with OBVIOUSLY SYNTHETIC values: straight
 lines with a seeded +-3% jitter, chosen so the figures have a shape and the
 staged claims have known expected values (asserted in
@@ -15,6 +15,8 @@ reproduce/tests/test_campaign_claims.sh):
     e7_inter_over_uniform = 1.30, block 1.05, cpu control 1.00
     e8 tree gain at K=5000 = 5%, spiking gain = 0.42%
     e3c exponent = 1.00, construction_1700k_s = 10.0
+    e5: CPU 27.0 Hz; first departure g64 2.65 ms, per-cell CPU 2.35 ms;
+        seeds 24.0-29.0 Hz, KS 0.020-0.050 (the spike comparison, _spikes.csv)
 
 Used by test_campaign_plots.sh and test_campaign_claims.sh; never by anything
 that produces a published number (the claim map's data live under
@@ -45,6 +47,24 @@ def write(d, exp, node, gpu, arms):
             f.write("%s,%s,%s,4,1,0.001,,,rejected: synthetic,t0\n" % (s, exp, arm))
 
 
+SPK_COLS = ("run,file,spikes,rate_hz,isi_mean_ms,isi_cv,isi_median_ms,isi_p05_ms,"
+            "isi_p95_ms,vs,identical,first_divergence_s,spikes_identical_before,"
+            "count_diff_pct,ks_isi,cell_count_corr\n")
+
+
+def spikes_csv(d, exp, node):
+    """The table spikes_compare.py writes next to an E5 session."""
+    rows = (("cpu_r1", 27.0, "", 0.0, 0.0), ("g32_r1", 27.1, "0.002650", 0.4, 0.002),
+            ("g64_r1", 27.4, "0.002650", 1.5, 0.006), ("pcell_r1", 26.6, "0.002350", -1.6, 0.008),
+            ("sd1_r1", 29.0, "0.001600", 7.4, 0.030), ("sd2_r1", 25.0, "0.001600", -7.4, 0.020),
+            ("sd3_r1", 24.0, "0.001600", -11.1, 0.050), ("sd4_r1", 25.5, "0.001600", -5.6, 0.035))
+    with open(os.path.join(d, "%s_%s_20990101_000000_spikes.csv" % (exp, node)), "w") as f:
+        f.write(SPK_COLS)
+        for run, rate, div, cnt, ks in rows:
+            f.write("%s,synthetic,%d,%.4f,30,4,7,5,124,cpu_r1,%s,%s,0,%.4f,%.5f,0.99\n"
+                    % (run, rate * 4000 * 10, rate, "yes" if not div else "no", div, cnt, ks))
+
+
 def main(d):
     os.makedirs(d, exist_ok=True)
     random.seed(7)
@@ -70,6 +90,9 @@ def main(d):
     write(d, "E7", "inf03", "A100",
           [("gpu_uni36", 2.0, 1.0), ("gpu_mix_inter", 2.5, 1.3), ("gpu_mix_block", 2.1, 1.05),
            ("cpu_uni36", 40.0, 5.0), ("cpu_mix_inter", 40.0, 5.0)])
+    write(d, "E5", "inf03", "A100",
+          [(a, 90.0, 1.0e6) for a in ("cpu", "g32", "g64", "pcell", "sd1", "sd2", "sd3", "sd4")])
+    spikes_csv(d, "E5", "inf03")
     write(d, "E3c", "inf03", "none",
           [("con_n%d" % n, 1e-4 * n, 0) for n in (1000, 8000, 31000, 100000)])
     print(d)
