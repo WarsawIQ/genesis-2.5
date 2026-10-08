@@ -11,7 +11,7 @@ the reviewers' points 3, 4, 6, 7, 8 and 9:
 | E2 | end-to-end speedup against run length, fp32 and fp64; the one maximum speedup the paper quotes | A40, A100 | 5 |
 | E3 | the single-compartment and dendritic-tree tables and figures, model construction, PGENESIS on MPI | A40, A100, CPU | 10 (3 for construction and MPI) |
 | E4 | what fp64 costs; the crossover with Arbor when both compute in double | A40, A100 | 3 |
-| E5 | 10 s of the spiking network in fp32, fp64 and on the CPU: spike counts, rates, ISIs, first divergence | A100 | 3 |
+| E5 | 10 s of the spiking network in fp32, fp64 and on the CPU: spike counts, rates, ISIs, first divergence; plus the CPU against itself (one solver per cell, four other seeds) as the yardstick | A100 | 3 (yardstick 1) |
 | E6 | CPU profiles of GENESIS and CoreNEURON on both workloads | inf03 | 1 profile + 3 timed |
 | E7 | work imbalance: trees of 8 and 64 compartments mixed in every warp, sorted, and uniform with the same total | A100 | 5 |
 | E8 | CUDA Graphs on and off | A40, A100 | 5 |

@@ -5,7 +5,19 @@
 # recorded (reviewer point 4). spikes_compare.py then reports spike counts,
 # rates, ISI distributions and the time at which each run first departs from
 # the CPU's spike train. Recording every spike slows the runs, so their wall
-# times are not speed results. Run on inf03. ~25 min.
+# times are not speed results. Run on inf03. ~35 min.
+#
+# The yardstick. With zero axonal delay the CPU solver delivers a spike within
+# the step to the compartments after the sender in its loop, the CUDA solver
+# always at the next step, so the two trajectories part within milliseconds
+# and from then on can only be compared statistically. Against what? Five more
+# CPU arms, one run each (every arm above repeats spike for spike):
+#   pcell     VAnet2-batch.g, one solver per cell: the same network and seed,
+#             another update order
+#   sd1..sd4  GENESIS_VANET2_SEED=1..4: other draws of the connections and of
+#             the input spikes
+# A GPU arm whose departure from the CPU is no larger than pcell's differs from
+# it by no more than the CPU differs from itself.
 #
 # The spike files are large (about a million spikes each). The repository keeps
 # the comparison table, the checksum of every file and, compressed, the first
@@ -22,27 +34,34 @@ need genesis/src/nxgenesis "cluster_bringup/10_build.sh"
 need genesis/src/nxgenesis_nocl "cluster_bringup/10_build.sh"
 need_sass genesis/src/nxgenesis
 W="$RUN_DIR/campaign_E5"
-for a in cpu g32 g64; do vanet2_workdir "$W/$a"; done
+YARDSTICK="pcell sd1 sd2 sd3 sd4"
+for a in cpu g32 g64 $YARDSTICK; do vanet2_workdir "$W/$a"; done
 spikes_in_file() { wc -l < "$SPIKEFILE_CUR"; }
 
 arm() {
     SPIKEFILE_CUR="$W/$1/spikes_r$2.txt"; rm -f "$SPIKEFILE_CUR"
     SPIKES_OF=spikes_in_file EXPECT_NCOMP=4000
+    model=VAnet2-batch-1solver.g seed=""
     case "$1" in
-        cpu) b=$BANNER_CPU;    bin=nxgenesis_nocl; p=fp32 ;;
-        g32) b=$BANNER_CUDA32; bin=nxgenesis;      p=fp32 ;;
-        g64) b=$BANNER_CUDA64; bin=nxgenesis;      p=fp64 ;;
+        cpu)   b=$BANNER_CPU;    bin=nxgenesis_nocl; p=fp32 ;;
+        g32)   b=$BANNER_CUDA32; bin=nxgenesis;      p=fp32 ;;
+        g64)   b=$BANNER_CUDA64; bin=nxgenesis;      p=fp64 ;;
+        pcell) b=$BANNER_CPU;    bin=nxgenesis_nocl; p=fp32; model=VAnet2-batch.g ;;
+        sd*)   b=$BANNER_CPU;    bin=nxgenesis_nocl; p=fp32; seed=${1#sd} ;;
     esac
-    g=1; [ "$1" = cpu ] && g=0
+    g=1; [ "$bin" = nxgenesis_nocl ] && g=0
     run_rep "$1" "$2" "$3" "$g" "$b" sanity_spikes \
         env -C "$W/$1" GENESIS_VANET2_TMAX="$TMAX" GENESIS_VANET2_SPIKEFILE="$SPIKEFILE_CUR" \
-        GENESIS_GPU_PRECISION=$p timeout 7200 "$GENESIS_ROOT/genesis/src/$bin" -notty -batch VAnet2-batch-1solver.g
+        GENESIS_VANET2_SEED="$seed" GENESIS_GPU_PRECISION=$p \
+        timeout 7200 "$GENESIS_ROOT/genesis/src/$bin" -notty -batch $model
 }
 run_arms "$REPS" arm cpu g32 g64; st=$?
+o=1
+for a in $YARDSTICK; do arm "$a" 1 "$o" || st=$?; o=$((o + 1)); done
 
 # compare every replicate with the first CPU replicate
 args="cpu_r1=$W/cpu/spikes_r1.txt"
-for a in cpu g32 g64; do
+for a in cpu g32 g64 $YARDSTICK; do
     r=1
     while [ "$r" -le "$REPS" ]; do
         [ "$a$r" = cpu1 ] || { [ -f "$W/$a/spikes_r$r.txt" ] && args="$args ${a}_r$r=$W/$a/spikes_r$r.txt"; }
@@ -53,7 +72,7 @@ CMP="${CSV%.csv}_spikes.csv"
 python3 cluster_bringup/campaign/spikes_compare.py "$CMP" 4000 "$(awk "BEGIN{print $TMAX + 0.05}")" $args \
     | tee "${CSV%.csv}_spikes.txt"
 ( cd "$W" && sha256sum */spikes_r*.txt ) > "${CSV%.csv}_spikes.sha256"
-for a in cpu g32 g64; do
+for a in cpu g32 g64 $YARDSTICK; do
     [ -f "$W/$a/spikes_r1.txt" ] && gzip -9c "$W/$a/spikes_r1.txt" > "$RUNS/${a}_spikes_r1.txt.gz"
 done
 campaign_done "$st" "gpu32_over_cpu=g32/cpu" "gpu64_over_gpu32=g64/g32"
