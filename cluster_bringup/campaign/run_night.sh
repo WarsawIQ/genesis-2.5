@@ -23,7 +23,7 @@ else
         *)     echo "no default plan for $NODE; name the stages" >&2; exit 2 ;;
     esac
 fi
-TAG=${CAMPAIGN_TAG:-v2.6.0-rc2}
+TAG=${CAMPAIGN_TAG:-v2.6.0-rc3}
 OUT=cluster_bringup/logs/campaign_$TAG; [ "${CAMPAIGN_DRY:-0}" = 1 ] && OUT=cluster_bringup/logs/campaign_dry
 mkdir -p "$OUT"
 LOG="$OUT/night_${NODE}_$(date +%Y%m%d_%H%M%S).txt"

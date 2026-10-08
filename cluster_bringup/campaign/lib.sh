@@ -15,14 +15,14 @@
 #   <exp>_<node>.open           the session to resume, while one is unfinished
 #
 # Environment (see cluster_bringup/campaign/README.md):
-#   CAMPAIGN_TAG   tag HEAD must be at (default v2.6.0-rc2)
+#   CAMPAIGN_TAG   tag HEAD must be at (default v2.6.0-rc3)
 #   CAMPAIGN_DRY   1 = untagged or dirty tree allowed, data go to campaign_dry/
 #   CAMPAIGN_WAIT_S, CAMPAIGN_WAIT_TRIES   busy-GPU retry (600 s, 6 tries)
 #   NVIDIA_SMI     nvidia-smi to call (the tests substitute a stub)
 
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
-CAMPAIGN_TAG=${CAMPAIGN_TAG:-v2.6.0-rc2}
+CAMPAIGN_TAG=${CAMPAIGN_TAG:-v2.6.0-rc3}
 CAMPAIGN_DRY=${CAMPAIGN_DRY:-0}
 CAMPAIGN_WAIT_S=${CAMPAIGN_WAIT_S:-600}
 CAMPAIGN_WAIT_TRIES=${CAMPAIGN_WAIT_TRIES:-6}

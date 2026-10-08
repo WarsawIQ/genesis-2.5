@@ -27,7 +27,7 @@
 set -u
 RESTAGE=0; [ "${1:-}" = --restage ] && RESTAGE=1
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-CAMPAIGN_LOGS=${CAMPAIGN_LOGS:-$ROOT/cluster_bringup/logs/campaign_v2.6.0-rc2}
+CAMPAIGN_LOGS=${CAMPAIGN_LOGS:-$ROOT/cluster_bringup/logs/campaign_v2.6.0-rc3}
 CLAIMS=${CLAIMS:-$ROOT/reproduce/claims.csv}
 STAGED="$ROOT/reproduce/claims_campaign_staged.csv"
 T=$(mktemp "${TMPDIR:-/tmp}/staged.XXXXXX")
