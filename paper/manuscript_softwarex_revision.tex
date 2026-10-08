@@ -165,7 +165,11 @@ and the PGENESIS MPI layer are those of GENESIS~2.4. A user selects a backend wi
 
 An accepted model runs on one of three paths. \emph{Per step}: the device updates
 channels and solves each step, and the host delivers synaptic events and spikes between
-steps. This is the path of any network whose cells exchange spikes. \emph{Multiloop}:
+steps. This is the path of any network whose cells exchange spikes. A spike emitted in
+one step therefore reaches its targets in the next; the CPU solver delivers it within the
+step to the cells after the sender in its loop, so with zero axonal delay the two can
+differ by one step for some synapses (Section~3, correctness over a long run).
+\emph{Multiloop}:
 for isopotential cells without synaptic input, one launch runs $K$ steps.
 \emph{Tree loop}: for populations of dendritic trees, the channel update and \hte{}
 run back to back for $K$ steps. On the two batched paths the state goes to the device
@@ -384,12 +388,28 @@ Long runs & Gain grows with length & the fixed setup cost is amortised (Fig.~\re
 
 \item Correctness over a long run %% R4
 %% E5, Fig. 6 (or a table if the figure budget is short).
-Over 10\,s of the spiking network, twice the length of any comparison above, the
-GPU's spike train first departs from the CPU's after
-\pending{e5_divergence_fp64_s}\,s in fp64 and \pending{e5_divergence_fp32_s}\,s in
-fp32. Past that point the network's own chaos separates any two trajectories, and
-the runs agree in what remains comparable: spike counts, rates and
-interspike-interval distributions (largest KS distance \pending{e5_ks_fp32}).
+The GPU and CPU solvers do not order spikes the same way. On the GPU a spike emitted
+in one step reaches its targets in the next; the CPU solver delivers it within the step
+to the cells after the sender in its loop. With this network's zero axonal delay the
+two schedules differ by one step (50\,\textmu s) for some synapses, and the network is
+chaotic, so it amplifies the difference. Over 10\,s of the spiking network, twice the
+length of any comparison above, the GPU's spike train first departs from the CPU's
+after \pending{e5_div_g64_ms}\,ms in fp64 and \pending{e5_div_g32_ms}\,ms in fp32.
+The two precisions part at the same step, so the cause is the order, not rounding. The
+CPU's own order matters as much: run with one solver per cell instead of one per
+layer, the same network with the same seed departs from itself after
+\pending{e5_div_pcell_ms}\,ms. From then on only statistics can be compared. Against
+the CPU's \pending{e5_rate_cpu_hz}\,Hz, the spike count differs by
+\pending{e5_count_g64_pct}\% in fp64, \pending{e5_count_g32_pct}\% in fp32 and
+\pending{e5_count_pcell_pct}\% for the CPU in the other order; the KS distances
+between the interspike-interval distributions are \pending{e5_ks_g64},
+\pending{e5_ks_g32} and \pending{e5_ks_pcell}. Four other seeds, other draws of the
+same network, fire at \pending{e5_rate_seed_min_hz}--\pending{e5_rate_seed_max_hz}\,Hz
+with KS distances of \pending{e5_ks_seed_min}--\pending{e5_ks_seed_max}. Each run
+repeats spike for spike on its own backend.
+%% After night 3: one sentence comparing the GPU's numbers with the per-cell CPU's,
+%% worded by what they show (at 5 s on 9ec9c33 the GPU was inside the CPU's spread:
+%% logs/campaign_prep/spike_variability_inf03_20261008_031932).
 
 \item Reproducing these results %% R11
 Every number in this paper is a row of \path{reproduce/claims.csv}, naming the data

@@ -48,3 +48,53 @@ e5_rate_seed_min_hz,sec:3,derived,Hz,%.1f,"min(e5_rate_sd1_hz, e5_rate_sd2_hz, e
 e5_rate_seed_max_hz,sec:3,derived,Hz,%.1f,"max(e5_rate_sd1_hz, e5_rate_sd2_hz, e5_rate_sd3_hz, e5_rate_sd4_hz)",,,,,,,e5_rate_sd1_hz;e5_rate_sd2_hz;e5_rate_sd3_hz;e5_rate_sd4_hz,,,a100,,20,,four other seeds
 e5_ks_seed_min,sec:3,derived,x,%.3f,"min(e5_ks_sd1, e5_ks_sd2, e5_ks_sd3, e5_ks_sd4)",,,,,,,e5_ks_sd1;e5_ks_sd2;e5_ks_sd3;e5_ks_sd4,,,a100,,300,,four other seeds
 e5_ks_seed_max,sec:3,derived,x,%.3f,"max(e5_ks_sd1, e5_ks_sd2, e5_ks_sd3, e5_ks_sd4)",,,,,,,e5_ks_sd1;e5_ks_sd2;e5_ks_sd3;e5_ks_sd4,,,a100,,300,,four other seeds
+e1_g_cpu_pub_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=g_cpu_pub,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_g_cpu_pub_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=g_cpu_pub,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_g_cpu_pub_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=g_cpu_pub,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_g_cpu_1s_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=g_cpu_1s,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_g_cpu_1s_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=g_cpu_1s,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_g_gpu32_1s_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=g_gpu32_1s,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_g_gpu32_1s_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=g_gpu32_1s,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_g_gpu32_1s_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=g_gpu32_1s,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_g_gpu64_1s_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=g_gpu64_1s,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_g_gpu64_1s_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=g_gpu64_1s,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_g_gpu64_1s_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=g_gpu64_1s,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_nrn_cpu_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=nrn_cpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_nrn_cpu_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=nrn_cpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_nrn_cpu_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=nrn_cpu,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_nrn_cb_cpu_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=nrn_cb_cpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_nrn_cb_cpu_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=nrn_cb_cpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_nrn_cb_cpu_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=nrn_cb_cpu,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_cn_cpu_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=cn_cpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,
+e1_cn_cpu_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=cn_cpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,100,,
+e1_cn_cpu_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=cn_cpu,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,a100,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_cn_gpu_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=cn_gpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,coreneuron-gpu,65,15,,
+e1_cn_gpu_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=cn_gpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,coreneuron-gpu,65,100,,
+e1_cn_gpu_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=cn_gpu,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,coreneuron-gpu,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e1_arbor_gpu_s,tab:sim,measured,s,%.1f,mean,{{E1_INF03}},family=arbor_gpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,arbor-gpu,65,15,,
+e1_arbor_gpu_s_sd,tab:sim,measured,s,%.1f,sd,{{E1_INF03}},family=arbor_gpu,,,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,arbor-gpu,65,100,,
+e1_arbor_gpu_rel,tab:sim,measured,x,%.2f,ratio,{{E1_INF03}},,family=arbor_gpu,family=g_cpu_1s,,wall_s,,{{S:E1_INF03}},cluster_bringup/campaign/E1_cross_simulator.sh,arbor-gpu,65,15,,wall time relative to GENESIS one solver per layer on the CPU; >1 is slower
+e3_t1_cuda_a40_n500,tab:single,measured,x,%.1f,ratio,{{E3_INF02}},n=500,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,20,,
+e3_t1_cuda_a40_n500_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF02}},n=500,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,100,,
+e3_t1_ocl_a40_n500,tab:single,measured,x,%.1f,ratio,{{E3_INF02}},n=500,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,20,,
+e3_t1_ocl_a40_n500_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF02}},n=500,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,100,,
+e3_t1_cuda_a40_n5000,tab:single,measured,x,%.1f,ratio,{{E3_INF02}},n=5000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,20,,
+e3_t1_cuda_a40_n5000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF02}},n=5000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,100,,
+e3_t1_ocl_a40_n5000,tab:single,measured,x,%.1f,ratio,{{E3_INF02}},n=5000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,20,,
+e3_t1_ocl_a40_n5000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF02}},n=5000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,100,,
+e3_t1_cuda_a40_n50000,tab:single,measured,x,%.1f,ratio,{{E3_INF02}},n=50000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,20,,
+e3_t1_cuda_a40_n50000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF02}},n=50000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,100,,
+e3_t1_ocl_a40_n50000,tab:single,measured,x,%.1f,ratio,{{E3_INF02}},n=50000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,20,,
+e3_t1_ocl_a40_n50000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF02}},n=50000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF02}},cluster_bringup/campaign/E3_tables.sh,a40,60,100,,
+e3_t1_cuda_a100_n500,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=500,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
+e3_t1_cuda_a100_n500_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=500,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
+e3_t1_ocl_a100_n500,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=500,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
+e3_t1_ocl_a100_n500_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=500,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
+e3_t1_cuda_a100_n5000,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=5000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
+e3_t1_cuda_a100_n5000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=5000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
+e3_t1_ocl_a100_n5000,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=5000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
+e3_t1_ocl_a100_n5000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=5000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
+e3_t1_cuda_a100_n50000,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
+e3_t1_cuda_a100_n50000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
+e3_t1_ocl_a100_n50000,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
+e3_t1_ocl_a100_n50000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,

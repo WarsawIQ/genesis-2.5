@@ -63,6 +63,11 @@ check e7_cpu_inter_over_uniform 1.00 6
 check e8_gain_tree_k5000_a100 5.0 60
 check e3c_construction_exponent 1.00 4
 check e3c_construction_1700k_s 10.0 6
+check e1_g_cpu_1s_s 35.0 6
+check e1_nrn_cpu_rel 2.5 6
+check e1_cn_gpu_rel 0.70 6
+check e3_t1_cuda_a40_n50000 40 6
+check e3_t1_ocl_a100_n50000 20 6
 check e5_rate_cpu_hz 27.0 1
 check e5_div_g64_ms 2.65 1
 check e5_div_pcell_ms 2.35 1
@@ -71,11 +76,25 @@ check e5_rate_seed_min_hz 24.0 1
 check e5_rate_seed_max_hz 29.0 1
 check e5_ks_seed_max 0.050 1
 
-# 4. running it again changes nothing
+# 4. --restage replaces every staged row and leaves the rest of claims.csv alone
+before=$(grep -c . "$T/r/reproduce/claims.csv")
+out=$(cd "$T/r" && sh reproduce/stage_campaign_claims.sh --restage)
+after=$(grep -c . "$T/r/reproduce/claims.csv")
+if echo "$out" | grep -q "^restage: took $N staged rows out" && echo "$out" | grep -q "^added $N claim rows, 0 already" \
+        && [ "$before" = "$after" ]; then ok "--restage takes out and puts back all $N staged rows"
+else bad "--restage" "$out" "rows before $before, after $after"; fi
+mv "$CAMP"/E7_*.csv "$T/hold/"
+if out=$(cd "$T/r" && sh reproduce/stage_campaign_claims.sh --restage 2>&1); then
+    bad "--restage went ahead without E7" "$out"
+else echo "$out" | grep -q "REFUSED: --restage needs every experiment" && ok "--restage refuses a partial night" \
+        || bad "--restage partial: wrong message" "$out"; fi
+mv "$T/hold"/* "$CAMP"/
+
+# 5. running it again changes nothing
 out=$(cd "$T/r" && sh reproduce/stage_campaign_claims.sh)
 case "$out" in "added 0 claim rows, "*) ok "idempotent" ;; *) bad "second run" "$out" ;; esac
 
-# 5. two sessions of one experiment refuse (never silently pick one)
+# 6. two sessions of one experiment refuse (never silently pick one)
 cp "$CAMP"/E2_inf02_20990101_000000.csv "$CAMP"/E2_inf02_20990102_000000.csv
 if out=$(cd "$T/r" && sh reproduce/stage_campaign_claims.sh 2>&1); then
     bad "two E2 sessions were accepted" "$out"

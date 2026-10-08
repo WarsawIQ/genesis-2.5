@@ -3,7 +3,7 @@
 
     python3 reproduce/tests/fixtures/make_campaign_fixture.py <outdir>
 
-Writes E2, E3, E4, E5, E7, E8 and E3c session CSVs in the harness format
+Writes E1, E2, E3, E4, E5, E7, E8 and E3c session CSVs in the harness format
 (cluster_bringup/campaign/lib.sh) with OBVIOUSLY SYNTHETIC values: straight
 lines with a seeded +-3% jitter, chosen so the figures have a shape and the
 staged claims have known expected values (asserted in
@@ -15,6 +15,8 @@ reproduce/tests/test_campaign_claims.sh):
     e7_inter_over_uniform = 1.30, block 1.05, cpu control 1.00
     e8 tree gain at K=5000 = 5%, spiking gain = 0.42%
     e3c exponent = 1.00, construction_1700k_s = 10.0
+    e1: GENESIS 1-solver CPU 35 s; NEURON 2.5x, CoreNEURON GPU 0.7x of it
+    e3 Table 1 at N = 50000: CUDA 40x, OpenCL 20x the CPU
     e5: CPU 27.0 Hz; first departure g64 2.65 ms, per-cell CPU 2.35 ms;
         seeds 24.0-29.0 Hz, KS 0.020-0.050 (the spike comparison, _spikes.csv)
 
@@ -78,7 +80,10 @@ def main(d):
               [(p % n, w * n / 1000.0, m * n / 1000.0)
                for n in (1000, 10000, 50000)
                for p, w, m in (("t2_cpu_n%d", 6.0, 5.0), ("t2_cuda_n%d", 1.5 * f, 0.1 * f),
-                               ("t2_ocl_n%d", 1.7 * f, 0.12 * f))])
+                               ("t2_ocl_n%d", 1.7 * f, 0.12 * f))]
+              + [(p % n, w, 0) for n in (500, 5000, 50000)
+                 for p, w in (("t1_cpu_n%d", 0.4 * n), ("t1_cuda_n%d", 0.01 * n),
+                              ("t1_ocl_n%d", 0.02 * n))])
         write(d, "E4", node, gpu,
               [(p % k, a + b * k * f, 0) for k in (1000, 5000, 20000, 50000)
                for p, a, b in (("g32_k%d", 1.2, 0.0002), ("g64_k%d", 1.3, 0.0006),
@@ -90,6 +95,10 @@ def main(d):
     write(d, "E7", "inf03", "A100",
           [("gpu_uni36", 2.0, 1.0), ("gpu_mix_inter", 2.5, 1.3), ("gpu_mix_block", 2.1, 1.05),
            ("cpu_uni36", 40.0, 5.0), ("cpu_mix_inter", 40.0, 5.0)])
+    write(d, "E1", "inf03", "A100",
+          [("g_cpu_1s", 35.0, 4000), ("g_cpu_pub", 70.0, 4000), ("g_gpu32_1s", 40.0, 4000),
+           ("g_gpu64_1s", 45.0, 4000), ("nrn_cpu", 87.5, 0), ("nrn_cb_cpu", 80.0, 0),
+           ("cn_cpu", 70.0, 0), ("cn_gpu", 24.5, 0), ("arbor_gpu", 150.0, 0)])
     write(d, "E5", "inf03", "A100",
           [(a, 90.0, 1.0e6) for a in ("cpu", "g32", "g64", "pcell", "sd1", "sd2", "sd3", "sd4")])
     spikes_csv(d, "E5", "inf03")

@@ -16,13 +16,22 @@
 # the next morning; an id already in claims.csv is skipped if identical and
 # refused otherwise. Then switch each \pending{id} to \claim{id} in the
 # manuscript; the lint lists what is still open.
+#
+# After a new night on a new tag (CAMPAIGN_LOGS pointing at its folder):
+#
+#     sh reproduce/stage_campaign_claims.sh --restage
+#
+# first takes every staged id out of claims.csv, then stages them all from the
+# new sessions, so no number of the old night survives. It refuses unless every
+# experiment of the staged file has its session there.
 set -u
+RESTAGE=0; [ "${1:-}" = --restage ] && RESTAGE=1
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CAMPAIGN_LOGS=${CAMPAIGN_LOGS:-$ROOT/cluster_bringup/logs/campaign_v2.6.0-rc2}
 CLAIMS=${CLAIMS:-$ROOT/reproduce/claims.csv}
 STAGED="$ROOT/reproduce/claims_campaign_staged.csv"
 T=$(mktemp "${TMPDIR:-/tmp}/staged.XXXXXX")
-trap 'rm -f "$T" "$T.sed"' EXIT
+trap 'rm -f "$T" "$T.sed" "$T.ids" "$T.keep"' EXIT
 
 : > "$T.sed"
 missing=""
@@ -39,6 +48,14 @@ for tok in $(grep -o '{{[A-Z]*:\{0,1\}[A-Za-z0-9]*_[A-Z0-9]*}}' "$STAGED" | sed 
     spk=${1%.csv}_spikes.csv
     [ -f "$spk" ] && printf 's|{{SPK:%s}}|%s|g\n' "$tok" "${spk#"$ROOT"/}" >> "$T.sed"
 done
+
+if [ "$RESTAGE" = 1 ]; then
+    [ -z "$missing" ] || { echo "REFUSED: --restage needs every experiment; no session for:$missing" >&2; exit 1; }
+    tail -n +2 "$STAGED" | cut -d, -f1 | sed 's/^/^/; s/$/,/' > "$T.ids"
+    grep -v -f "$T.ids" "$CLAIMS" > "$T.keep" || true
+    echo "restage: took $(($(wc -l < "$CLAIMS") - $(wc -l < "$T.keep"))) staged rows out of $(basename "$CLAIMS")"
+    cat "$T.keep" > "$CLAIMS"
+fi
 
 added=0; skipped=0
 sed -f "$T.sed" "$STAGED" | tail -n +2 > "$T"

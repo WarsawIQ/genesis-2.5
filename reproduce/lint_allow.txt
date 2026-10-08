@@ -27,3 +27,4 @@ trees of █\d+█ and \d+|trees of \d+ and █\d+█	# tree sizes of a test pop
 about █\d+█ minutes|claims, █\d+█ for the	# how long the reproduction pack runs, documented in run_all.sh
 ^\s*█\d+(\\,\d{3})?█ &	# a table row label: the model size of that row
 & █1█ \\\\|below █1█ is	# the reference arm of a relative column, 1 by definition
+one step \(█50█\\,\\textmu s\)	# VAnet2's time step (dt = 50e-6 in VAnet2-batch-1solver.g), a model parameter
