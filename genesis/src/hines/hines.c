@@ -331,6 +331,10 @@ Action	*action;
 		    case 4:
 		    case 5:
 			do_chip_hreset(hsolve,"RESET");
+#ifdef USE_CUDA
+			/* the device's vm and chip copies are stale now */
+			cuda_invalidate(hsolve);
+#endif
 			if (hsolve->readflag==HDUPLICATE_T) copychipdiags(hsolve);
 			if (hsolve->ndiffs) {
 			    if (h_setup_conc_solve(hsolve)) {

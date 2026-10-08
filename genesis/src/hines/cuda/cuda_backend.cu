@@ -64,6 +64,13 @@ struct CudaState {
     /* Every compartment its own tree: the Hines solve is one division, so the
        channel kernel finishes it and vm[] never leaves the device. */
     int solve_on_device = 0;
+    /* Whether d_vm holds the current voltages. With the solve on the device
+       nothing uploads vm[] each step, so it must be uploaded once after the
+       state is created and after every RESET, when the host's vm[] is the
+       truth; until 2026-10-08 it never was, and every cell of a spiking
+       network started from the uninitialised buffer and fired at the first
+       step (found by the campaign's E5; logs/campaign_prep/spike_start_*). */
+    int vm_on_gpu = 0;
     /* Whether anything on the host consumes results[] each step. A solver with
        outgoing messages -- a SAVE of Vm, say -- needs them; one with none does
        not, and then the download is pure cost. */
@@ -451,6 +458,8 @@ static int perstep_graph(CudaState *st, double *results_out)
         if (!st->solve_on_device)
             cudaMemcpyAsync(st->d_vm, st->f_vm, n * st->esz,
                             cudaMemcpyHostToDevice, st->gstream);
+        /* (with the solve on the device the first upload is done outside the
+           graph, below, so the captured step stays the same every step) */
         if (st->nspike > 0)
             cudaMemsetAsync(st->d_spike_flag, 0, n * sizeof(int), st->gstream);
         if (st->fp64)
@@ -469,6 +478,11 @@ static int perstep_graph(CudaState *st, double *results_out)
         CUDA_CHECK(cudaGraphInstantiate(&st->step_exec, g, 0), "instantiate (step)");
         cudaGraphDestroy(g);
         st->step_sig = sig;
+    }
+    if (st->solve_on_device && !st->vm_on_gpu) {
+        CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * st->esz,
+                              cudaMemcpyHostToDevice), "upload vm (first step)");
+        st->vm_on_gpu = 1;
     }
     CUDA_CHECK(cudaGraphLaunch(st->step_exec, st->gstream), "graph launch (step)");
     CUDA_CHECK(cudaStreamSynchronize(st->gstream), "graph sync (step)");
@@ -492,9 +506,10 @@ int cuda_backend_perstep(void *sth, const double *vm, double *results_out)
     if (st->graph_step) return perstep_graph(st, results_out);
     /* With the solve on the device, vm[] never leaves it: the kernel wrote the
        final voltages last step and reads them again now. */
-    if (!st->solve_on_device) {
+    if (!st->solve_on_device || !st->vm_on_gpu) {
         CUDA_CHECK(cudaMemcpy(st->d_vm, st->f_vm, n * st->esz,
                               cudaMemcpyHostToDevice), "upload vm");
+        st->vm_on_gpu = 1;
     }
     /* chip[] uploaded by cuda_backend_upload_chip() on the first step */
 
@@ -872,6 +887,16 @@ double cuda_backend_last_batch_time(void *sth)
 void cuda_backend_set_last_batch_time(void *sth, double t)
 { CudaState *st = (CudaState *)sth; if (st) st->last_batch_time = t; }
 
+
+/* The host has rewritten vm[] and chip[] (RESET): the next step uploads both
+   instead of trusting the device's copies. */
+void cuda_backend_invalidate(void *sth)
+{
+    CudaState *st = (CudaState *)sth;
+    if (!st) return;
+    st->vm_on_gpu = 0;
+    st->chip_on_gpu = 0;
+}
 
 int cuda_backend_spikes_this_step(void *sth)
 { CudaState *st = (CudaState *)sth; return st ? st->spikes_this_step : 0; }

@@ -22,6 +22,7 @@ extern "C" {
 int  cuda_init(Hsolve *hsolve);
 int  cuda_chip_update(Hsolve *hsolve);   /* returns 1 in multiloop mode */
 void cuda_sync_chip(Hsolve *hsolve);
+void cuda_invalidate(Hsolve *hsolve);   /* after RESET: re-upload vm and chip */
 void cuda_cleanup(void);
 
 #ifdef __cplusplus
