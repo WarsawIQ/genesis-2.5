@@ -1,0 +1,17 @@
+# node inf03, 9d27300, 9d273002bc51931d69072183143cc3345b5df833
+# binary /storage2/home/kchlasta/fix-dev/genesis/src/nxgenesis_nocl, sha256 0e273bfb63fad05ae97c9f160cab7da98f719c0456d0ccf723f17f4d4925769e
+# TMAX=4.95, seeds: 1 2 3 4
+cpu: exit 0 
+seed2: exit 0 VAnet2 seed:  2
+seed3: exit 0 VAnet2 seed:  3
+seed4: exit 0 VAnet2 seed:  4
+seed1: exit 0 VAnet2 seed:  1
+percell: exit 0 
+run               spikes  rate Hz   ISI ms     CV diverges s       KS  count %
+cpu               545371  27.2685  31.0768 3.9131      never  0.00000   0.0000
+percell           536600  26.8300  31.5625 3.8649   0.002350  0.00818  -1.6083
+seed1             586254  29.3127  28.1644 4.3949   0.001600  0.03262   7.4964
+seed2             507795  25.3897  34.2038 3.9258   0.001600  0.02333  -6.8900
+seed3             489609  24.4804  36.0634 3.7250   0.001600  0.05083 -10.2246
+seed4             504180  25.2090  34.7028 3.7407   0.001600  0.03582  -7.5528
+written: /storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/compare.csv

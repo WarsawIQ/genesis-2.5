@@ -1,0 +1,7 @@
+run,file,spikes,rate_hz,isi_mean_ms,isi_cv,isi_median_ms,isi_p05_ms,isi_p95_ms,vs,identical,first_divergence_s,spikes_identical_before,count_diff_pct,ks_isi,cell_count_corr
+cpu,/storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/cpu.txt.gz,545371,27.2685,31.0768,3.9131,7.3500,5.0500,124.2000,cpu,yes,,545371,0.0000,0.00000,1.00000
+percell,/storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/percell.txt.gz,536600,26.8300,31.5625,3.8649,7.4000,5.0500,128.0500,cpu,no,0.002350,170,-1.6083,0.00818,0.98221
+seed1,/storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/seed1.txt.gz,586254,29.3127,28.1644,4.3949,7.2000,5.0500,102.8500,cpu,no,0.001600,0,7.4964,0.03262,-0.02221
+seed2,/storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/seed2.txt.gz,507795,25.3897,34.2038,3.9258,7.4500,5.0500,143.6500,cpu,no,0.001600,0,-6.8900,0.02333,-0.00598
+seed3,/storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/seed3.txt.gz,489609,24.4804,36.0634,3.7250,7.6500,5.0500,154.1000,cpu,no,0.001600,0,-10.2246,0.05083,-0.00255
+seed4,/storage2/home/kchlasta/fix-dev/cluster_bringup/logs/campaign_prep/spike_variability_inf03_20261008_031932/seed4.txt.gz,504180,25.2090,34.7028,3.7407,7.5500,5.0500,147.6000,cpu,no,0.001600,0,-7.5528,0.03582,-0.02132
