@@ -1,0 +1,20 @@
+=== building the fix: /storage2/home/kchlasta/fix-dev (fac6696)
+build exit 0
+=== AFTER: the fix
+# node inf03, fac6696, fac6696f5e84118eaff29b81bb0eaabf3b7268b8
+# VAnet2-batch-1solver.g, GENESIS_VANET2_SCALE=20, TMAX=0.05
+arm         cells   spikes   first_step  first_spike_s
+cpu           476     2060            0       0.001600
+cuda32        473     2261            0       0.001600
+#   cuda32: CUDA: ready (400 compartments, 8000 chips, fp32 kernels)
+cuda64        475     2274            0       0.001600
+#   cuda64: CUDA: ready (400 compartments, 8000 chips, fp64 kernels)
+ocl32         476     2060            0       0.001600
+# hh_reset_rerun_check.g: run, RESET, run again
+cpu        RESET_RERUN_VM1= -0.0530261946 RESET_RERUN_VM2= -0.0530261946 RESET_RERUN: SAME 
+cuda32     RESET_RERUN_VM1= -0.05302633345 RESET_RERUN_VM2= -0.05302633345 RESET_RERUN: SAME 
+cuda64     RESET_RERUN_VM1= -0.0530261946 RESET_RERUN_VM2= -0.0530261946 RESET_RERUN: SAME 
+ocl32      RESET_RERUN_VM1= -0.05302630233 RESET_RERUN_VM2= -0.05302630233 RESET_RERUN: SAME 
+written: cluster_bringup/logs/campaign_prep/spike_start_inf03_20261008_031716.txt
+exit 0
+=== ALL DONE
