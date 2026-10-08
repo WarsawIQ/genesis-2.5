@@ -1,0 +1,13 @@
+node inf02  gpu NVIDIA A40, 0 MiB  started 2026-10-08T19:19:11+02:00
+base ce21b63  head 0fe5c6f
+cuda base golden recorded (rc 0)
+cuda fp32 vs base: rc 0  PASS: 14 values unchanged on NVIDIA A40
+cuda fp64 vs CPU:  rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+cuda fp32 graphs on:   rc 0  PASS: 14 values unchanged on NVIDIA A40
+cuda fp64 graphs on:   rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+graph probe: rc 0  written: /storage2/home/kchlasta/campaign-dry-inf02/cluster_bringup/logs/cuda_graph_probe_inf02_20261008_192644.csv
+opencl base golden recorded (rc 0)
+opencl fp32 vs base: rc 0  PASS: 14 values unchanged on NVIDIA A40
+opencl fp64 vs CPU:  rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+CUDA build restored
+finished 2026-10-08T19:42:32+02:00
