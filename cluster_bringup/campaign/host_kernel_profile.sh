@@ -24,6 +24,9 @@ REL=$(cd "$1" && pwd)
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
 [ -d "${CUDA_HOME:-}/lib64" ] && LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}" && export LD_LIBRARY_PATH
+# as cuda_env in lib.sh: above 20 000 compartments the batched tree solver
+# would otherwise decline the model and fall back to per-step dispatch
+export GENESIS_OCL_TREE_MAX_NCOMPTS=0
 NSYS=${NSYS:-$CUDA_HOME/bin/nsys}
 [ -x "$NSYS" ] || { echo "no nsys at $NSYS" >&2; exit 2; }
 BIN=$REL/genesis/src/nxgenesis
@@ -50,7 +53,9 @@ for g in 0 1; do
         env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 GENESIS_CUDA_MULTILOOP=$((K + 10)) \
         GENESIS_CUDA_GRAPH="$g" "$BIN" -nosimrc -notty -batch \
         genesis/Scripts/benchmark/hh_multicompartment_createmap.g "$N" "$K" > "$OUT/tree_g$g.log" 2>&1
-    echo "graphs $g: exit $?, $(grep -m1 'CUDA MULTILOOP (tree)' "$OUT/tree_g$g.log")" >> "$OUT/run.txt"
+    rc=$?
+    m=$(grep -m1 'CUDA MULTILOOP (tree)' "$OUT/tree_g$g.log")
+    echo "graphs $g: exit $rc, ${m:-NO TREE LOOP: the run did not take the batched path}" >> "$OUT/run.txt"
     for r in cuda_gpu_kern_sum cuda_api_sum; do
         "$NSYS" stats --report "$r" --format csv --force-export=true --output "$OUT/tree_g$g" \
             "$OUT/tree_g$g.nsys-rep" > /dev/null 2>> "$OUT/run.txt"
