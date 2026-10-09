@@ -1,0 +1,43 @@
+# Library:symbol -> category for the E6 profiles reported by profile_dso.sh
+# (perf report --sort dso,symbol). One extended regular expression, a TAB, the
+# category; it is matched against "<library>:<symbol>", first match wins.
+#
+# Replaces profile_categories.txt, which matched symbols alone and missed most
+# of them: GENESIS's do_hh_update, do_hcalc and TabInterp, every CoreNEURON
+# symbol carrying the coreneuron:: namespace, and the third of the CoreNEURON
+# spiking profile that sits in libm without symbol names.
+#
+# Choices a reader may want to undo:
+# - libm is channel update. It is exp() (glibc's expf32x, and its stripped
+#   addresses), called by the mechanisms' rate equations. In the tree model
+#   only hh, pas and IClamp run, so all of it is channels; in the network
+#   ExpSyn's state update calls exp() as well, and the flat profile cannot
+#   split the two (E6 keeps no call graphs).
+# - do_hcalc is channel update: it sums each compartment's channel
+#   conductances and currents into the matrix, NEURON's nrn_cur.
+# - Capacitance (nrn_cur/nrn_jacob_capacitance) and the matrix set-up are
+#   linear solve, as GENESIS's do_compt_update is.
+# - GENESIS's synapse objects (Synchan) and CoreNEURON's ExpSyn, together with
+#   the spike queues and delivery, are "synapses and events".
+# - GENESIS calls every element that hsolve does not take over (synapses,
+#   the random inputs) through its action tables each step; that lookup and
+#   call machinery is "element dispatch".
+# - Idle OpenBLAS threads and NEURON's own model building in Python before the
+#   CoreNEURON run are their own categories, not simulation work.
+
+# GENESIS (nxgenesis_nocl)
+^nxgenesis[^:]*:(do_hh_update|do_chip_hh|do_hcalc|TabInterp|upi_pow|h_calc|chip_channel)	channel update
+^nxgenesis[^:]*:(do_compt_update|do_fast_hsolve|do_crank_hsolve|do_euler_hsolve|do_vm_update|h_forward|h_back|HinesSolver)$	linear solve
+^nxgenesis[^:]*:(Synchan|h_dosynchan|h_dospike_event|h_eventaction|CallEventActionWithTime|MsgOut|SpikeGen|Spikegen)$	synapses and events
+^nxgenesis[^:]*:(GetActionListByType|GetAction|CallActionFunc|CallActionByActionList|CallAction|CallElementWithMode|CallElement|hash_function|hash_find)$	element dispatch
+^nxgenesis[^:]*:(Randomspike|get_rn_dbl|get_rn_dbl_simple|G_RNG)$	random input
+^nxgenesis[^:]*:(Simulate|SimStep|Step|DoClocks|Sched)	scheduler
+# CoreNEURON (libcorenrnmech.so holds the mechanisms and the solver)
+^libm[-.]|:exp@plt$	channel update
+:coreneuron::nrn_(state|cur)_(hh|nahh|khh|pas|ion)$	channel update
+:coreneuron::(nrn_solve_minimal|setup_tree_matrix_minimal|update|nrn_jacob_capacitance|nrn_cur_capacitance|nrn_rhs|nrn_lhs|triang|bksub)$	linear solve
+:coreneuron::(nrn_state_ExpSyn|nrn_cur_ExpSyn|net_buf_receive_ExpSyn|update_net_receive_buffer|NetCvode::check_thresh|NetCvode::deliver_event|PreSyn::send|NetCon::deliver|sptq_|deliver_net_events|nrn_deliver|nrn_spike_exchange)	synapses and events
+:std::__(push|pop|adjust)_heap	synapses and events
+:coreneuron::nrn_(state|cur)_IClamp$	stimulus
+^libscipy_openblas|^libopenblas	idle threads (OpenBLAS)
+^(libnrniv|libnrnpython|python3)	NEURON model setup
