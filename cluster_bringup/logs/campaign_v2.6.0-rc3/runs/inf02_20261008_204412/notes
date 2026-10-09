@@ -1,0 +1,7 @@
+t2_cuda_n7000 replicate 5: wall 2.29 s against 1.00-1.03 s for the other ten.
+Its step phase is normal (RESULT_T_PER_STEP 0.00146 s, RESULT_T_TOTAL 0.31 s,
+the same kernels and kernel time as replicate 4), so the extra 1.3 s was spent
+outside the simulation: process start, CUDA context creation or model
+construction. Nothing in the log marks it. Kept, as every accepted run is; it
+widens the end-to-end error bar at N = 7000 on the A40 in fig_trees (the step
+panel is unaffected). Noted 2026-10-09 when the figures were drawn.

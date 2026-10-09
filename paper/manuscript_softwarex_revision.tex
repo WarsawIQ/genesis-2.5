@@ -213,10 +213,16 @@ compartment count suggests.
 \emph{Launch overhead.} In the tree loop the host spends about
 \pending{f2_host_us_per_step}\,\textmu s per step against about
 \pending{f2_kernel_us_per_step}\,\textmu s of kernel time. CUDA Graphs, which replay
-a recorded sequence of launches, recover \claim{e8_gain_tree_k5000_a100}\% of the
-run time on the A100 and \claim{e8_gain_tree_k5000_a40}\% on the A40 (E8). They change no
-result, so they are on by default for the tree loop. On the
-spiking network they gain nothing within error (\claim{e8_gain_spiking_a100}\%): its
+a recorded sequence of launches, recover
+\claim{e8_gain_tree_k50000_a100}\,$\pm$\,\claim{e8_gain_tree_k50000_a100_sd}\% of the
+run time on the A100 and
+\claim{e8_gain_tree_k50000_a40}\,$\pm$\,\claim{e8_gain_tree_k50000_a40_sd}\% on the A40
+in a run of $K=50\,000$ steps (E8). In shorter runs the gain is within the noise
+(\claim{e8_gain_tree_k5000_a100}\,$\pm$\,\claim{e8_gain_tree_k5000_a100_sd}\% and
+\claim{e8_gain_tree_k5000_a40}\,$\pm$\,\claim{e8_gain_tree_k5000_a40_sd}\% at
+$K=5000$). They change no result, so they are on by default for the tree loop. On the
+spiking network they gain nothing within error
+(\claim{e8_gain_spiking_a100}\,$\pm$\,\claim{e8_gain_spiking_a100_sd}\%): its
 cost is the host's event delivery and the synchronisation it forces every step, not
 the launches. Moving spike delivery to the device is the next step for that workload.
 
@@ -394,22 +400,22 @@ to the cells after the sender in its loop. With this network's zero axonal delay
 two schedules differ by one step (50\,\textmu s) for some synapses, and the network is
 chaotic, so it amplifies the difference. Over 10\,s of the spiking network, twice the
 length of any comparison above, the GPU's spike train first departs from the CPU's
-after \pending{e5_div_g64_ms}\,ms in fp64 and \pending{e5_div_g32_ms}\,ms in fp32.
+after \claim{e5_div_g64_ms}\,ms in fp64 and \claim{e5_div_g32_ms}\,ms in fp32.
 The two precisions part at the same step, so the cause is the order, not rounding. The
 CPU's own order matters as much: run with one solver per cell instead of one per
 layer, the same network with the same seed departs from itself after
-\pending{e5_div_pcell_ms}\,ms. From then on only statistics can be compared. Against
-the CPU's \pending{e5_rate_cpu_hz}\,Hz, the spike count differs by
-\pending{e5_count_g64_pct}\% in fp64, \pending{e5_count_g32_pct}\% in fp32 and
-\pending{e5_count_pcell_pct}\% for the CPU in the other order; the KS distances
-between the interspike-interval distributions are \pending{e5_ks_g64},
-\pending{e5_ks_g32} and \pending{e5_ks_pcell}. Four other seeds, other draws of the
-same network, fire at \pending{e5_rate_seed_min_hz}--\pending{e5_rate_seed_max_hz}\,Hz
-with KS distances of \pending{e5_ks_seed_min}--\pending{e5_ks_seed_max}. Each run
-repeats spike for spike on its own backend.
-%% After night 3: one sentence comparing the GPU's numbers with the per-cell CPU's,
-%% worded by what they show (at 5 s on 9ec9c33 the GPU was inside the CPU's spread:
-%% logs/campaign_prep/spike_variability_inf03_20261008_031932).
+\claim{e5_div_pcell_ms}\,ms. From then on only statistics can be compared. Against
+the CPU's \claim{e5_rate_cpu_hz}\,Hz, the spike count differs by
+\claim{e5_count_g64_pct}\% in fp64, \claim{e5_count_g32_pct}\% in fp32 and
+\claim{e5_count_pcell_pct}\% for the CPU in the other order; the KS distances
+between the interspike-interval distributions are \claim{e5_ks_g64},
+\claim{e5_ks_g32} and \claim{e5_ks_pcell}. Four other seeds, other draws of the
+same network, fire at \claim{e5_rate_seed_min_hz}--\claim{e5_rate_seed_max_hz}\,Hz
+with KS distances of \claim{e5_ks_seed_min}--\claim{e5_ks_seed_max}. Each run
+repeats spike for spike on its own backend. The GPU's spike counts thus differ from the
+CPU's by about as much as the CPU's differ from themselves under another update order,
+its interspike intervals are closer to the CPU's than that run's are, and both
+differences are far smaller than the change from one draw of the network to another.
 
 \item Reproducing these results %% R11
 Every number in this paper is a row of \path{reproduce/claims.csv}, naming the data

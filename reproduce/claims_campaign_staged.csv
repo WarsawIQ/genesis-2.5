@@ -98,3 +98,17 @@ e3_t1_cuda_a100_n50000,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=50000,fam
 e3_t1_cuda_a100_n50000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_cuda,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
 e3_t1_ocl_a100_n50000,tab:single,measured,x,%.1f,ratio,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,20,,
 e3_t1_ocl_a100_n50000_sd,tab:single,measured,x,%.1f,ratio_sd,{{E3_INF03}},n=50000,family=t1_cpu,family=t1_ocl,,wall_s,,{{S:E3_INF03}},cluster_bringup/campaign/E3_tables.sh,a100,60,100,,
+e8_tree_k5000_ratio_a40_sd,sec:2,measured,x,%.4f,ratio_sd,{{E8_INF02}},k=5000,family=tree_g0,family=tree_g1,,wall_s,,{{S:E8_INF02}},cluster_bringup/campaign/E8_graphs.sh,a40,20,100,,
+e8_gain_tree_k5000_a40_sd,sec:2,derived,pct,%.1f,e8_tree_k5000_ratio_a40_sd * 100,,,,,,,e8_tree_k5000_ratio_a40_sd,,,a40,,100,,
+e8_tree_k50000_ratio_a40,sec:2,measured,x,%.4f,ratio,{{E8_INF02}},k=50000,family=tree_g0,family=tree_g1,,wall_s,,{{S:E8_INF02}},cluster_bringup/campaign/E8_graphs.sh,a40,20,10,,graphs off over graphs on at K = 50000
+e8_gain_tree_k50000_a40,sec:2,derived,pct,%.1f,(e8_tree_k50000_ratio_a40 - 1) * 100,,,,,,,e8_tree_k50000_ratio_a40,,,a40,,80,,
+e8_tree_k50000_ratio_a40_sd,sec:2,measured,x,%.4f,ratio_sd,{{E8_INF02}},k=50000,family=tree_g0,family=tree_g1,,wall_s,,{{S:E8_INF02}},cluster_bringup/campaign/E8_graphs.sh,a40,20,100,,
+e8_gain_tree_k50000_a40_sd,sec:2,derived,pct,%.1f,e8_tree_k50000_ratio_a40_sd * 100,,,,,,,e8_tree_k50000_ratio_a40_sd,,,a40,,100,,
+e8_tree_k5000_ratio_a100_sd,sec:2,measured,x,%.4f,ratio_sd,{{E8_INF03}},k=5000,family=tree_g0,family=tree_g1,,wall_s,,{{S:E8_INF03}},cluster_bringup/campaign/E8_graphs.sh,a100,20,100,,
+e8_gain_tree_k5000_a100_sd,sec:2,derived,pct,%.1f,e8_tree_k5000_ratio_a100_sd * 100,,,,,,,e8_tree_k5000_ratio_a100_sd,,,a100,,100,,
+e8_tree_k50000_ratio_a100,sec:2,measured,x,%.4f,ratio,{{E8_INF03}},k=50000,family=tree_g0,family=tree_g1,,wall_s,,{{S:E8_INF03}},cluster_bringup/campaign/E8_graphs.sh,a100,20,10,,graphs off over graphs on at K = 50000
+e8_gain_tree_k50000_a100,sec:2,derived,pct,%.1f,(e8_tree_k50000_ratio_a100 - 1) * 100,,,,,,,e8_tree_k50000_ratio_a100,,,a100,,80,,
+e8_tree_k50000_ratio_a100_sd,sec:2,measured,x,%.4f,ratio_sd,{{E8_INF03}},k=50000,family=tree_g0,family=tree_g1,,wall_s,,{{S:E8_INF03}},cluster_bringup/campaign/E8_graphs.sh,a100,20,100,,
+e8_gain_tree_k50000_a100_sd,sec:2,derived,pct,%.1f,e8_tree_k50000_ratio_a100_sd * 100,,,,,,,e8_tree_k50000_ratio_a100_sd,,,a100,,100,,
+e8_spk_ratio_a100_sd,sec:2,measured,x,%.4f,ratio_sd,{{E8_INF03}},,family=spk_g0,family=spk_g1,,wall_s,,{{S:E8_INF03}},cluster_bringup/campaign/E8_graphs.sh,a100,20,100,,
+e8_gain_spiking_a100_sd,sec:2,derived,pct,%.1f,e8_spk_ratio_a100_sd * 100,,,,,,,e8_spk_ratio_a100_sd,,,a100,,100,,
