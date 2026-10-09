@@ -1,0 +1,49 @@
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# commit: cfc07aff5a39c608b3a47d95d5fba98f0effaac9 (cfc07aff)
+# binary: v2.6.0-rc3 nxgenesis_nocl sha256 332f2661c7b78890f00b0831f1e51a13d0a2e2ab3ec9947f0f205b48702e40e1
+# modes: pinned0 pinned1 pinned2 pinned3 
+# available: 4 nodes (0-3)
+# node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79
+# node 0 size: 64502 MB
+# node 0 free: 57518 MB
+# node 1 cpus: 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
+# node 1 size: 63546 MB
+# node 1 free: 62201 MB
+# node 2 cpus: 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111
+# node 2 size: 64503 MB
+# node 2 free: 63126 MB
+# node 3 cpus: 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
+# node 3 size: 64456 MB
+# node 3 free: 24175 MB
+# node distances:
+# node   0   1   2   3 
+#   0:  10  20  20  20 
+#   1:  20  10  20  20 
+#   2:  20  20  10  20 
+#   3:  20  20  20  10 
+mode,rep,wall_s,cpu,numa_node
+pinned0,1,29.325,64,0
+pinned1,1,28.861,17,1
+pinned2,1,28.331,40,2
+pinned3,1,28.910,125,3
+pinned0,2,28.606,3,0
+pinned1,2,28.919,17,1
+pinned2,2,28.499,103,2
+pinned3,2,28.664,124,3
+pinned0,3,29.071,1,0
+pinned1,3,28.900,22,1
+pinned2,3,29.279,32,2
+pinned3,3,28.426,115,3
+pinned0,4,28.534,14,0
+pinned1,4,28.614,16,1
+pinned2,4,28.705,109,2
+pinned3,4,28.548,51,3
+pinned0,5,29.438,64,0
+pinned1,5,28.557,80,1
+pinned2,5,28.731,34,2
+pinned3,5,28.940,118,3
+pinned0,6,28.463,74,0
+pinned1,6,28.572,16,1
+pinned2,6,28.359,104,2
+pinned3,6,28.946,49,3

@@ -1,0 +1,46 @@
+Starting Genesis
+Executable:         /storage2/home/kchlasta/before-construction/genesis/src/nxgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  /storage2/home/kchlasta/fix-dev/genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g
+=== HH Branching Multicompartment Benchmark ===
+Neurons:       2000
+Branches/cell: 4
+Comp/branch:   4
+Comp/neuron:   17
+Steps:         20
+chanmode:      1
+
+</storage2/home/kchlasta/fix-dev/genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 71
+** Error - Script 'genesis/src/startup/schedule.g' not found
+
+/library
+/
+Building branched cells...
+changing clock [0] from 1 to 1e-05
+Configuring single hsolve (chanmode= 1 , total comps= 34000 )...
+ncompts:  34000
+time = 0.000000 ; step = 0          
+sh: walltimemark: command not found
+</storage2/home/kchlasta/fix-dev/genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 166
+** Error - executing walltimemark: code 32512
+time = 0.000300 ; step = 30          
+completed 30 steps in 0.000002 cpu seconds
+sh: walltime: command not found
+</storage2/home/kchlasta/fix-dev/genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 168
+** Error - executing walltime: code 32512
+RESULT_T_TOTAL= 32512
+RESULT_T_PER_STEP= 1083.733333
+</storage2/home/kchlasta/fix-dev/genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 177
+** Error - Solver : HPUT/HGET calls should only be used when chanmode >= 2. '/net/solver'
+</storage2/home/kchlasta/fix-dev/genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g> line 178
+** Error - Solver : HPUT/HGET calls should only be used when chanmode >= 2. '/net/solver'
+RESULT_VM_FAR= -0.0700000003
+RESULT_VM_SOMA= -0.0700000003
+
+=== done: N= 2000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===

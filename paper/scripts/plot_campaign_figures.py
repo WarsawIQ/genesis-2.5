@@ -187,7 +187,7 @@ def fig_construction(sessions, before_csv, dest):
                 if r["variant"] == "before":
                     acc.setdefault(int(r["ncompts"]), []).append(float(r["total_wallclock_s"]))
         errplot(ax, {k: stats(v) for k, v in sorted(acc.items())},
-                "GENESIS 2.4, before the fixes (laptop, August 2026)", "#8a8f98", ls="--", marker="s")
+                "GENESIS 2.4, before the construction fixes (inf03)", "#8a8f98", ls="--", marker="s")
     for head, rows in sessions:
         s = arm_series(rows, r"con_n(\d+)$")
         s17 = {k * 17: v for k, v in s.items()}   # 17 compartments per cell
@@ -206,7 +206,8 @@ def main(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument("--campaign", default="cluster_bringup/logs/campaign_v2.6.0-rc3")
     ap.add_argument("--out", default="paper/figures")
-    ap.add_argument("--before", default="experiments/data/construction_scaling_before_after.csv")
+    ap.add_argument("--before", default="cluster_bringup/logs/campaign_prep/"
+                    "construction_before_inf03_20261009_225641/data.csv")
     a = ap.parse_args(argv)
     os.makedirs(a.out, exist_ok=True)
     jobs = (("E2", fig_runlength, "fig_runlength.pdf"),

@@ -1,0 +1,18 @@
+# node inf03, gpu NVIDIA A100-PCIE-40GB
+# binary /storage2/home/kchlasta/campaign-dry-inf03/genesis/src/nxgenesis
+# binary from v2.6.0-rc3-dirty 0fe5c6fe04030609d8421694d8fb8824a7d06f8d
+# binary sha256 f5f464cfd50f56e3fb0a8be787a60ea215fe971f100aadb1088191072e85c206
+# script from df937af
+# nsys NVIDIA Nsight Systems version 2024.6.2.225-246235244400v0
+# N=10000 trees x 16 compartments, K=5000 steps, chanmode 4, numactl node 0
+graphs 0: exit 0, 
+graphs 1: exit 0, 
+run.txt
+tree_g0_cuda_api_sum.csv
+tree_g0_cuda_gpu_kern_sum.csv
+tree_g0.log
+tree_g0.nsys-rep
+tree_g1_cuda_api_sum.csv
+tree_g1_cuda_gpu_kern_sum.csv
+tree_g1.log
+tree_g1.nsys-rep

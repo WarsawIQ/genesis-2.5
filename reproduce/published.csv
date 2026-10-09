@@ -371,3 +371,12 @@ regime_trees_min_n_a40,1000,cells,measured
 regime_trees_min_n_a100,500,cells,measured
 regime_trees_min_n,1000,cells,derived
 regime_single_max,20.55105448,x,derived
+e3c_before_exponent_inf03,2.178545664,exponent,measured
+f2_kern_elim_ns,259312346,ns,measured
+f2_kern_chan_ns,120080744,ns,measured
+f2_steps,5010,steps,measured
+f2_launch_ns,31280383,ns,measured
+f2_graph_launch_ns,2675101,ns,measured
+f2_kernel_us_per_step,75.72716367,us,derived
+f2_host_us_per_step,6.243589421,us,derived
+f2_host_graph_us_per_step,0.5339522954,us,derived

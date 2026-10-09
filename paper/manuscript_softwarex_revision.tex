@@ -211,10 +211,12 @@ streams through the interpreter, so heterogeneous cells cost more than their
 compartment count suggests.
 \emph{Transfers.} On the batched paths transfers are fixed per batch, not per step
 (above). On the per-step path they are paid every step.
-\emph{Launch overhead.} In the tree loop the host spends about
-\pending{f2_host_us_per_step}\,\textmu s per step against about
-\pending{f2_kernel_us_per_step}\,\textmu s of kernel time. CUDA Graphs, which replay
-a recorded sequence of launches, recover
+\emph{Launch overhead.} In the tree loop on the A100 the host spends
+\claim{f2_host_us_per_step}\,\textmu s per step launching the two kernels, which take
+\claim{f2_kernel_us_per_step}\,\textmu s (Nsight Systems, $N=10\,000$ trees); the
+launches overlap the kernels, so the host is not what limits the loop. CUDA Graphs,
+which replay a recorded sequence of launches, cut the host's part to
+\claim{f2_host_graph_us_per_step}\,\textmu s per step and recover
 \claim{e8_gain_tree_k50000_a100}\,$\pm$\,\claim{e8_gain_tree_k50000_a100_sd}\% of the
 run time on the A100 and
 \claim{e8_gain_tree_k50000_a40}\,$\pm$\,\claim{e8_gain_tree_k50000_a40_sd}\% on the A40
@@ -449,7 +451,7 @@ project. \pending{upstream_pr_status}
 %% merge with the upstream_status sentence of Section 1 when the outcome is known.
 
 Second, construction. Building a model was quadratic in its size: wall time grew as
-compartments$^{\claim{construction_exponent_before}}$, which made population-scale
+compartments$^{\claim{e3c_before_exponent_inf03}}$, which made population-scale
 models impractical regardless of compute power: a 1.7-million-compartment
 population never finished building. Four scans of the element tree are now constant-
 or linear-time, construction grows as
@@ -473,10 +475,10 @@ and would serve any computational paper.
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.62\textwidth]{figures/fig_construction.pdf}
-\caption{Model construction time against model size: GENESIS~2.4 before the fixes
-(measured on a laptop in August 2026; the code is no longer in the release) and
-v2.6.0 on inf03 (E3c, 3 replicates). The two curves come from different machines, so
-compare their slopes, not their heights.}
+\caption{Model construction time against model size on inf03, 3 replicates each:
+GENESIS~2.4 before the construction fixes (the upstream branch without them, built
+on the node and timed the same way) and v2.6.0 (E3c). The code from before the fixes
+grows too fast to measure beyond 16\,000 cells.}
 \label{fig:construction}
 \end{figure}
 

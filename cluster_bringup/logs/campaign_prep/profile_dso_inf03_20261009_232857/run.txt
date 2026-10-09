@@ -1,0 +1,7 @@
+# node inf03; binaries from v2.6.0-rc3 0fe5c6fe04030609d8421694d8fb8824a7d06f8d
+# nxgenesis_nocl sha256 332f2661c7b78890f00b0831f1e51a13d0a2e2ab3ec9947f0f205b48702e40e1
+# perf version 4.18.0-553.125.1.el8_10.x86_64; perf record -F 499 -g; numactl node 0
+g_spk: exit 0, wall 35.16 s
+cn_spk: exit 0, wall 77.24 s
+g_tree: exit 0, wall 25.98 s
+cn_tree: exit 0, wall 16.18 s

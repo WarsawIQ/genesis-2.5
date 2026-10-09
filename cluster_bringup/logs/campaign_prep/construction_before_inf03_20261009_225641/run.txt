@@ -1,0 +1,21 @@
+# node inf03, Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# before: 5407cc2 5407cc2df99cd08c382379da410ece9ebbfac038
+# binary sha256 72725f9857a1dbe2487db8d65b721394c6b02a7c5c5d612ace36574a20b4b50b, gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28)
+# model script df937af genesis/Scripts/benchmark/hh_branching_multicompartment_benchmark.g sha256 f9a834fcffdc54c3d759cc9c6154f1f432a5e84e673b342130439150d36788e4
+# GENESIS_BENCH_CHANMODE=1, 20 steps, 4 branches of 4, numactl node 0, wall clock around the process
+# sizes: 1000 2000 4000 8000 16000; replicates: 3
+n=1000 rep 1: 1.281 s (=== done: N= 1000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=2000 rep 1: 4.472 s (=== done: N= 2000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=4000 rep 1: 19.251 s (=== done: N= 4000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=8000 rep 1: 115.272 s (=== done: N= 8000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=16000 rep 1: 478.165 s (=== done: N= 16000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=1000 rep 2: 1.275 s (=== done: N= 1000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=2000 rep 2: 4.010 s (=== done: N= 2000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=4000 rep 2: 19.048 s (=== done: N= 4000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=8000 rep 2: 107.115 s (=== done: N= 8000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=16000 rep 2: 481.429 s (=== done: N= 16000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=1000 rep 3: 1.274 s (=== done: N= 1000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=2000 rep 3: 4.307 s (=== done: N= 2000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=4000 rep 3: 19.006 s (=== done: N= 4000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=8000 rep 3: 107.878 s (=== done: N= 8000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
+n=16000 rep 3: 473.031 s (=== done: N= 16000  NBRANCHES= 4  BRANCH_LEN= 4  steps= 20  chanmode= 1  ===)
