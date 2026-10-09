@@ -64,6 +64,26 @@ printf 'bad_crossover,test,measured,steps,%%.0f,crossover,xo.csv,,family=slow,fa
     >> "$T/r/reproduce/claims.csv"
 expect_fail "crossover outside the measured range" "bad_crossover: the lines cross at x = .*outside the measured range"
 
+# first_above: the first x from which a speedup stays above 1
+fresh
+python3 - "$T/r/fa.csv" <<'PY'
+import sys
+with open(sys.argv[1], "w") as f:
+    f.write("family,n,wall_s\n")
+    for n, cpu, gpu in ((100, 1.0, 2.0), (500, 2.0, 2.5), (1000, 4.0, 3.0), (2000, 8.0, 3.5)):
+        f.write("cpu,%d,%.3f\ngpu,%d,%.3f\n" % (n, cpu, n, gpu))
+PY
+printf 'fa_ok,test,measured,steps,%%.0f,first_above,fa.csv,,family=cpu,family=gpu,n,wall_s,,s1,x.sh,none,1,10,,\n' \
+    >> "$T/r/reproduce/claims.csv"
+if (cd "$T/r" && python3 reproduce/make_numbers.py > "$T/out" 2>&1) \
+        && grep -q "^fa_ok,1000," "$T/r/reproduce/published.csv"; then
+    echo "ok    first_above: the speedup passes 1 at n = 1000"
+else echo "FAIL  first_above"; cat "$T/out"; fail=1; fi
+sed -i '/^fa_ok,/d' "$T/r/reproduce/claims.csv"
+printf 'fa_low,test,measured,steps,%%.0f,first_above,fa.csv,,family=gpu,family=cpu,n,wall_s,,s1,x.sh,none,1,10,,\n' \
+    >> "$T/r/reproduce/claims.csv"
+expect_fail "first_above that never ends above 1" "fa_low: the ratio is not above 1 at the largest x"
+
 fresh
 if (cd "$T/r" && python3 reproduce/make_numbers.py --strict > "$T/out" 2>&1); then
     echo "ok    --strict passes (no prose claims left)"

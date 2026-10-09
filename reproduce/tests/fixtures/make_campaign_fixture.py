@@ -16,7 +16,8 @@ reproduce/tests/test_campaign_claims.sh):
     e8 tree gain at K=5000 = 5%, spiking gain = 0.42%
     e3c exponent = 1.00, construction_1700k_s = 10.0
     e1: GENESIS 1-solver CPU 35 s; NEURON 2.5x, CoreNEURON GPU 0.7x of it
-    e3 Table 1 at N = 50000: CUDA 40x, OpenCL 20x the CPU
+    e3 Table 1 at N = 50000: CUDA 40x, OpenCL 20x the CPU; trees: CUDA starts
+        8 s behind, so it passes the CPU end to end from N = 10000 (regimes)
     e5: CPU 27.0 Hz; first departure g64 2.65 ms, per-cell CPU 2.35 ms;
         seeds 24.0-29.0 Hz, KS 0.020-0.050 (the spike comparison, _spikes.csv)
 
@@ -77,10 +78,11 @@ def main(d):
                          ("g32_k%d" % k, 1.2 + 0.0002 * k * f, 0),
                          ("g64_k%d" % k, 1.56 + 0.00026 * k * f, 0))])
         write(d, "E3", node, gpu,
-              [(p % n, w * n / 1000.0, m * n / 1000.0)
+              [(p % n, c + w * n / 1000.0, m * n / 1000.0)
                for n in (1000, 10000, 50000)
-               for p, w, m in (("t2_cpu_n%d", 6.0, 5.0), ("t2_cuda_n%d", 1.5 * f, 0.1 * f),
-                               ("t2_ocl_n%d", 1.7 * f, 0.12 * f))]
+               for p, c, w, m in (("t2_cpu_n%d", 0.0, 6.0, 5.0),
+                                  ("t2_cuda_n%d", 8.0, 1.5 * f, 0.1 * f),
+                                  ("t2_ocl_n%d", 8.0, 1.7 * f, 0.12 * f))]
               + [(p % n, w, 0) for n in (500, 5000, 50000)
                  for p, w in (("t1_cpu_n%d", 0.4 * n), ("t1_cuda_n%d", 0.01 * n),
                               ("t1_ocl_n%d", 0.02 * n))])

@@ -367,3 +367,7 @@ e8_tree_k50000_ratio_a100_sd,0.01214741804,x,measured
 e8_gain_tree_k50000_a100_sd,1.214741804,pct,derived
 e8_spk_ratio_a100_sd,0.02571246249,x,measured
 e8_gain_spiking_a100_sd,2.571246249,pct,derived
+regime_trees_min_n_a40,1000,cells,measured
+regime_trees_min_n_a100,500,cells,measured
+regime_trees_min_n,1000,cells,derived
+regime_single_max,20.55105448,x,derived

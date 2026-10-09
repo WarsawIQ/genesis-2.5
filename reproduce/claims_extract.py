@@ -143,6 +143,37 @@ def crossover(c):
     return x
 
 
+def first_above(c):
+    """Smallest x from which the ratio of the means of num and den stays above 1.
+
+    For each measured x the ratio is mean(num) / mean(den) over the rows at
+    that x (num = the CPU arm and den = the accelerated one gives the speedup).
+    The value is the first x of the measured sweep at which the ratio exceeds 1
+    and stays above 1 at every larger x. Refused when the ratio is above 1 at
+    the smallest x (the threshold was not measured, only bounded) or never ends
+    above 1.
+    """
+    xn, yn = _arm_xy(c, c["num"])
+    xd, yd = _arm_xy(c, c["den"])
+    xs = sorted(set(xn) & set(xd))
+    if len(xs) < 2:
+        raise ExtractError("first_above needs at least two common x values")
+    above = []
+    for x in xs:
+        n = [y for xx, y in zip(xn, yn) if xx == x]
+        d = [y for xx, y in zip(xd, yd) if xx == x]
+        above.append(statistics.mean(n) / statistics.mean(d) > 1.0)
+    if not above[-1]:
+        raise ExtractError("the ratio is not above 1 at the largest x, %g" % xs[-1])
+    i = len(above) - 1
+    while i > 0 and above[i - 1]:
+        i -= 1
+    if i == 0:
+        raise ExtractError("the ratio is above 1 already at the smallest x, %g: "
+                           "the threshold lies below the measured range" % xs[0])
+    return xs[i]
+
+
 def intercept(c):
     return _fit(*_arm_xy(c, c["num"]))[0]
 
@@ -170,7 +201,7 @@ def regex(c):
 EXTRACTORS = {
     "mean": mean, "sd": sd, "count": count,
     "ratio": ratio, "ratio_sd": ratio_sd,
-    "crossover": crossover, "intercept": intercept, "slope": slope,
+    "crossover": crossover, "first_above": first_above, "intercept": intercept, "slope": slope,
     "loglog_slope": loglog_slope, "regex": regex,
 }
 

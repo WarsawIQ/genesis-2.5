@@ -68,6 +68,8 @@ check e1_nrn_cpu_rel 2.5 6
 check e1_cn_gpu_rel 0.70 6
 check e3_t1_cuda_a40_n50000 40 6
 check e3_t1_ocl_a100_n50000 20 6
+check regime_trees_min_n 10000 1
+check regime_single_max 40 6
 check e5_rate_cpu_hz 27.0 1
 check e5_div_g64_ms 2.65 1
 check e5_div_pcell_ms 2.35 1

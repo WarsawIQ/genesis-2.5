@@ -15,6 +15,7 @@
 \documentclass[preprint,12pt,a4paper]{elsarticle}
 \usepackage{amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{xcolor}
 \newcommand{\hte}{\texttt{hines\_\allowbreak tree\_\allowbreak eliminate}}
 \newcommand{\ccm}{\texttt{chip\_\allowbreak channel\_\allowbreak multiloop}}
@@ -377,13 +378,13 @@ the CPU; below 1 is faster.}
 \item When to use the GPU %% R5
 \begin{table}[!h]
 \centering\small
-\begin{tabular}{p{4cm}p{2.6cm}p{6.2cm}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{6.2cm}}
 \toprule
 Workload & GPU? & Why \\
 \midrule
 One detailed morphology & No & one thread per tree; the GPU is slower than the CPU \\
-Population of dendritic trees & Yes, from about \pending{regime_trees_min_n} cells & many trees fill the device (Fig.~\ref{fig:trees}) \\
-Isopotential cells without synapses & Yes & \pending{regime_single_max}$\times$ at $N=50\,000$ (Table~\ref{tab:single}) \\
+Population of dendritic trees & Yes, from about \claim{regime_trees_min_n} cells & many trees fill the device (Fig.~\ref{fig:trees}) \\
+Isopotential cells without synapses & Yes & \claim{regime_single_max}$\times$ at $N=50\,000$ (Table~\ref{tab:single}) \\
 Spiking network, zero axonal delay & No gain & spikes are exchanged every step, so every step is a dispatch (Table~\ref{tab:sim}) \\
 Long runs & Gain grows with length & the fixed setup cost is amortised (Fig.~\ref{fig:runlength}) \\
 \bottomrule

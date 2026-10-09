@@ -50,7 +50,7 @@ What reproduces which numbers, and what it needs:
 | 6 | single-compartment speedups (table) | `cluster_bringup/56_opencl_cluster_bench.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
 | 26 | tab:sim | `cluster_bringup/campaign/E1_cross_simulator.sh` | NVIDIA A100, NVIDIA GPU with Arbor built for CUDA, NVIDIA GPU with the NVHPC CoreNEURON build | 65 min |
 | 6 | abstract; fig:runlength; results text | `cluster_bringup/campaign/E2_ksweep.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
-| 24 | tab:single | `cluster_bringup/campaign/E3_tables.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
+| 26 | tab:regimes; tab:single | `cluster_bringup/campaign/E3_tables.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
 | 3 | fig:construction; sec:4 | `cluster_bringup/campaign/E3c_cpu.sh` | any Linux machine | 45 min |
 | 4 | GPU crossover with Arbor (figure); results text | `cluster_bringup/campaign/E4_fp64_cost.sh` | NVIDIA A100, NVIDIA A40 | 25 min |
 | 18 | results text | `cluster_bringup/campaign/E5_long_run.sh` | NVIDIA A100 | 35 min |
