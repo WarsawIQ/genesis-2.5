@@ -281,7 +281,14 @@ process, every value a mean over replicates run in interleaved order,
 every run, CPU arms included, bound to the GPU's NUMA node so that both arms of a
 speedup use the same socket, and every
 speedup the ratio of two means, with the arms' relative sample standard deviations
-combined in quadrature as its uncertainty.
+combined in quadrature as its uncertainty. On inf02 the A40's socket is the slower
+one: a CPU arm takes \claim{numa_socket_penalty_inf02}$\times$ as long there as on
+the other socket, so the A40's speedups would be that much smaller against it; on
+inf03 the sockets differ by \claim{numa_socket_penalty_inf03}$\times$. The CPU arms
+use the same \texttt{hsolve} mode as the GPU arms (\texttt{chanmode~4}). On the
+trees \texttt{chanmode~3} is faster still by \claim{cpu_cm4_over_cm3_trees}$\times$,
+while \texttt{chanmode~1}, our CPU reference before this revision, is
+\claim{cpu_cm1_over_cm4_trees}$\times$ slower with the same voltages.
 
 \begin{enumerate}
 \item Speed on populations of cells

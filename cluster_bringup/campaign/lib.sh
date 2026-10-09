@@ -15,14 +15,14 @@
 #   <exp>_<node>.open           the session to resume, while one is unfinished
 #
 # Environment (see cluster_bringup/campaign/README.md):
-#   CAMPAIGN_TAG   tag HEAD must be at (default v2.6.0-rc3)
+#   CAMPAIGN_TAG   tag HEAD must be at (default v2.6.0-rc4)
 #   CAMPAIGN_DRY   1 = untagged or dirty tree allowed, data go to campaign_dry/
 #   CAMPAIGN_WAIT_S, CAMPAIGN_WAIT_TRIES   busy-GPU retry (600 s, 6 tries)
 #   NVIDIA_SMI     nvidia-smi to call (the tests substitute a stub)
 
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/env.sh"
-CAMPAIGN_TAG=${CAMPAIGN_TAG:-v2.6.0-rc3}
+CAMPAIGN_TAG=${CAMPAIGN_TAG:-v2.6.0-rc4}
 CAMPAIGN_DRY=${CAMPAIGN_DRY:-0}
 CAMPAIGN_WAIT_S=${CAMPAIGN_WAIT_S:-600}
 CAMPAIGN_WAIT_TRIES=${CAMPAIGN_WAIT_TRIES:-6}
@@ -279,8 +279,9 @@ cuda_env() {   # the CUDA runtime on the library path for GPU binaries
 # tree_rep <arm> <rep> <order> <backend> <N> <K> <NCOMP> [VAR=value ...]
 # One run of the dendritic-tree benchmark (hh_multicompartment_createmap.g),
 # N neurons of NCOMP compartments for K steps, in the paper's arm definitions:
-# cpu = the fp64 CPU solver (chanmode 1, CPU-only binary); cuda32, cuda64 =
-# the CUDA tree kernel batched over the whole run; ocl32, ocl64 = the same with
+# cpu = the fp64 CPU solver (CPU-only binary) in chanmode 4, the mode of the
+# GPU arms; cuda32, cuda64 = the CUDA tree kernel batched over the whole run;
+# ocl32, ocl64 = the same with
 # OpenCL. Extra VAR=value pairs go into the run's environment (the mixed-tree
 # switches of E7, for instance). NCOMP may be "A,B" for a mixed population.
 tree_rep() {
@@ -289,7 +290,7 @@ tree_rep() {
     _s=genesis/Scripts/benchmark/hh_multicompartment_createmap.g
     case "$_be" in
         cpu)    run_rep "$_arm" "$_rep" "$_ord" 0 "$BANNER_CPU" sanity_tree \
-                    env GENESIS_BENCH_CHANMODE=1 GENESIS_BENCH_NCOMP="${_nc%%,*}" "$@" \
+                    env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP="${_nc%%,*}" "$@" \
                     timeout 7200 ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch "$_s" "$_n" "$_k" ;;
         cuda32|cuda64)
                 _p=fp32; _b=$BANNER_CUDA32

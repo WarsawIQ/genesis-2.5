@@ -380,3 +380,7 @@ f2_graph_launch_ns,2675101,ns,measured
 f2_kernel_us_per_step,75.72716367,us,derived
 f2_host_us_per_step,6.243589421,us,derived
 f2_host_graph_us_per_step,0.5339522954,us,derived
+cpu_cm1_over_cm4_trees,4.153136335,x,measured
+cpu_cm4_over_cm3_trees,1.083448914,x,measured
+numa_socket_penalty_inf02,1.189357553,x,measured
+numa_socket_penalty_inf03,0.9877116189,x,measured

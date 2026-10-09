@@ -23,7 +23,7 @@ for N in $NLIST; do
     r=1
     while [ "$r" -le "$REPS" ]; do
         t0=$(date +%s%N)
-        env GENESIS_BENCH_CHANMODE=1 GENESIS_BENCH_NCOMP=16 \
+        env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 \
             ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch "$S" "$N" "$K" >/dev/null 2>&1
         t1=$(date +%s%N)
         env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 GENESIS_CUDA_MULTILOOP=$((K+10)) \

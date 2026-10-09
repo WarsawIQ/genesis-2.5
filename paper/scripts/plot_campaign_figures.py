@@ -2,7 +2,7 @@
 """The revised manuscript's measured figures, drawn from the campaign's data.
 
     python3 paper/scripts/plot_campaign_figures.py \
-        [--campaign cluster_bringup/logs/campaign_v2.6.0-rc3] [--out paper/figures]
+        [--campaign cluster_bringup/logs/campaign_v2.6.0-rc4] [--out paper/figures]
 
 Reads every E2, E3, E3c and E4 session CSV in the campaign folder (the format of
 cluster_bringup/campaign/lib.sh: '# key: value' header lines, then one row per
@@ -204,7 +204,7 @@ def fig_construction(sessions, before_csv, dest):
 
 def main(argv):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--campaign", default="cluster_bringup/logs/campaign_v2.6.0-rc3")
+    ap.add_argument("--campaign", default="cluster_bringup/logs/campaign_v2.6.0-rc4")
     ap.add_argument("--out", default="paper/figures")
     ap.add_argument("--before", default="cluster_bringup/logs/campaign_prep/"
                     "construction_before_inf03_20261009_225641/data.csv")

@@ -56,8 +56,10 @@ What reproduces which numbers, and what it needs:
 | 18 | results text | `cluster_bringup/campaign/E5_long_run.sh` | NVIDIA A100 | 35 min |
 | 3 | sec:2 | `cluster_bringup/campaign/E7_imbalance.sh` | NVIDIA A100 | 30 min |
 | 10 | sec:2 | `cluster_bringup/campaign/E8_graphs.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
+| 2 | results text | `cluster_bringup/campaign/chanmode_check.sh` | any Linux machine | 10 min |
 | 1 | fig:construction; sec:4 | `cluster_bringup/campaign/construction_before.sh` | any Linux machine | 30 min |
 | 5 | sec:2 | `cluster_bringup/campaign/host_kernel_profile.sh` | NVIDIA A100 | 10 min |
+| 2 | results text | `cluster_bringup/campaign/numa_check.sh` | any Linux machine | 10 min |
 | 52 | dendritic-tree speedups (figure); dendritic-tree speedups (table) | `cluster_bringup/clean_multicomp_sweep.sh` | NVIDIA A100, NVIDIA A40 | 240 min |
 | 8 | dendritic trees against NEURON and Arbor (table) | `cluster_bringup/coreneuron/bench_multicomp_cross.sh` | NVIDIA GPU with Arbor built for CUDA, any Linux machine | 15 min |
 | 1 | spiking network against NEURON and CoreNEURON (table) | `cluster_bringup/coreneuron/coreneuron_gpu_standalone.sh` | NVIDIA GPU with the NVHPC CoreNEURON build | 10 min |

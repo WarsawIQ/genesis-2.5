@@ -54,7 +54,7 @@ for a in g_spk cn_spk g_tree cn_tree; do
     if [ "$a" = g_tree ]; then
         EXPECT_N=$TN EXPECT_STEPS=$TK EXPECT_NCOMP=16
         run_rep "${a}_perf" 1 1 0 "$BANNER_CPU" sanity_tree \
-            env GENESIS_BENCH_CHANMODE=1 GENESIS_BENCH_NCOMP=16 $PERF timeout 3600 \
+            env GENESIS_BENCH_CHANMODE=4 GENESIS_BENCH_NCOMP=16 $PERF timeout 3600 \
             ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch \
             genesis/Scripts/benchmark/hh_multicompartment_createmap.g "$TN" "$TK" || st=$?
     else

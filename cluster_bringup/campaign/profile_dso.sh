@@ -11,7 +11,9 @@
 # 0) on the binaries of <release checkout> and keeps, per arm, the report by
 # symbol (as E6), by library and by library and symbol. E6's timed runs and
 # its profiled-run overhead check stay as measured on the night; this adds
-# only the attribution. Needs perf and E6's work directory under $RUN_DIR
+# only the attribution. The GENESIS tree run uses chanmode 4, the CPU reference
+# from v2.6.0-rc4 on; G_TREE_CHANMODE=1 repeats the rc3 definition. Needs perf
+# and E6's work directory under $RUN_DIR
 # (the CoreNEURON tree mechanisms are built there by E6).
 #
 # Writes logs/campaign_prep/profile_dso_<node>_<time>/: <arm>_symbols.txt,
@@ -32,7 +34,7 @@ P=$RUN_DIR/profile_dso.perf.data
 {
 echo "# node $(hostname -s); binaries from $(cd "$REL" && git describe --tags --always) $(cd "$REL" && git rev-parse HEAD)"
 echo "# nxgenesis_nocl sha256 $(sha256sum "$REL/genesis/src/nxgenesis_nocl" | cut -d' ' -f1)"
-echo "# $(perf --version); perf record -F 499 -g; numactl node $NUMA"
+echo "# $(perf --version); perf record -F 499 -g; numactl node $NUMA; g_tree chanmode ${G_TREE_CHANMODE:-4}"
 } > "$OUT/run.txt"
 
 prof() {   # arm, then the command
@@ -61,7 +63,7 @@ printf 'setenv SIMPATH . %s/genesis/startup %s/genesis/Scripts/neurokit %s/genes
 
 prof g_spk env -C "$G" timeout 3600 "$REL/genesis/src/nxgenesis_nocl" -notty -batch VAnet2-batch-1solver.g
 prof cn_spk env -C "$COBAHH_DIR" PATH="$NRN_PIP_BIN:$PATH" timeout 3600 "$NRN_PYTHON" run_core.py
-prof g_tree env GENESIS_BENCH_CHANMODE=1 GENESIS_BENCH_NCOMP=16 timeout 3600 \
+prof g_tree env GENESIS_BENCH_CHANMODE=${G_TREE_CHANMODE:-4} GENESIS_BENCH_NCOMP=16 timeout 3600 \
     ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch \
     genesis/Scripts/benchmark/hh_multicompartment_createmap.g "$TN" "$TK"
 prof cn_tree env -C "$W/nrn_tree" USE_CORENEURON=1 USE_GPU=0 PATH="$NRN_PIP_BIN:$PATH" \

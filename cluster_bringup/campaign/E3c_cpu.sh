@@ -7,7 +7,10 @@
 # compartments (17 per neuron), 20 steps, N = 1000 ... 100 000 (1.7 million
 # compartments), timed around the whole process, as reproduce/stages/05_cpu.sh.
 # Only the release is measured: the "before" curve is the code before the fix,
-# which this tag no longer contains; its data stay as recorded in August.
+# which this tag no longer contains (construction_before.sh measures it on a
+# node). Construction stays in chanmode 1, as the "before" curve was measured:
+# it times building the model, not the solver, and is no GPU comparison; the
+# speedup arms (tree_rep in lib.sh) use chanmode 4 from v2.6.0-rc4 on.
 #
 # PGENESIS: hh1952_mpi_scaling.g, 2400 neurons, 5000 steps, P = 1 ... 24 ranks,
 # as paper/scripts/run_pgenesis_mpi_scaling.sh. Needs pgenesis/bin/Linux/nxpgenesis

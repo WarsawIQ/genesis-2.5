@@ -381,4 +381,8 @@
 \expandafter\def\csname claim@f2_kernel_us_per_step\endcsname{76}
 \expandafter\def\csname claim@f2_host_us_per_step\endcsname{6.2}
 \expandafter\def\csname claim@f2_host_graph_us_per_step\endcsname{0.5}
+\expandafter\def\csname claim@cpu_cm1_over_cm4_trees\endcsname{4.2}
+\expandafter\def\csname claim@cpu_cm4_over_cm3_trees\endcsname{1.08}
+\expandafter\def\csname claim@numa_socket_penalty_inf02\endcsname{1.19}
+\expandafter\def\csname claim@numa_socket_penalty_inf03\endcsname{0.99}
 \providecommand{\claim}[1]{\ifcsname claim@#1\endcsname\csname claim@#1\endcsname\else\errmessage{claim #1 undefined}\fi}
