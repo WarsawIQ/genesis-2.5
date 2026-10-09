@@ -1,0 +1,31 @@
+# experiment: E1
+# session: inf03_20261008_194843
+# commit: 0fe5c6fe04030609d8421694d8fb8824a7d06f8d
+# describe: v2.6.0-rc3
+# dirty: 0
+# build_generated_changed: 31
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 1.00
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 1380 / 1410
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: arbor_gpu
+# rep: 2
+# command: numactl --cpunodebind=0 --membind=0 env -C /storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E1/arbor_gpu USE_GPU=1 ARBOR_COBAHH_CAT=/storage2/home/kchlasta/tc-verify-20260929/opt/arbor-cobahh/cobahh-catalogue.so PYTHONPATH=/storage2/home/kchlasta/tc-verify-20260929/opt/arbor-gpu/lib/python3.13/site-packages LD_LIBRARY_PATH=/storage/opt/cuda/cuda-12.8/lib64:/storage2/home/kchlasta/tc-verify-20260929/opt/arbor-gpu/lib:/storage/opt/cuda/cuda-12.8/lib64: timeout 3600 /storage2/home/kchlasta/tc-verify-20260929/opt/miniforge/bin/python3 /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/arbor_vanet2/vanet2_arbor.py
+RESULT_NCELL=4000 RESULT_NE=3200 RESULT_NI=800
+RESULT_GPU=1 RESULT_HAS_GPU=True
+RESULT_FANIN=80 RESULT_FANIN_E=64.0 RESULT_FANIN_I=16.0
+RESULT_BUILD_S=1.685
+RESULT_RUN_S=147.094
+RESULT_WALL_S=148.779
+RESULT_MIN_ISI_MS=2.3763
+RESULT_SPIKES=602720
+RESULT_RATE_HZ=30.1360

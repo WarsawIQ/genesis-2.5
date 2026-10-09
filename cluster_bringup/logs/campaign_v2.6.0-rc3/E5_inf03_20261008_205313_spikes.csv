@@ -1,0 +1,15 @@
+run,file,spikes,rate_hz,isi_mean_ms,isi_cv,isi_median_ms,isi_p05_ms,isi_p95_ms,vs,identical,first_divergence_s,spikes_identical_before,count_diff_pct,ks_isi,cell_count_corr
+cpu_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/cpu/spikes_r1.txt,1087089,27.1772,32.8432,4.6280,7.3500,5.0500,126.2000,cpu_r1,yes,,1087089,0.0000,0.00000,1.00000
+cpu_r2,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/cpu/spikes_r2.txt,1087089,27.1772,32.8432,4.6280,7.3500,5.0500,126.2000,cpu_r1,yes,,1087089,0.0000,0.00000,1.00000
+cpu_r3,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/cpu/spikes_r3.txt,1087089,27.1772,32.8432,4.6280,7.3500,5.0500,126.2000,cpu_r1,yes,,1087089,0.0000,0.00000,1.00000
+g32_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g32/spikes_r1.txt,1083404,27.0851,32.8637,4.5067,7.3500,5.0500,127.4500,cpu_r1,no,0.002650,236,-0.3390,0.00284,0.99352
+g32_r2,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g32/spikes_r2.txt,1083404,27.0851,32.8637,4.5067,7.3500,5.0500,127.4500,cpu_r1,no,0.002650,236,-0.3390,0.00284,0.99352
+g32_r3,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g32/spikes_r3.txt,1083404,27.0851,32.8637,4.5067,7.3500,5.0500,127.4500,cpu_r1,no,0.002650,236,-0.3390,0.00284,0.99352
+g64_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g64/spikes_r1.txt,1096922,27.4230,32.5194,4.6246,7.3500,5.0500,125.7000,cpu_r1,no,0.002650,236,0.9045,0.00152,0.99369
+g64_r2,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g64/spikes_r2.txt,1096922,27.4230,32.5194,4.6246,7.3500,5.0500,125.7000,cpu_r1,no,0.002650,236,0.9045,0.00152,0.99369
+g64_r3,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/g64/spikes_r3.txt,1096922,27.4230,32.5194,4.6246,7.3500,5.0500,125.7000,cpu_r1,no,0.002650,236,0.9045,0.00152,0.99369
+pcell_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/pcell/spikes_r1.txt,1079147,26.9787,33.4198,4.6795,7.3500,5.0500,130.1000,cpu_r1,no,0.002350,170,-0.7306,0.00622,0.99231
+sd1_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/sd1/spikes_r1.txt,1168708,29.2177,29.2310,5.0663,7.1500,5.0500,103.4500,cpu_r1,no,0.001600,0,7.5080,0.03328,-0.02234
+sd2_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/sd2/spikes_r1.txt,1029503,25.7376,35.1830,4.4689,7.4500,5.0500,142.5000,cpu_r1,no,0.001600,0,-5.2973,0.02092,-0.00728
+sd3_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/sd3/spikes_r1.txt,984729,24.6182,37.5766,4.2481,7.6000,5.0500,155.8500,cpu_r1,no,0.001600,0,-9.4160,0.04900,-0.00246
+sd4_r1,/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E5/sd4/spikes_r1.txt,997945,24.9486,36.4391,4.2530,7.5500,5.0500,149.3000,cpu_r1,no,0.001600,0,-8.2002,0.03739,-0.01998

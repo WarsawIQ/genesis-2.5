@@ -1,0 +1,57 @@
+# experiment: E1
+# session: inf03_20261008_194843
+# commit: 0fe5c6fe04030609d8421694d8fb8824a7d06f8d
+# describe: v2.6.0-rc3
+# dirty: 0
+# build_generated_changed: 31
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 1.00
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: nrn_cb_cpu
+# rep: 3
+# command: numactl --cpunodebind=0 --membind=0 sh -c cd '/storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E1/cb/cobahh' && rm -f out.dat && PATH='/storage2/home/kchlasta/.local/bin':$PATH exec timeout 3600 'python3.12' run_plain.py
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Created 4000 cells; 4000 on host 0
+Created 320000 connections to targets on host 0
+SetupTime: 0.94809365 
+RunTime: 124.56556 
+id	 nsmax	 nsend	 nrecv	 nrused	 wait
+0	 0	 0	 0	 0	 0
+end of prstat
+histogram of #spikes vs #exchanges
+0	 0
+end of histogram
+                   total        min        max    idmin   idmax
+eqn                    0          0          0        0       0
+NetCon            320160     320160     320160        0       0
+deliver                0          0          0        0       0
+NC deliv               0          0          0        0       0
+PS send                0          0          0        0       0
+S deliv                0          0          0        0       0
+S send                 0          0          0        0       0
+S move                 0          0          0        0       0
+Q insert          574550     574550     574550        0       0
+Q move                 0          0          0        0       0
+Q remove          574550     574550     574550        0       0
+max sent               0          0          0        0       0
+sent                   0          0          0        0       0
+received               0          0          0        0       0
+used                   0          0          0        0       0
+
+setup        run          avgspkxfr    avgcomp      avgx2q       avgvxfr     
+0.9481       124.6        0            124.5        0           
+
+      id   spkxfr     id   comp       id   x2q        id   vxfr      
+min   0    0          0    124.5      0    0         
+max   0    0          0    124.5      0    0         

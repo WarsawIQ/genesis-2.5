@@ -43,8 +43,9 @@ echo "$remote_sums" | {
     while read -r sum path; do
         [ -n "$path" ] || continue
         rel=${path#./}
-        # The .md notes in logs/ are written in the repository, not by runs.
-        case "$rel" in *.md) continue ;; esac
+        # The .md notes in logs/ are written in the repository, not by runs;
+        # a campaign session's _report.md is written by report.py on the node.
+        case "$rel" in *_report.md) ;; *.md) continue ;; esac
         if [ ! -e "$LOGS/$rel" ]; then
             echo "$rel" >> "$LOGS/.sync_new.$$"
         elif [ "$(sha256sum < "$LOGS/$rel" | cut -d' ' -f1)" != "$sum" ]; then

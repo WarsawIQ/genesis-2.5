@@ -1,0 +1,66 @@
+# experiment: E3
+# session: inf03_20261008_224728
+# commit: 0fe5c6fe04030609d8421694d8fb8824a7d06f8d
+# describe: v2.6.0-rc3
+# dirty: 0
+# build_generated_changed: 31
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.00 1.00 1.00
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: t1_cuda_n5000
+# rep: 7
+# command: numactl --cpunodebind=0 --membind=0 env GENESIS_CUDA_MULTILOOP=50000 timeout 1800 ./genesis/src/nxgenesis -nosimrc -notty -batch genesis/Scripts/benchmark/hh_spiking_benchmark.g 5000 50000
+Starting Genesis
+Executable:         /storage2/home/kchlasta/campaign-dry-inf03/./genesis/src/nxgenesis
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_spiking_benchmark.g
+=== HH Spiking Benchmark (single hsolve, driven neurons) ===
+Neurons:    5000
+Steps:      50000
+dt:         5e-05  s
+inject:     1e-09  A
+record:     0
+
+/library
+/
+Building driven HH cells...
+changing clock [0] from 1 to 5e-05
+Configuring single hsolve (chanmode=4, N= 5000  neurons)...
+ncompts:  5000
+nchips:   55000
+time = 0.000000 ; step = 0          
+CUDA: device: NVIDIA A100-PCIE-40GB (sm_80, 108 SMs)
+CUDA: graph dispatch: tree loop on, per-step off
+CUDA: ready (5000 compartments, 55000 chips, fp32 kernels)
+CUDA: multiloop mode -- 50000 steps per dispatch
+CUDA MULTILOOP: 50000 steps | kernel 166.0 ms | total 166.0 ms | 3.321 us/step
+time = 0.000500 ; step = 10          
+completed 10 steps in 0.180949 cpu seconds
+user time used		= 0 sec  368592 usec
+system time used	= 0 sec  62005 usec
+time = 2.500500 ; step = 50010          
+completed 50000 steps in 0.001862 cpu seconds
+user time used		= 0 sec  370538 usec
+system time used	= 0 sec  62008 usec
+
+=== Results ===
+Neurons:               5000
+Steps:                 50000
+CPU-timer step time:   0  s
+VMFINAL 0  -0.07973368466
