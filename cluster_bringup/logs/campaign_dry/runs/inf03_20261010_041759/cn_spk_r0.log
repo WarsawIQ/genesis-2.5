@@ -1,0 +1,136 @@
+# experiment: E6
+# session: inf03_20261010_041759
+# commit: da4cf5e1d904297c989d7b6ca8d506f900af707e
+# describe: untagged
+# dirty: 3
+# build_generated_changed: 0
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.53 0.14 0.05
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: cn_spk
+# rep: 0
+# command: numactl --cpunodebind=0 --membind=0 env -C /storage2/home/kchlasta/tc-verify-20260929/coreneuron_cmp/destexhe_benchmarks/NEURON/cobahh PATH=/storage2/home/kchlasta/.local/bin:/storage2/home/kchlasta/.local/bin:/storage2/home/kchlasta/bin:/usr/share/Modules/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin timeout 3600 python3.12 run_core.py
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+ 
+ Duke, Yale, and the BlueBrain Project -- Copyright 1984-2020
+ Version : 9.0.2 ba57833 (2026-08-10 08:51:04 -0400)
+ 
+ Additional mechanisms from files
+ exp2syn.mod expsyn.mod hh.mod khh.mod nahh.mod netstim.mod passive.mod pattern.mod stim.mod svclmp.mod
+
+ Memory (MBs) :             After mk_mech : Max 154.4414, Min 154.4414, Avg 154.4414 
+ Memory (MBs) :            After MPI_Init : Max 154.4414, Min 154.4414, Avg 154.4414 
+ Memory (MBs) :          Before nrn_setup : Max 154.4414, Min 154.4414, Avg 154.4414 
+ Setup Done   : 0.13 seconds 
+ Model size   : 20.42 MB
+ Memory (MBs) :          After nrn_setup  : Max 179.5273, Min 179.5273, Avg 179.5273 
+GENERAL PARAMETERS
+--mpi=false
+--mpi-lib=
+--gpu=false
+--dt=0.05
+--tstop=5000
+
+GPU
+--nwarp=65536
+--cell-permute=0
+--cuda-interface=false
+
+INPUT PARAMETERS
+--voltage=1000
+--seed=-1
+--datpath=.
+--filesdat=./files.dat
+--pattern=
+--report-conf=
+--restore=     
+
+PARALLEL COMPUTATION PARAMETERS
+--threading=false
+--skip_mpi_finalize=true
+
+SPIKE EXCHANGE
+--ms_phases=2
+--ms_subintervals=2
+--multisend=false
+--spk_compress=0
+--binqueue=false
+
+CONFIGURATION
+--spikebuf=100000
+--prcellgid=-1
+--forwardskip=0
+--celsius=36
+--mindelay=10
+--report-buffer-size=4
+
+OUTPUT PARAMETERS
+--dt_io=0.1
+--outpath=.
+--checkpoint=
+
+ Start time (t) = 0
+
+ Memory (MBs) :  After mk_spikevec_buffer : Max 179.5273, Min 179.5273, Avg 179.5273 
+ Memory (MBs) :     After nrn_finitialize : Max 179.5273, Min 179.5273, Avg 179.5273 
+
+psolve |                                                         | t: 0.00   ETA: 0h00m00spsolve |====                                                     | t: 358.25 ETA: 0h01m04spsolve |=======                                                  | t: 656.75 ETA: 0h01m06spsolve |===========                                              | t: 1005.00 ETA: 0h00m59spsolve |===============                                          | t: 1343.25 ETA: 0h00m54spsolve |===================                                      | t: 1691.50 ETA: 0h00m48spsolve |======================                                   | t: 1990.00 ETA: 0h00m45spsolve |==========================                               | t: 2338.25 ETA: 0h00m39spsolve |==============================                           | t: 2686.50 ETA: 0h00m34spsolve |==================================                       | t: 2985.00 ETA: 0h00m30spsolve |=====================================                    | t: 3333.25 ETA: 0h00m25spsolve |=========================================                | t: 3681.50 ETA: 0h00m19spsolve |=============================================            | t: 3980.00 ETA: 0h00m15spsolve |=================================================        | t: 4328.25 ETA: 0h00m10spsolve |=====================================================    | t: 4676.50 ETA: 0h00m04spsolve |======================================================== | t: 4985.00 ETA: 0h00m00spsolve |=========================================================| t: 5000.00 ETA: 0h01m15s
+
+Solver Time : 75.1039
+
+
+ Simulation Statistics
+ Number of cells: 4000
+ Number of compartments: 12000
+ Number of presyns: 4081
+ Number of input presyns: 0
+ Number of synapses: 320160
+ Number of point processes: 8081
+ Number of transfer sources: 0
+ Number of transfer targets: 0
+ Number of spikes: 558824
+ Number of spikes with non negative gid-s: 558824
+Created 4000 cells; 4000 on host 0
+Created 320000 connections to targets on host 0
+SetupTime: 0.94283271 
+RunTime: 75.351125 
+id	 nsmax	 nsend	 nrecv	 nrused	 wait
+0	 0	 0	 0	 0	 0
+end of prstat
+histogram of #spikes vs #exchanges
+0	 0
+end of histogram
+                   total        min        max    idmin   idmax
+eqn                    0          0          0        0       0
+NetCon            320160     320160     320160        0       0
+deliver                0          0          0        0       0
+NC deliv               0          0          0        0       0
+PS send                0          0          0        0       0
+S deliv                0          0          0        0       0
+S send                 0          0          0        0       0
+S move                 0          0          0        0       0
+Q insert               0          0          0        0       0
+Q move                 0          0          0        0       0
+Q remove               0          0          0        0       0
+max sent               0          0          0        0       0
+sent                   0          0          0        0       0
+received               0          0          0        0       0
+used                   0          0          0        0       0
+
+setup        run          avgspkxfr    avgcomp      avgx2q       avgvxfr     
+0.9428       75.35        0            0            0           
+
+      id   spkxfr     id   comp       id   x2q        id   vxfr      
+min   0    0          0    0          0    0         
+max   0    0          0    0          0    0         

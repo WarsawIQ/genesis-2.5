@@ -1,0 +1,112 @@
+# experiment: E6
+# session: inf03_20261010_041759
+# commit: da4cf5e1d904297c989d7b6ca8d506f900af707e
+# describe: untagged
+# dirty: 3
+# build_generated_changed: 0
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.99 0.69 0.32
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+# arm: cn_tree_perf
+# rep: 1
+# command: numactl --cpunodebind=0 --membind=0 env -C /storage2/home/kchlasta/tc-verify-20260929/runs/inf03/campaign_E6/nrn_tree USE_CORENEURON=1 USE_GPU=0 PATH=/storage2/home/kchlasta/.local/bin:/storage2/home/kchlasta/.local/bin:/storage2/home/kchlasta/bin:/usr/share/Modules/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin perf record -F 499 -g -o /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261010_041759/cn_tree.perf.data -- timeout 3600 python3.12 hh_multicomp_neuron.py 1000 200
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+ 
+ Duke, Yale, and the BlueBrain Project -- Copyright 1984-2020
+ Version : 9.0.2 ba57833 (2026-08-10 08:51:04 -0400)
+ 
+ Additional mechanisms from files
+ exp2syn.mod expsyn.mod hh.mod netstim.mod passive.mod pattern.mod stim.mod svclmp.mod
+
+ Memory (MBs) :             After mk_mech : Max 91.3242, Min 91.3242, Avg 91.3242 
+ Memory (MBs) :            After MPI_Init : Max 91.3242, Min 91.3242, Avg 91.3242 
+ Memory (MBs) :          Before nrn_setup : Max 91.3242, Min 91.3242, Avg 91.3242 
+ Setup Done   : 0.01 seconds 
+ Model size   : 7.76 MB
+ Memory (MBs) :          After nrn_setup  : Max 100.2344, Min 100.2344, Avg 100.2344 
+GENERAL PARAMETERS
+--mpi=false
+--mpi-lib=
+--gpu=false
+--dt=0.0125
+--tstop=2
+
+GPU
+--nwarp=65536
+--cell-permute=0
+--cuda-interface=false
+
+INPUT PARAMETERS
+--voltage=1000
+--seed=-1
+--datpath=.
+--filesdat=./files.dat
+--pattern=
+--report-conf=
+--restore=     
+
+PARALLEL COMPUTATION PARAMETERS
+--threading=false
+--skip_mpi_finalize=true
+
+SPIKE EXCHANGE
+--ms_phases=2
+--ms_subintervals=2
+--multisend=false
+--spk_compress=0
+--binqueue=false
+
+CONFIGURATION
+--spikebuf=100000
+--prcellgid=-1
+--forwardskip=0
+--celsius=6.3
+--mindelay=10
+--report-buffer-size=4
+
+OUTPUT PARAMETERS
+--dt_io=0.1
+--outpath=.
+--checkpoint=
+
+ Start time (t) = 0
+
+ Memory (MBs) :  After mk_spikevec_buffer : Max 100.4883, Min 100.4883, Avg 100.4883 
+ Memory (MBs) :     After nrn_finitialize : Max 100.4883, Min 100.4883, Avg 100.4883 
+
+psolve |                                                         | t: 0.00   ETA: 0h00m00spsolve |=========================================================| t: 2.00   ETA: 0h00m00sChanged dt
+RESULT_N=1000 RESULT_NCOMP=16 RESULT_TOTAL_COMPS=16000 RESULT_STEPS=200
+RESULT_BUILD_S=0.232
+RESULT_RUN_S=0.272
+RESULT_WALL_S=0.504
+RESULT_VM_SOMA=38.455225
+RESULT_VM_FAR=-50.726746
+
+
+Solver Time : 0.212068
+
+
+ Simulation Statistics
+ Number of cells: 1000
+ Number of compartments: 33000
+ Number of presyns: 1000
+ Number of input presyns: 0
+ Number of synapses: 1000
+ Number of point processes: 1000
+ Number of transfer sources: 0
+ Number of transfer targets: 0
+ Number of spikes: 1000
+ Number of spikes with non negative gid-s: 1000
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.156 MB /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/runs/inf03_20261010_041759/cn_tree.perf.data (1831 samples) ]

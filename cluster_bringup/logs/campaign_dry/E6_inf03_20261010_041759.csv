@@ -1,0 +1,35 @@
+# experiment: E6
+# session: inf03_20261010_041759
+# commit: da4cf5e1d904297c989d7b6ca8d506f900af707e
+# describe: untagged
+# dirty: 3
+# build_generated_changed: 0
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.15 0.03 0.01
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 765 / 1410
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+inf03_20261010_041759,E6,g_spk,0,1,35.4405,ncompts,4000,ok,2026-10-10T04:18:00+02:00
+inf03_20261010_041759,E6,cn_spk,0,2,77.1528,ran,0,ok,2026-10-10T04:18:35+02:00
+inf03_20261010_041759,E6,g_tree,0,3,0.3001,t_per_step_s,0.0009630049978,ok,2026-10-10T04:19:53+02:00
+inf03_20261010_041759,E6,cn_tree,0,4,0.7750,result,-50.726746,ok,2026-10-10T04:19:53+02:00
+inf03_20261010_041759,E6,cn_spk,1,1,76.2123,ran,0,ok,2026-10-10T04:19:54+02:00
+inf03_20261010_041759,E6,g_tree,1,2,0.3001,t_per_step_s,0.0009610266913,ok,2026-10-10T04:21:10+02:00
+inf03_20261010_041759,E6,cn_tree,1,3,0.7157,result,-50.726746,ok,2026-10-10T04:21:11+02:00
+inf03_20261010_041759,E6,g_spk,1,4,34.1101,ncompts,4000,ok,2026-10-10T04:21:12+02:00
+inf03_20261010_041759,E6,g_spk_perf,1,1,35.3196,ncompts,4000,ok,2026-10-10T04:21:46+02:00
+inf03_20261010_041759,E6,cn_spk_perf,1,1,77.0517,ran,39741,ok,2026-10-10T04:22:22+02:00
+inf03_20261010_041759,E6,g_tree_perf,1,1,0.5229,t_per_step_s,0.0009662899943,ok,2026-10-10T04:23:39+02:00
+inf03_20261010_041759,E6,cn_tree_perf,1,1,0.9637,result,-50.726746,ok,2026-10-10T04:23:40+02:00
+# ended: 2026-10-10T04:23:41+02:00
+# sm_clock_mhz_after: 210 / 1410
+# complete: yes
