@@ -3,7 +3,7 @@
 
     python3 reproduce/tests/fixtures/make_campaign_fixture.py <outdir>
 
-Writes E1, E2, E3, E4, E5, E7, E8 and E3c session CSVs in the harness format
+Writes E1, E2, E3, E4, E5, E6, E7, E8 and E3c session CSVs in the harness format
 (cluster_bringup/campaign/lib.sh) with OBVIOUSLY SYNTHETIC values: straight
 lines with a seeded +-3% jitter, chosen so the figures have a shape and the
 staged claims have known expected values (asserted in
@@ -18,6 +18,8 @@ reproduce/tests/test_campaign_claims.sh):
     e1: GENESIS 1-solver CPU 35 s; NEURON 2.5x, CoreNEURON GPU 0.7x of it
     e3 Table 1 at N = 50000: CUDA 40x, OpenCL 20x the CPU; trees: CUDA starts
         8 s behind, so it passes the CPU end to end from N = 10000 (regimes)
+    e6: GENESIS network 21% synapses + 16% dispatch = 37%, CoreNEURON 46.19% in libm;
+        CoreNEURON/GENESIS time 76/34 = 2.24 (network), 16/6 = 2.67 (trees)
     e5: CPU 27.0 Hz; first departure g64 2.65 ms, per-cell CPU 2.35 ms;
         seeds 24.0-29.0 Hz, KS 0.020-0.050 (the spike comparison, _spikes.csv)
 
@@ -68,6 +70,24 @@ def spikes_csv(d, exp, node):
                     % (run, rate * 4000 * 10, rate, "yes" if not div else "no", div, cnt, ks))
 
 
+def profile_files(d, exp, node):
+    """What profile_split.sh writes next to an E6 session, for its four arms."""
+    base = os.path.join(d, "%s_%s_20990101_000000" % (exp, node))
+    cats = {"g_spk": (("channel update", 47.0), ("synapses and events", 21.0),
+                      ("element dispatch", 16.0), ("other", 16.0)),
+            "cn_spk": (("channel update", 68.0), ("synapses and events", 12.0), ("other", 20.0)),
+            "g_tree": (("channel update", 85.0), ("linear solve", 11.0), ("other", 4.0)),
+            "cn_tree": (("channel update", 42.0), ("linear solve", 17.0), ("other", 41.0))}
+    for arm, rows in cats.items():
+        with open("%s_%s_categories.csv" % (base, arm), "w") as f:
+            f.write("category,percent,symbols\n")
+            for c, p in rows:
+                f.write("%s,%.2f,1\n" % (c, p))
+            f.write("total,100.00,%d\n" % len(rows))
+    with open("%s_cn_spk_dso.txt" % base, "w") as f:
+        f.write("    46.19%  libm-2.28.so\n    42.57%  libcorenrnmech.so\n")
+
+
 def main(d):
     os.makedirs(d, exist_ok=True)
     random.seed(7)
@@ -101,6 +121,9 @@ def main(d):
           [("g_cpu_1s", 35.0, 4000), ("g_cpu_pub", 70.0, 4000), ("g_gpu32_1s", 40.0, 4000),
            ("g_gpu64_1s", 45.0, 4000), ("nrn_cpu", 87.5, 0), ("nrn_cb_cpu", 80.0, 0),
            ("cn_cpu", 70.0, 0), ("cn_gpu", 24.5, 0), ("arbor_gpu", 150.0, 0)])
+    write(d, "E6", "inf03", "A100",
+          [("g_spk", 34.0, 0), ("cn_spk", 76.0, 0), ("g_tree", 6.0, 0), ("cn_tree", 16.0, 0)])
+    profile_files(d, "E6", "inf03")
     write(d, "E5", "inf03", "A100",
           [(a, 90.0, 1.0e6) for a in ("cpu", "g32", "g64", "pcell", "sd1", "sd2", "sd3", "sd4")])
     spikes_csv(d, "E5", "inf03")

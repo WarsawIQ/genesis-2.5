@@ -70,6 +70,11 @@ check e3_t1_cuda_a40_n50000 40 6
 check e3_t1_ocl_a100_n50000 20 6
 check regime_trees_min_n 10000 1
 check regime_single_max 40 6
+check e6_g_spk_syn_disp 37 1
+check e6_cn_spk_libm 46.19 1
+check e6_g_tree_chan 85 1
+check e6_cn_over_g_spk 2.24 6
+check e6_cn_over_g_tree 2.67 6
 check e5_rate_cpu_hz 27.0 1
 check e5_div_g64_ms 2.65 1
 check e5_div_pcell_ms 2.35 1

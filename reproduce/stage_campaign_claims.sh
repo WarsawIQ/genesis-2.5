@@ -8,7 +8,9 @@
 # reproduce/claims_campaign_staged.csv holds the claim rows written before the
 # campaign, with {{E2_INF02}}-style placeholders where the session file's name
 # belongs (the name carries the session's timestamp, unknown until it runs);
-# {{SPK:E5_INF03}} names that session's spike comparison (spikes_compare.py).
+# {{SPK:E5_INF03}} names that session's spike comparison (spikes_compare.py);
+# {{SUF:E6_INF03:_g_spk_categories.csv}} names the file the session wrote under
+# its own name with that suffix.
 # This script finds each experiment's session CSV under the campaign folder,
 # derives its tidy table (cluster_bringup/campaign/tidy.py), substitutes the
 # paths and session ids, and appends the rows whose data exist to
@@ -37,7 +39,7 @@ trap 'rm -f "$T" "$T.sed" "$T.ids" "$T.keep"' EXIT
 missing=""
 for tok in $(grep -o '{{[A-Z]*:\{0,1\}[A-Za-z0-9]*_[A-Z0-9]*}}' "$STAGED" | sed 's/^{{[A-Z]*:/{{/' | sort -u | tr -d '{}'); do
     exp=${tok%_*}; node=$(echo "${tok##*_}" | tr 'A-Z' 'a-z')
-    set -- $(ls "$CAMPAIGN_LOGS/${exp}_${node}_"*.csv 2>/dev/null | grep -v '_tidy\|_spikes\|_report')
+    set -- $(ls "$CAMPAIGN_LOGS/${exp}_${node}_"*.csv 2>/dev/null | grep -E "/${exp}_${node}_[0-9]{8}_[0-9]{6}\.csv\$")
     if [ $# -eq 0 ]; then missing="$missing $tok"; continue; fi
     [ $# -eq 1 ] || { echo "REFUSED: $# session files for $tok in $CAMPAIGN_LOGS -- one session"\
                            "per experiment and node; mark the stale one superseded first" >&2; exit 1; }
@@ -47,6 +49,10 @@ for tok in $(grep -o '{{[A-Z]*:\{0,1\}[A-Za-z0-9]*_[A-Z0-9]*}}' "$STAGED" | sed 
     printf 's|{{%s}}|%s|g\ns|{{S:%s}}|%s|g\n' "$tok" "$rel" "$tok" "$sess" >> "$T.sed"
     spk=${1%.csv}_spikes.csv
     [ -f "$spk" ] && printf 's|{{SPK:%s}}|%s|g\n' "$tok" "${spk#"$ROOT"/}" >> "$T.sed"
+    base=${1%.csv}
+    for suf in $(grep -o "{{SUF:$tok:[^}]*}}" "$STAGED" | sed "s/^{{SUF:$tok://; s/}}\$//" | sort -u); do
+        [ -f "$base$suf" ] && printf 's|{{SUF:%s:%s}}|%s|g\n' "$tok" "$suf" "${base#"$ROOT"/}$suf" >> "$T.sed"
+    done
 done
 
 if [ "$RESTAGE" = 1 ]; then

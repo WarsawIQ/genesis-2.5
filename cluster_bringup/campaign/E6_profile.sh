@@ -2,8 +2,9 @@
 # E6: why GENESIS and CoreNEURON rank differently on the two workloads
 # (reviewer point 3), measured rather than argued. CPU profiles (perf, 499 Hz,
 # call graphs) of the GENESIS and CoreNEURON CPU arms on the spiking network
-# and on the dendritic-tree model, split into channel update, linear solve,
-# event delivery, scheduler and other (profile_categories.txt). Each arm also
+# and on the dendritic-tree model, reported by symbol and by library and split
+# into channel update, linear solve, synapses and events, element dispatch and
+# the rest (profile_split.sh, profile_categories_dso.txt). Each arm also
 # runs 3 times without the profiler; the profiled run must be within 5% of
 # their mean, or the profile is reported as distorting. Run on inf03. ~40 min.
 set -u
