@@ -54,6 +54,7 @@ What reproduces which numbers, and what it needs:
 | 3 | fig:construction; sec:4 | `cluster_bringup/campaign/E3c_cpu.sh` | any Linux machine | 45 min |
 | 4 | GPU crossover with Arbor (figure); results text | `cluster_bringup/campaign/E4_fp64_cost.sh` | NVIDIA A100, NVIDIA A40 | 25 min |
 | 18 | results text | `cluster_bringup/campaign/E5_long_run.sh` | NVIDIA A100 | 35 min |
+| 12 | results text | `cluster_bringup/campaign/E6_profile.sh` | any Linux machine | 40 min |
 | 3 | sec:2 | `cluster_bringup/campaign/E7_imbalance.sh` | NVIDIA A100 | 30 min |
 | 10 | sec:2 | `cluster_bringup/campaign/E8_graphs.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
 | 2 | results text | `cluster_bringup/campaign/chanmode_check.sh` | any Linux machine | 10 min |

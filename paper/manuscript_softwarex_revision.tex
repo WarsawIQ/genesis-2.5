@@ -46,9 +46,9 @@
 GENESIS is a long-established compartmental neural simulator. GENESIS~2.5 adds
 optional CUDA and OpenCL backends to its \texttt{hsolve} solver, including a GPU
 Hines elimination for populations of dendritic trees, without changes to existing
-models, scripts or MPI workflows. On a population of 160\,000 compartments the
-accelerator runs \claim{e2_max_e2e_a100}$\times$ faster end to end than the CPU
-solver; in double precision it reproduces the CPU solver to every printed digit.
+models, scripts or MPI workflows. On a population of 160\,000 compartments run for
+10\,000 steps, an A100 is \claim{e2_max_e2e_a100}$\times$ faster end to end than the
+CPU solver; in double precision it reproduces the CPU solver to every printed digit.
 Networks that exchange spikes every step gain nothing on the GPU, and we show
 why. The release also makes model construction linear and fixes two defects
 in the Hines solver of GENESIS~2.4.
@@ -202,10 +202,12 @@ Four properties of the device code decide where it pays off.
 \emph{Work imbalance.} \hte{} runs one thread per tree, so the threads of a warp wait
 for the largest tree among them. A population that mixes trees of 8 and 64
 compartments in every warp takes \claim{e7_inter_over_uniform}$\times$ as long per
-step as uniform trees with the same total number of compartments; the same mixed trees
-grouped by size take \claim{e7_block_over_uniform}$\times$ (E7). Grouping is worse,
-not better: it puts all the long trees on some of the multiprocessors, which then
-finish last, while interleaving spreads them across the device.
+step as uniform trees with the same total number of compartments, about what the CPU
+itself pays for the same mix (\claim{e7_cpu_inter_over_uniform}$\times$), so the wait
+within a warp costs little. The same mixed trees grouped by size take
+\claim{e7_block_over_uniform}$\times$ (E7). Grouping is worse, not better: it puts all
+the long trees on some of the multiprocessors, which then finish last, while
+interleaving spreads them across the device.
 \emph{Divergence.} Compartments with different channel sets follow different opcode
 streams through the interpreter, so heterogeneous cells cost more than their
 compartment count suggests.
@@ -220,10 +222,11 @@ which replay a recorded sequence of launches, cut the host's part to
 \claim{e8_gain_tree_k50000_a100}\,$\pm$\,\claim{e8_gain_tree_k50000_a100_sd}\% of the
 run time on the A100 and
 \claim{e8_gain_tree_k50000_a40}\,$\pm$\,\claim{e8_gain_tree_k50000_a40_sd}\% on the A40
-in a run of $K=50\,000$ steps (E8). In shorter runs the gain is within the noise
-(\claim{e8_gain_tree_k5000_a100}\,$\pm$\,\claim{e8_gain_tree_k5000_a100_sd}\% and
-\claim{e8_gain_tree_k5000_a40}\,$\pm$\,\claim{e8_gain_tree_k5000_a40_sd}\% at
-$K=5000$). They change no result, so they are on by default for the tree loop. On the
+in a run of $K=50\,000$ steps (E8); at $K=5000$ the gain is
+\claim{e8_gain_tree_k5000_a100}\,$\pm$\,\claim{e8_gain_tree_k5000_a100_sd}\% on the
+A100 and, within the noise,
+\claim{e8_gain_tree_k5000_a40}\,$\pm$\,\claim{e8_gain_tree_k5000_a40_sd}\% on the
+A40. They change no result, so they are on by default for the tree loop. On the
 spiking network they gain nothing within error
 (\claim{e8_gain_spiking_a100}\,$\pm$\,\claim{e8_gain_spiking_a100_sd}\%): its
 cost is the host's event delivery and the synchronisation it forces every step, not
@@ -346,11 +349,19 @@ cross at \claim{e4_crossover_ms_a100}\,ms of simulated time, on the A40 at
 which Arbor always uses, they do not cross: GENESIS is slower at every run length
 we measured, taking \claim{e4_fp64_over_arbor_a100}$\times$ Arbor's time on the
 A100 and \claim{e4_fp64_over_arbor_a40}$\times$ on the A40 at the longest run. The
-advantage over Arbor is the advantage of single precision. CPU profiles (E6) say why the ranking differs between
-the workloads: on the network GENESIS spends \pending{e6_shares_genesis_spk} of its
-time in event delivery against CoreNEURON's \pending{e6_shares_cn_spk}; on the trees
-the linear solve dominates, \pending{e6_shares_genesis_tree} against
-\pending{e6_shares_cn_tree}.
+advantage over Arbor is the advantage of single precision. CPU profiles (E6) show
+where the time goes. On the CPU, GENESIS is faster than CoreNEURON on both workloads,
+\claim{e6_cn_over_g_spk}$\times$ on the network and \claim{e6_cn_over_g_tree}$\times$
+on the trees, because it reads its channel gates from tables, while CoreNEURON
+evaluates exponentials: the exponential function alone takes
+\claim{e6_cn_spk_libm}\% of CoreNEURON's time on the network. On the network GENESIS
+spends \claim{e6_g_spk_syn_disp}\% of its time on synapses, spike events and the calls
+that reach them, against CoreNEURON's \claim{e6_cn_spk_syn}\%; that host-side work is
+what keeps the GPU from helping there. On the trees the channels take
+\claim{e6_g_tree_chan}\% of GENESIS's time and the linear solve
+\claim{e6_g_tree_solve}\%, against \claim{e6_cn_tree_chan}\% and
+\claim{e6_cn_tree_solve}\% of CoreNEURON's; most of the remainder is building the
+model in both, and idle library threads in CoreNEURON.
 
 \begin{table}[!h]
 \centering\small
