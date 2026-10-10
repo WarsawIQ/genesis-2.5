@@ -1,1 +1,32 @@
-[04:27:29] E6: session inf03_20261010_042728, untagged (da4cf5e1d904297c989d7b6ca8d506f900af707e), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E6_inf03_20261010_042728.csv
+[04:30:36] E6: session inf03_20261010_043035, untagged (c7a89d1a048fc94323c5d412e26650d8f5472e20), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E6_inf03_20261010_043035.csv
+category,percent,symbols
+channel update,44.70,3
+synapses and events,23.35,5
+element dispatch,14.91,8
+random input,6.53,4
+scheduler,4.54,1
+linear solve,3.19,2
+other,2.95,70
+total,100.17,93
+category,percent,symbols
+channel update,68.94,77
+synapses and events,11.54,16
+linear solve,7.44,5
+other,6.55,103
+idle threads (OpenBLAS),3.96,1
+NEURON model setup,1.26,172
+total,99.69,374
+category,percent,symbols
+other,42.18,29
+channel update,41.53,2
+linear solve,15.23,1
+element dispatch,1.06,1
+total,100.00,33
+category,percent,symbols
+idle threads (OpenBLAS),82.62,1
+NEURON model setup,8.55,92
+channel update,3.78,19
+other,3.29,21
+linear solve,1.79,4
+total,100.03,137
+report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E6_inf03_20261003_163928.csv is from commit cff9bf680c, /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E6_inf03_20261010_043035.csv from c7a89d1a04

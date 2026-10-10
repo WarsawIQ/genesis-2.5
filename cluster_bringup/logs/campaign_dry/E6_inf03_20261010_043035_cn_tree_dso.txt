@@ -1,0 +1,10 @@
+    82.62%  libscipy_openblas64_-61654e39.so
+     4.56%  libnrniv.so                     
+     4.03%  libcorenrnmech.so               
+     3.35%  python3.12                      
+     2.69%  libc-2.28.so                    
+     1.57%  libm-2.28.so                    
+     0.64%  libnrnpython3.12.so             
+     0.34%  ld-2.28.so                      
+     0.16%  libpthread-2.28.so              
+     0.05%  [unknown]                       

@@ -1,0 +1,7 @@
+category,percent,symbols
+idle threads (OpenBLAS),82.62,1
+NEURON model setup,8.55,92
+channel update,3.78,19
+other,3.29,21
+linear solve,1.79,4
+total,100.03,137
