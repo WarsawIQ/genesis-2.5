@@ -1,0 +1,7 @@
+    98.73%  nxgenesis_nocl    
+     1.25%  libc-2.28.so      
+     0.01%  libm-2.28.so      
+     0.01%  [unknown]         
+     0.00%  timeout           
+     0.00%  libpthread-2.28.so
+     0.00%  ld-2.28.so        

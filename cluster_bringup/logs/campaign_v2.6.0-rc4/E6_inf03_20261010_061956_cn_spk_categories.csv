@@ -1,0 +1,8 @@
+category,percent,symbols
+channel update,68.57,75
+synapses and events,12.08,17
+linear solve,7.21,5
+other,6.67,86
+idle threads (OpenBLAS),3.92,1
+NEURON model setup,1.36,168
+total,99.81,352

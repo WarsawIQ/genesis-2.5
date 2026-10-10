@@ -1,0 +1,34 @@
+[06:19:56] E6: session inf03_20261010_061956, v2.6.0-rc4 (9d76734490e15b17ddc6385d01527f69956c8f1f), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_v2.6.0-rc4/E6_inf03_20261010_061956.csv
+category,percent,symbols
+channel update,46.53,4
+synapses and events,22.50,5
+element dispatch,15.42,8
+random input,5.81,4
+scheduler,4.11,1
+other,2.91,72
+linear solve,2.87,2
+total,100.15,96
+category,percent,symbols
+channel update,68.57,75
+synapses and events,12.08,17
+linear solve,7.21,5
+other,6.67,86
+idle threads (OpenBLAS),3.92,1
+NEURON model setup,1.36,168
+total,99.81,352
+category,percent,symbols
+channel update,60.91,8
+linear solve,21.17,1
+other,17.10,67
+element dispatch,0.78,4
+total,99.96,80
+category,percent,symbols
+channel update,42.63,37
+linear solve,17.26,5
+idle threads (OpenBLAS),16.69,1
+NEURON model setup,15.72,213
+other,6.40,44
+stimulus,0.88,1
+synapses and events,0.28,1
+total,99.86,302
+report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_v2.6.0-rc4/E6_inf03_20261010_061956_report.md

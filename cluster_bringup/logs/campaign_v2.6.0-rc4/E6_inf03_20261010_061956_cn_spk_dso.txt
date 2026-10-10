@@ -1,0 +1,15 @@
+    46.88%  libm-2.28.so                                     
+    41.93%  libcorenrnmech.so                                
+     4.38%  libc-2.28.so                                     
+     3.92%  libscipy_openblas64_-61654e39.so                 
+     1.56%  libnrniv.so                                      
+     1.13%  libstdc++.so.6.0.25                              
+     0.10%  python3.12                                       
+     0.04%  libpthread-2.28.so                               
+     0.03%  libgomp.so.1.0.0                                 
+     0.01%  ld-2.28.so                                       
+     0.01%  [unknown]                                        
+     0.01%  libnrnpython3.12.so                              
+     0.00%  libquadmath-2284e583-a9307bba.so.0.0.0           
+     0.00%  _multiarray_umath.cpython-312-x86_64-linux-gnu.so
+     0.00%  timeout                                          
