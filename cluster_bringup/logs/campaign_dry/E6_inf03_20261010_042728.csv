@@ -1,0 +1,24 @@
+# experiment: E6
+# session: inf03_20261010_042728
+# commit: da4cf5e1d904297c989d7b6ca8d506f900af707e
+# describe: untagged
+# dirty: 4
+# build_generated_changed: 0
+# node: inf03
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.05 0.33 0.25
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+inf03_20261010_042728,E6,g_spk,0,1,35.3661,ncompts,4000,ok,2026-10-10T04:27:29+02:00
+inf03_20261010_042728,E6,cn_spk,0,2,76.1887,ran,0,ok,2026-10-10T04:28:04+02:00
+inf03_20261010_042728,E6,g_tree,0,3,0.2982,t_per_step_s,0.0009614386019,ok,2026-10-10T04:29:20+02:00
+inf03_20261010_042728,E6,cn_tree,0,4,0.7145,result,-50.726746,ok,2026-10-10T04:29:21+02:00

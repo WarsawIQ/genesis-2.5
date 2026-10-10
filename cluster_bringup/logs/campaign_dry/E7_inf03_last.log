@@ -1,2 +1,2 @@
-[16:45:13] E7: session inf03_20261003_164513, untagged (cff9bf680c1a5bd7db6d82c596e6440fbc58d0f6), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E7_inf03_20261003_164513.csv
-report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E7_inf03_20261003_164513_report.md
+[04:23:42] E7: session inf03_20261010_042342, untagged (da4cf5e1d904297c989d7b6ca8d506f900af707e), data /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E7_inf03_20261010_042342.csv
+report: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E7_inf03_20261003_164513.csv is from commit cff9bf680c, /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/campaign_dry/E7_inf03_20261010_042342.csv from da4cf5e1d9
