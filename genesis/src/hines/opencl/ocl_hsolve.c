@@ -227,6 +227,12 @@ int ocl_init(Hsolve *hsolve)
     clGetDeviceInfo(ocl_dev.device, CL_DEVICE_NAME,
                     sizeof(devname), devname, NULL);
     printf("OCL: urzadzenie: %s\n", devname);
+    {
+    cl_bool unified = CL_FALSE;
+    if (clGetDeviceInfo(ocl_dev.device, CL_DEVICE_HOST_UNIFIED_MEMORY,
+                        sizeof(unified), &unified, NULL) == CL_SUCCESS)
+        ocl_dev.integrated = (unified == CL_TRUE);
+    }
 
     /* The default fp32 kernel needs no cl_khr_fp64, so devices without
        double precision are not excluded. (Whether a device has it can depend
@@ -869,20 +875,59 @@ static int ocl_multiloop_dispatch(Hsolve *hsolve, int nsteps)
     clEnqueueWriteBuffer(ocl_dev.queue, st->buf_chip, CL_FALSE,
                          0, nc*ocl_dev.esz, st->f_chip, 0, NULL, NULL);
 
-    /* ustaw nsteps w argumencie 13 kernela multiloop */
-    clSetKernelArg(ocl_dev.kernel_multi, 13, sizeof(int), &nsteps);
-
-    /* dispatch: jeden work-item na kompartment, wszystkie nsteps krokow wewnatrz */
+    /* One work-item per compartment runs the steps inside the kernel. On an
+       integrated GPU a single dispatch of the whole run can outlast the
+       driver's lockup timeout (Mesa rusticl submits to the graphics queue,
+       10 s by default) and the GPU is reset, so there the run goes in pieces
+       of about GENESIS_OCL_DISPATCH_MS (default 500) milliseconds each,
+       sized from the time of the piece before. vm[] and chip[] stay on the
+       device between pieces and the kernel keeps no other state from one
+       step to the next, so the result is that of one dispatch, bit for bit.
+       A discrete GPU keeps the single dispatch unless GENESIS_OCL_DISPATCH_MS
+       is set; 0 never splits. */
     {
     size_t local_size  = 64;
     size_t global_size = ((n + local_size - 1) / local_size) * local_size;
+    double target_ms = ocl_dev.integrated ? 500.0 : 0.0;
+    const char *tenv = getenv("GENESIS_OCL_DISPATCH_MS");
+    unsigned long long kern_ns = 0;
+    int done = 0, pieces = 0, piece;
     cl_event ev;
-    err = clEnqueueNDRangeKernel(ocl_dev.queue, ocl_dev.kernel_multi,
-                                  1, NULL, &global_size, &local_size,
-                                  0, NULL, &ev);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "OCL multiloop: kernel error (%d), fallback CPU\n", err);
-        return do_chip_hh4_update(hsolve);
+    if (tenv) target_ms = atof(tenv);
+    /* a first piece short enough to be safe anywhere, then sized by time */
+    piece = nsteps;
+    if (target_ms > 0) {
+        long probe = 2000000L / (n > 0 ? n : 1);
+        piece = probe < 1 ? 1 : (probe < nsteps ? (int)probe : nsteps);
+    }
+    while (done < nsteps) {
+        cl_ulong kstart, kend;
+        unsigned long long ns = 0;
+        if (piece > nsteps - done) piece = nsteps - done;
+        clSetKernelArg(ocl_dev.kernel_multi, 13, sizeof(int), &piece);
+        err = clEnqueueNDRangeKernel(ocl_dev.queue, ocl_dev.kernel_multi,
+                                      1, NULL, &global_size, &local_size,
+                                      0, NULL, &ev);
+        if (err != CL_SUCCESS) {
+            fprintf(stderr, "OCL multiloop: kernel error (%d), fallback CPU\n", err);
+            return do_chip_hh4_update(hsolve);
+        }
+        done += piece; pieces++;
+        if (target_ms <= 0)
+            break;                       /* the single dispatch of the whole run */
+        clWaitForEvents(1, &ev);
+        if (clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_START,
+                                    sizeof(kstart), &kstart, NULL) == CL_SUCCESS &&
+            clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_END,
+                                    sizeof(kend), &kend, NULL) == CL_SUCCESS)
+            ns = kend - kstart;
+        kern_ns += ns;
+        clReleaseEvent(ev);
+        if (ns > 0) {
+            double next = piece * target_ms * 1e6 / (double)ns;
+            if (next > 4.0 * piece) next = 4.0 * piece;   /* grow gently */
+            piece = next < 1 ? 1 : (int)next;
+        }
     }
 
     /* download vm[] (napięcia po wszystkich krokach) i results[] (tożsame) i chip[] */
@@ -905,15 +950,16 @@ static int ocl_multiloop_dispatch(Hsolve *hsolve, int nsteps)
 
     /* --- profiling i raport --- */
     {
-    cl_ulong kstart, kend;
-    unsigned long long kern_ns = 0;
-    if (clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_START,
-                                sizeof(kstart), &kstart, NULL) == CL_SUCCESS &&
-        clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_END,
-                                sizeof(kend), &kend, NULL) == CL_SUCCESS) {
-        kern_ns = kend - kstart;
+    if (target_ms <= 0) {
+        cl_ulong kstart, kend;
+        if (clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_START,
+                                    sizeof(kstart), &kstart, NULL) == CL_SUCCESS &&
+            clGetEventProfilingInfo(ev, CL_PROFILING_COMMAND_END,
+                                    sizeof(kend), &kend, NULL) == CL_SUCCESS) {
+            kern_ns = kend - kstart;
+        }
+        clReleaseEvent(ev);
     }
-    clReleaseEvent(ev);
 
     unsigned long long total_ns =
         (unsigned long long)(t1.tv_sec - t0.tv_sec) * 1000000000ULL +
@@ -925,6 +971,9 @@ static int ocl_multiloop_dispatch(Hsolve *hsolve, int nsteps)
            kern_ns  / 1e6,
            total_ns / 1e6,
            total_ns / 1e3 / nsteps);
+    if (pieces > 1)
+        printf("OCL MULTILOOP: %d dispatches of at most ~%.0f ms each "
+               "(integrated GPU; GENESIS_OCL_DISPATCH_MS)\n", pieces, target_ms);
     }
     } /* end dispatch block */
 

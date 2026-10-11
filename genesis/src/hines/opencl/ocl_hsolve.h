@@ -26,6 +26,9 @@ typedef struct {
        buffer below holds elements of esz bytes of that type. */
     int              fp64;
     size_t           esz;
+    /* CL_DEVICE_HOST_UNIFIED_MEMORY: an integrated GPU, which usually drives
+       the display too and whose driver resets it after a long dispatch. */
+    int              integrated;
 } OclDeviceState;
 
 typedef struct {
