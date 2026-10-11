@@ -1,0 +1,3 @@
+commit acec5f5805f6af01b3c2408b1bc519dc129e6b57 (v2.6.1) on victor
+no CUDA toolkit at /usr/local/cuda: OpenCL and CPU binaries only (the 890M laptop)
+ready

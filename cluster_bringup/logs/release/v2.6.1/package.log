@@ -1,0 +1,49 @@
+commit acec5f5805f6af01b3c2408b1bc519dc129e6b57 (v2.6.1) on inf03
+built pgenesis/bin/Linux/nxpgenesis
+c58ef34dc0b64116c4c020b02cf8d87cea2f07edc412161f92c324e8778015e1  nxgenesis
+049d95e418156175609f09541c2614c862eebc6ed0128759b73f0d4029ea1c9d  nxgenesis_nocl
+43b8af35da4cb04d8d5c05cab8d1488ffda4880099ff15e3fef116aae7d4b25d  nxgenesis_ocl
+native code: sm_80
+ready
+# genesis-v2.6.1-linux-x86_64.tar.gz, 2026-10-11T19:28:56+02:00
+098a4c7ef05695cf1b170798f2b14335bdab1d7aaa4a618524c404399f8a5d64  genesis-v2.6.1-linux-x86_64.tar.gz
+
+GENESIS v2.6.1, Linux x86_64 binaries
+
+Built from v2.6.1 (acec5f5805f6af01b3c2408b1bc519dc129e6b57) on inf03,
+AlmaLinux 8.10 (Cerulean Leopard), ldd (GNU libc) 2.28, gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28).
+
+bin/nxgenesis_nocl  CPU only; needs glibc and ncurses.
+bin/nxgenesis_ocl   OpenCL 1.2 (any vendor's ICD, e.g. ROCm, Mesa rusticl, NVIDIA). It compiles
+                    bin/hines/opencl/ocl_channel.cl at run time and finds it next to itself;
+                    keep the two together or name the file in GENESIS_OCL_KERNEL. Without it
+                    the backend says 'nie znaleziono ocl_channel.cl' and computes on the CPU.
+bin/nxgenesis       CUDA; needs the NVIDIA driver and the CUDA 12 runtime (libcudart.so.12), and an OpenCL ICD loader (libOpenCL.so.1).
+                    GPU code: native for sm_80 ; PTX for sm_80 , which the driver
+                    compiles for newer GPUs. GPUs older than the lowest of these do not run it.
+
+Run from a directory holding a .simrc that puts startup/ on SIMPATH, as genesis/startup
+is used in a source build (see README.md of the repository), e.g.
+    setenv SIMPATH . <this directory>/startup
+Choose precision and batching at run time: GENESIS_GPU_PRECISION=fp32|fp64,
+GENESIS_CUDA_MULTILOOP=<K>, GENESIS_OCL_MULTILOOP=<K>. Known issues: KNOWN_ISSUES.md
+in the repository.
+
+== ldd nxgenesis_nocl
+	linux-vdso.so.1
+	libm.so.6 => /lib64/libm.so.6
+	libncurses.so.6 => /lib64/libncurses.so.6
+	libtinfo.so.6 => /lib64/libtinfo.so.6
+	libc.so.6 => /lib64/libc.so.6
+	/lib64/ld-linux-x86-64.so.2
+	libdl.so.2 => /lib64/libdl.so.2
+== ldd nxgenesis_ocl
+	linux-vdso.so.1
+	libm.so.6 => /lib64/libm.so.6
+	libncurses.so.6 => /lib64/libncurses.so.6
+	libtinfo.so.6 => /lib64/libtinfo.so.6
+	libOpenCL.so.1 => /storage/opt/cuda/cuda-11.7/targets/x86_64-linux/lib/libOpenCL.so.1
+	libc.so.6 => /lib64/libc.so.6
+	/lib64/ld-linux-x86-64.so.2
+written: /storage2/home/kchlasta/campaign-dry-inf03/cluster_bringup/logs/release/v2.6.1
+PKG_EXIT 0

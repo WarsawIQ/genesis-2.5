@@ -1,0 +1,54 @@
+# experiment: E9
+# session: victor_20261011_192759
+# commit: acec5f5805f6af01b3c2408b1bc519dc129e6b57
+# describe: v2.6.1
+# dirty: 0
+# build_generated_changed: 22
+# node: victor
+# cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# governor: powersave
+# loadavg: 2.88 2.09 1.33
+# numa_bind: none
+# gpu: none
+# arm: t1_cpu_n50000
+# rep: 0
+# command:  ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh_spiking_benchmark.g 50000 50000
+Starting Genesis
+Executable:         /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/./genesis/src/nxgenesis_nocl
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_spiking_benchmark.g
+=== HH Spiking Benchmark (single hsolve, driven neurons) ===
+Neurons:    50000
+Steps:      50000
+dt:         5e-05  s
+inject:     1e-09  A
+record:     0
+
+/library
+/
+Building driven HH cells...
+changing clock [0] from 1 to 5e-05
+Configuring single hsolve (chanmode=4, N= 50000  neurons)...
+ncompts:  50000
+nchips:   550000
+time = 0.000000 ; step = 0          
+time = 0.000500 ; step = 10          
+completed 10 steps in 0.005115 cpu seconds
+user time used		= 1 sec  227757 usec
+system time used	= 0 sec  31988 usec
+time = 2.500500 ; step = 50010          
+completed 50000 steps in 30.880550 cpu seconds
+user time used		= 32 sec  108541 usec
+system time used	= 0 sec  89970 usec
+
+=== Results ===
+Neurons:               50000
+Steps:                 50000
+CPU-timer step time:   0  s
+VMFINAL 0  -0.06274029477

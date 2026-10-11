@@ -1,0 +1,13 @@
+commit acec5f5805f6af01b3c2408b1bc519dc129e6b57 (v2.6.1) on victor
+no CUDA toolkit at /usr/local/cuda: OpenCL and CPU binaries only (the 890M laptop)
+9c9c2a40b168549d7972be4c5fb6206dccf15e9610bcfd1833b803e8c7634ed4  nxgenesis_nocl
+9a215aa77edbed7911714ef3f709baa64ff30fbe580021dfd826e8f792bfdbda  nxgenesis_ocl
+ready
+[19:27:59] E9: session victor_20261011_192759, v2.6.1 (acec5f5805f6af01b3c2408b1bc519dc129e6b57), data /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.1/E9_victor_20261011_192759.csv
+ap_cpu -0.02143485882
+ap_rocm32 -0.02143507321
+ap_rocm64 -0.02143485882
+ap_rusticl32 -0.02143504861
+ap_rusticl64 -0.02143485882
+report: /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.1/E9_victor_20261011_192759_report.md
+E9_EXIT 0

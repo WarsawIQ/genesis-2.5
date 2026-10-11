@@ -1,0 +1,84 @@
+# genesis-v2.6.1-linux-x86_64.tar.gz, 2026-10-11T19:28:56+02:00
+098a4c7ef05695cf1b170798f2b14335bdab1d7aaa4a618524c404399f8a5d64  genesis-v2.6.1-linux-x86_64.tar.gz
+
+GENESIS v2.6.1, Linux x86_64 binaries
+
+Built from v2.6.1 (acec5f5805f6af01b3c2408b1bc519dc129e6b57) on inf03,
+AlmaLinux 8.10 (Cerulean Leopard), ldd (GNU libc) 2.28, gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28).
+
+bin/nxgenesis_nocl  CPU only; needs glibc and ncurses.
+bin/nxgenesis_ocl   OpenCL 1.2 (any vendor's ICD, e.g. ROCm, Mesa rusticl, NVIDIA). It compiles
+                    bin/hines/opencl/ocl_channel.cl at run time and finds it next to itself;
+                    keep the two together or name the file in GENESIS_OCL_KERNEL. Without it
+                    the backend says 'nie znaleziono ocl_channel.cl' and computes on the CPU.
+bin/nxgenesis       CUDA; needs the NVIDIA driver and the CUDA 12 runtime (libcudart.so.12), and an OpenCL ICD loader (libOpenCL.so.1).
+                    GPU code: native for sm_80 ; PTX for sm_80 , which the driver
+                    compiles for newer GPUs. GPUs older than the lowest of these do not run it.
+
+Run from a directory holding a .simrc that puts startup/ on SIMPATH, as genesis/startup
+is used in a source build (see README.md of the repository), e.g.
+    setenv SIMPATH . <this directory>/startup
+Choose precision and batching at run time: GENESIS_GPU_PRECISION=fp32|fp64,
+GENESIS_CUDA_MULTILOOP=<K>, GENESIS_OCL_MULTILOOP=<K>. Known issues: KNOWN_ISSUES.md
+in the repository.
+
+== ldd nxgenesis_nocl
+	linux-vdso.so.1
+	libm.so.6 => /lib64/libm.so.6
+	libncurses.so.6 => /lib64/libncurses.so.6
+	libtinfo.so.6 => /lib64/libtinfo.so.6
+	libc.so.6 => /lib64/libc.so.6
+	/lib64/ld-linux-x86-64.so.2
+	libdl.so.2 => /lib64/libdl.so.2
+== ldd nxgenesis_ocl
+	linux-vdso.so.1
+	libm.so.6 => /lib64/libm.so.6
+	libncurses.so.6 => /lib64/libncurses.so.6
+	libtinfo.so.6 => /lib64/libtinfo.so.6
+	libOpenCL.so.1 => /storage/opt/cuda/cuda-11.7/targets/x86_64-linux/lib/libOpenCL.so.1
+	libc.so.6 => /lib64/libc.so.6
+	/lib64/ld-linux-x86-64.so.2
+	libdl.so.2 => /lib64/libdl.so.2
+	libpthread.so.0 => /lib64/libpthread.so.0
+== ldd nxgenesis
+	linux-vdso.so.1
+	libm.so.6 => /lib64/libm.so.6
+	libncurses.so.6 => /lib64/libncurses.so.6
+	libtinfo.so.6 => /lib64/libtinfo.so.6
+	libOpenCL.so.1 => /storage/opt/cuda/cuda-11.7/targets/x86_64-linux/lib/libOpenCL.so.1
+	libcudart.so.12 => /storage/opt/cuda/cuda-12.1/targets/x86_64-linux/lib/libcudart.so.12
+	libstdc++.so.6 => /lib64/libstdc++.so.6
+	libgcc_s.so.1 => /lib64/libgcc_s.so.1
+	libc.so.6 => /lib64/libc.so.6
+	/lib64/ld-linux-x86-64.so.2
+	libdl.so.2 => /lib64/libdl.so.2
+	libpthread.so.0 => /lib64/libpthread.so.0
+	librt.so.1 => /lib64/librt.so.1
+== GPU code in nxgenesis (cuobjdump --list-elf --list-ptx)
+ELF file    1: nxgenesis.1.sm_80.cubin
+PTX file    1: nxgenesis.1.sm_80.ptx
+
+== smoke test (unpacked elsewhere, nxgenesis_ocl, 100 cells): OCL: gotowy (100 kompartmentow, 1100 chips, kernele fp32)
+
+== SHA256SUMS
+b60c77ee3cb943a94382771eb8d4a0e03b04240c66513d48668a6c235824cc5e  ./bin/hines/opencl/ocl_channel.cl
+c58ef34dc0b64116c4c020b02cf8d87cea2f07edc412161f92c324e8778015e1  ./bin/nxgenesis
+049d95e418156175609f09541c2614c862eebc6ed0128759b73f0d4029ea1c9d  ./bin/nxgenesis_nocl
+43b8af35da4cb04d8d5c05cab8d1488ffda4880099ff15e3fef116aae7d4b25d  ./bin/nxgenesis_ocl
+1d6f99e2f191247b534158b4049927a1eb9f8e7811306f690383ba9e435cbd3b  ./README.txt
+0b715079f7f5c2e8e05679e7341961753436bbfeec331d4113251a9416838717  ./startup/escapelist.g
+9b3ecc3e7adfd7b508c22711f7f34d20ad969ea1c308114a931ec2116590035e  ./startup/grey
+df32a554562b3f981ca10ed69591b1a42aed5a8f455d69d507948ebc16f501ed  ./startup/hot
+a400a95f57e30bbd4ebbe891aeaecbfb1071926673f62771ef10416670dbb00c  ./startup/minschedule.g
+11aad9ccc51b245459ce6baa2ee82254521efc074c4418ec348b8229a641efbc  ./startup/.minsimrc
+dbf28c017e3f8d5a56c9a2aa021ea99f0236bd4dcc73f775d61776c3803e9996  ./startup/.nxsimrc
+50df7510ec0b60cae1a0d6905b92ce2d0db253927a86f90b45ecd2fc21126487  ./startup/rainbow
+1f37fcc1d1c2b865e213ebea1abeb306f4e84228e5c1cea88dcc7ad2a7065cb3  ./startup/rainbow2
+93d3e0720aec1c7e484ae51f62bd3739b1af254180fcb4e7f29cbe7efdbcf543  ./startup/redhot
+d518465a31e77999345985fa338da1db63253d640d735b533eea5b79c96f2962  ./startup/schedule.g
+56f6b277f9a7f33dcc898271586a653ae80a1a5c366e15d32db6f145f86be7b1  ./startup/.simrc
+5a44ac018ac6f88546b0aefbcf3531dc08d7a29baefd175f5dd79cf908c464c9  ./startup/tools.g
+d3ade004db587a931a9c6cdcd931e6a954dea70bc0a4de0c03a896e717cd415c  ./startup/Xdefaults.example
+59ee813dea207d3c2b041110d5ea371e4b9a1a61f6a88217aa84a5b34c987d13  ./startup/xmacros.g
+b068c490efbe6589b52aa1a3d1931a1da5be415ddfdacfb2c2b9d367970f0d1e  ./startup/xstartup.g
+0cf1604490635ac62b21a3ce4928075d30d8480e48ada98980fbdb08a62aa7ff  ./startup/xtools.g
