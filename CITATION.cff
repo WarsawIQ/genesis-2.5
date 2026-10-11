@@ -15,10 +15,14 @@ version: v2.6.0
 date-released: "2026-10-11"
 repository-code: "https://github.com/WarsawIQ/genesis-2.5"
 license: GPL-2.0-or-later
+doi: 10.5281/zenodo.23298087
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.22032886
-    description: "Zenodo archive of the releases"
+    value: 10.5281/zenodo.23298087
+    description: "Zenodo archive of this version (v2.6.0)"
+  - type: doi
+    value: 10.5281/zenodo.21716630
+    description: "Zenodo archive of all versions"
 keywords:
   - GENESIS
   - PGENESIS

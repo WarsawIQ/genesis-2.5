@@ -1,7 +1,7 @@
 # GENESIS 2.5
 
-**Latest release: [v2.5.4](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.5.4)** ·
-[archived on Zenodo](https://doi.org/10.5281/zenodo.22032886) ·
+**Latest release: [v2.6.0](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.0)** ·
+archived on Zenodo: [v2.6.0](https://doi.org/10.5281/zenodo.23298087), [all versions](https://doi.org/10.5281/zenodo.21716630) ·
 [draft manuscript](paper/manuscript_softwarex_submission.pdf)
 
 GENESIS 2.5 is GENESIS 2.4 / PGENESIS 2.4 with two optional accelerator backends
@@ -475,9 +475,10 @@ accepted, cite the repository directly:
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
-acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.5.4, 2026.
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.6.0, 2026.
 https://github.com/WarsawIQ/genesis-2.5
-Archived: https://doi.org/10.5281/zenodo.22032886
+Archived: https://doi.org/10.5281/zenodo.23298087 (v2.6.0; all versions:
+https://doi.org/10.5281/zenodo.21716630)
 ```
 
 ## About the base GENESIS 2.4 / PGENESIS 2.4
