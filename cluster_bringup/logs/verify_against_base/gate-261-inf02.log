@@ -1,0 +1,22 @@
+commit e80c202161e28f7e70980be877cabb66fa307eac (v2.6.0-11-ge80c202) on inf02
+built pgenesis/bin/Linux/nxpgenesis
+508785dad8e03b422226c92b094440075b9db0c1df85a049085b29440ca9ded2  nxgenesis
+0e15a5382b7f3207d349cb110fd8674d75f2f88ef3c7e137bd82fe338b0c063a  nxgenesis_nocl
+0bbfadf9fab228289985940ba5946124c3fb796c9881d7c2d6b4bddff0f89105  nxgenesis_ocl
+native code: sm_86
+ready
+BUILD_OK
+node inf02  gpu NVIDIA A40, 0 MiB  started 2026-10-11T18:05:25+02:00
+base ce21b63  head e80c202
+cuda base golden recorded (rc 0)
+cuda fp32 vs base: rc 0  PASS: 14 values unchanged on NVIDIA A40
+cuda fp64 vs CPU:  rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+cuda fp32 graphs on:   rc 0  PASS: 14 values unchanged on NVIDIA A40
+cuda fp64 graphs on:   rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+graph probe: rc 0  written: /storage2/home/kchlasta/campaign-dry-inf02/cluster_bringup/logs/cuda_graph_probe_inf02_20261011_181259.csv
+opencl base golden recorded (rc 0)
+opencl fp32 vs base: rc 0  PASS: 14 values unchanged on NVIDIA A40
+opencl fp64 vs CPU:  rc 0  PASS: 5 values within 1e-10 V of the CPU solver (fp64 kernels)
+CUDA build restored
+finished 2026-10-11T18:28:45+02:00
+GATE_EXIT 0

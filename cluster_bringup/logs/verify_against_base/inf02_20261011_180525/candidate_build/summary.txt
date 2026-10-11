@@ -1,0 +1,4 @@
+commit e80c202161e28f7e70980be877cabb66fa307eac (v2.6.0-11-ge80c202) on inf02
+built pgenesis/bin/Linux/nxpgenesis
+native code: sm_86
+ready
