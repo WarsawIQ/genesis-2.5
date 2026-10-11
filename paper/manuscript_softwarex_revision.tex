@@ -131,7 +131,7 @@ the hardware the user has.
       double precision, falling back to the CPU for anything they cannot compute.
 \item \hte{}, a GPU Hines elimination for populations of dendritic trees.
 \item Two fixes to the Hines solver of GENESIS~2.4, which with several cells under
-      one solver computed wrong voltages (backward Euler) or crashed
+      one solver computed wrong voltages (backward Euler) or diverged and crashed
       (Crank--Nicolson), and model construction in linear time; both apply with or
       without a GPU and are offered to the original project.
 \item A comparison with NEURON, CoreNEURON and Arbor in which every arm is measured in
@@ -475,8 +475,9 @@ published CoreNEURON GPU run to the spike.
 %% with or without a GPU.
 Two of the release's changes reach every GENESIS user, with or without a GPU.
 First, the solver fixes: in GENESIS~2.4, putting several cells under one
-\texttt{hsolve} silently computed wrong voltages for every cell but one under backward
-Euler, and crashed under Crank--Nicolson. The configuration is natural for networks,
+\texttt{hsolve} silently gave wrong voltages for every cell under backward Euler (the
+first cell's were perturbed and the others were never computed), and under
+Crank--Nicolson the solve diverged or crashed. The configuration is natural for networks,
 so models may exist whose published results this touched. GENESIS~2.5 computes each
 cell exactly as if it were alone, shown by a committed test against a single-cell
 reference, and we have offered the two fixes, with the test, to the original
