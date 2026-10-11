@@ -78,11 +78,16 @@ def load_claims():
         return [r for r in csv.DictReader(l for l in f if not l.startswith("#"))]
 
 
-def fmt(value, spec):
+def fmt(value, spec, tex=False):
     if spec == ",":                       # thousands, LaTeX thin space
         return "{:,}".format(int(round(value))).replace(",", "\\,")
     if spec.endswith("d"):
         return spec % int(round(value))
+    if tex and spec.endswith("e"):        # 2e-07 -> 2 x 10^-7, in text or math
+        mant, exp = (spec % value).split("e")
+        if float(mant) == 0:
+            return "0"
+        return "\\ensuremath{%s\\times10^{%d}}" % (mant, int(exp))
     return spec % value
 
 
@@ -172,7 +177,7 @@ def render_numbers(by_id, values):
            "% \\claim{id} prints a published value; an unknown id stops the build."]
     for cid, c in by_id.items():
         out.append("\\expandafter\\def\\csname claim@%s\\endcsname{%s}"
-                   % (cid, fmt(values[cid], c["format"])))
+                   % (cid, fmt(values[cid], c["format"], tex=True)))
     out.append("\\providecommand{\\claim}[1]{\\ifcsname claim@#1\\endcsname"
                "\\csname claim@#1\\endcsname\\else\\errmessage{claim #1 undefined}\\fi}")
     return "\n".join(out) + "\n"

@@ -25,6 +25,7 @@
 \newcommand{\pending}[1]{\textcolor{red}{\textbf{[\detokenize{#1}]}}}
 \usepackage{hyperref}
 \setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
 
 \begin{document}
 
@@ -45,10 +46,10 @@
 %% about 100 words (R10). One speed number, one correctness number, one limit.
 GENESIS is a long-established compartmental neural simulator. GENESIS~2.5 adds
 optional CUDA and OpenCL backends to its \texttt{hsolve} solver, including a GPU
-Hines elimination for populations of dendritic trees, without changes to existing
-models, scripts or MPI workflows. On a population of 160\,000 compartments run for
-10\,000 steps, an A100 is \claim{e2_max_e2e_a100}$\times$ faster end to end than the
-CPU solver; in double precision it reproduces the CPU solver to every printed digit.
+Hines elimination for dendritic-tree populations, without changing existing models,
+scripts or MPI workflows. On 160\,000 compartments over 10\,000 steps an A100 runs
+\claim{e2_max_e2e_a100}$\times$ faster end to end than the CPU solver; in double
+precision it reproduces the CPU solver to every printed digit.
 Networks that exchange spikes every step gain nothing on the GPU, and we show
 why. The release also makes model construction linear and fixes two defects
 in the Hines solver of GENESIS~2.4.
@@ -235,7 +236,7 @@ the launches. Moving spike delivery to the device is the next step for that work
 \item Software functionalities
 
 \textbf{Precision.} %% R4
-Single precision is the default. \texttt{GENESIS\_GPU\_PRECISION=fp64} selects double
+Single precision is the default. \texttt{GENESIS\_\allowbreak GPU\_\allowbreak PRECISION=fp64} selects double
 precision at run time in the same binary, and a device without it refuses with a
 message and computes on the CPU. In fp64 the GPU reproduces the CPU solver to every
 printed digit on our verification models; in fp32 it agrees to
@@ -255,7 +256,7 @@ integrated GPU that also drives the display, a long tree dispatch trips the driv
 watchdog (in our tests from about \claim{igpu_tree_limit_compartments} compartments).
 The backend therefore declines the batched tree dispatch above
 \claim{ocl_igpu_tree_cap} compartments there, says so, and runs the model step by
-step, unless \texttt{GENESIS\_OCL\_TREE\_MAX\_NCOMPTS} says otherwise; E9 checks that
+step, unless \texttt{GENESIS\_\allowbreak OCL\_\allowbreak TREE\_\allowbreak MAX\_\allowbreak NCOMPTS} says otherwise; E9 checks that
 it does. The same kind of limit stops the longest single-compartment run under
 rusticl, which uses the graphics queue: the network of $N=50\,000$ cells batched over
 50\,000 steps in one dispatch is reset by the driver. Under rusticl such a model has to
@@ -267,15 +268,21 @@ laptop's CPU at \claim{e9_t1_cpu_n50000_s}\,s), while ROCm runs it batched in
 A model needs no change beyond the solver mode that GENESIS~2.4 already has. An
 existing script that builds its solver as
 
-{\small\begin{verbatim}
+{\footnotesize\begin{verbatim}
 create hsolve /net/solver
-setfield /net/solver path "/net/##[][TYPE=compartment]" chanmode 4
+setfield /net/solver path "/net/##[][TYPE=compartment]" \
+    chanmode 4
 call /net/solver SETUP
 \end{verbatim}}
 
 runs on the GPU when started with the accelerated binary. Batching and precision are
 chosen when the run starts, for example
-\verb|GENESIS_CUDA_MULTILOOP=<K> GENESIS_GPU_PRECISION=fp64 nxgenesis -batch model.g|.
+
+{\footnotesize\begin{verbatim}
+GENESIS_CUDA_MULTILOOP=<K> GENESIS_GPU_PRECISION=fp64 \
+    nxgenesis -batch model.g
+\end{verbatim}}
+
 The start-up lines name the backend, the precision and the dispatch path in use, and
 a model the device cannot compute is reported and run on the CPU.
 \end{enumerate}
@@ -371,7 +378,7 @@ model in both, and idle library threads in CoreNEURON.
 
 \begin{table}[!h]
 \centering\small
-\begin{tabular}{llrr}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.6cm}lrr}
 \toprule
 Simulator & Hardware & Wall time (s) & Relative \\
 \midrule
@@ -402,9 +409,11 @@ the CPU; below 1 is faster.}
 \end{figure}
 
 \item When to use the GPU %% R5
+Table~\ref{tab:regimes} gathers what the measurements above say about where the
+accelerator pays off and where it does not.
 \begin{table}[!h]
 \centering\small
-\begin{tabular}{>{\raggedright\arraybackslash}p{4cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{6.2cm}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{5.8cm}}
 \toprule
 Workload & GPU? & Why \\
 \midrule
