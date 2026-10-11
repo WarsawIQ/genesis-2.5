@@ -131,6 +131,25 @@ a compute node. If you only want to check the claims, skip all of it and run
 
 ## Known issues
 
+### Spiking networks on the GPU in `v2.5.1`–`v2.5.4`, fixed in 2.6.0
+
+**If you ran a spiking network on CUDA with one of the `v2.5.1`–`v2.5.4` tags,
+every cell fired a spurious spike in the first step**: when the device also
+solved the cable equation it never received the initial membrane potentials.
+In the same releases the CUDA and OpenCL backends kept their device state across
+`RESET` (a second run started where the first had ended), and `HGET`/`HPUT` read
+and wrote the host's stale copy instead of the device's. All three are fixed in
+2.6.0 and checked on every backend by
+`genesis/Scripts/benchmark/hh_reset_rerun_check.g` and
+`cluster_bringup/campaign/spike_start_check.sh`. `v2.5` itself is not affected
+by the first.
+
+### OpenCL under Mesa rusticl: a long single-compartment batch can reset an integrated GPU
+
+Fix planned for 2.6.1; until then run such models without
+`GENESIS_OCL_MULTILOOP` under rusticl, or use ROCm. Details, evidence and the
+plan: [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
+
 ### Wrong results in the `v2.5` release, fixed after it
 
 **If you ran the `v2.5` tag (or its Zenodo archive) with `chanmode=4`/`5` on a
