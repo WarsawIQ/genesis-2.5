@@ -11,8 +11,8 @@ authors:
   - family-names: "Wójcik"
     given-names: Grzegorz Marcin
     affiliation: "Maria Curie-Skłodowska University"
-version: v2.5.4
-date-released: "2026-09-14"
+version: v2.6.0
+date-released: "2026-10-11"
 repository-code: "https://github.com/WarsawIQ/genesis-2.5"
 license: GPL-2.0-or-later
 identifiers:
