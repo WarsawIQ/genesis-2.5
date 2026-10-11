@@ -1,7 +1,8 @@
 # GENESIS 2.5
 
-**Latest release: [v2.6.0](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.0)** ·
-archived on Zenodo: [v2.6.0](https://doi.org/10.5281/zenodo.23298087), [all versions](https://doi.org/10.5281/zenodo.21716630) ·
+**Latest release: [v2.6.1](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.1)** ·
+archived on Zenodo: [v2.6.1](https://doi.org/10.5281/zenodo.23301981), [all versions](https://doi.org/10.5281/zenodo.21716630);
+the SoftwareX paper's numbers come from [v2.6.0](https://doi.org/10.5281/zenodo.23298087) ·
 [draft manuscript](paper/manuscript_softwarex_submission.pdf)
 
 GENESIS 2.5 is GENESIS 2.4 / PGENESIS 2.4 with two optional accelerator backends
@@ -144,11 +145,12 @@ and wrote the host's stale copy instead of the device's. All three are fixed in
 `cluster_bringup/campaign/spike_start_check.sh`. `v2.5` itself is not affected
 by the first.
 
-### OpenCL under Mesa rusticl: a long single-compartment batch can reset an integrated GPU
+### OpenCL under Mesa rusticl: a long single-compartment batch could reset an integrated GPU (fixed in 2.6.1)
 
-Fix planned for 2.6.1; until then run such models without
-`GENESIS_OCL_MULTILOOP` under rusticl, or use ROCm. Details, evidence and the
-plan: [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
+In 2.6.0 a long `GENESIS_OCL_MULTILOOP` run under rusticl outlasted the
+driver's lockup timeout and the GPU was reset. 2.6.1 runs it in pieces on
+integrated GPUs, bit for bit the same result. Details and evidence:
+[KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 
 ### Wrong results in the `v2.5` release, fixed after it
 
@@ -475,10 +477,11 @@ accepted, cite the repository directly:
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: optimisation and opt-in OpenCL/CUDA
-acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.6.0, 2026.
+acceleration for the GENESIS/PGENESIS compartmental neural simulator. v2.6.1, 2026.
 https://github.com/WarsawIQ/genesis-2.5
-Archived: https://doi.org/10.5281/zenodo.23298087 (v2.6.0; all versions:
-https://doi.org/10.5281/zenodo.21716630)
+Archived: https://doi.org/10.5281/zenodo.23301981 (v2.6.1; all versions:
+https://doi.org/10.5281/zenodo.21716630; v2.6.0, on which the paper's numbers
+were measured: https://doi.org/10.5281/zenodo.23298087)
 ```
 
 ## About the base GENESIS 2.4 / PGENESIS 2.4
