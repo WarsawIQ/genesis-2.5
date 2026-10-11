@@ -1,0 +1,9 @@
+# host inf03, 2026-10-11T05:20:25+02:00
+os: AlmaLinux 8.10 (Cerulean Leopard)
+kernel: 4.18.0-553.125.1.el8_10.x86_64 x86_64
+cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+glibc: ldd (GNU libc) 2.28
+gcc: gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28)
+nvidia: NVIDIA A100-PCIE-40GB, 595.71.05
+nvcc: Build cuda_12.8.r12.8/compiler.35404655_0
+python3: Python 3.6.8
