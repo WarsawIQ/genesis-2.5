@@ -251,11 +251,17 @@ NVIDIA A40 and A100 and on the AMD Radeon~890M integrated GPU under two independ
 implementations, AMD ROCm and Mesa rusticl (E9). The two differ even in what they
 offer on the same chip: ROCm exposes double precision and rusticl does not, so under
 rusticl a request for fp64 is refused and the model computes on the CPU. On an
-integrated GPU that also drives the display, a tree dispatch above about
-\pending{e9_igpu_cap_compartments} compartments trips the driver's watchdog. The
-backend therefore declines the batched tree dispatch for larger models there, says so,
-and runs them step by step, unless \texttt{GENESIS\_OCL\_TREE\_MAX\_NCOMPTS} says
-otherwise.
+integrated GPU that also drives the display, a long tree dispatch trips the driver's
+watchdog (in our tests from about \claim{igpu_tree_limit_compartments} compartments).
+The backend therefore declines the batched tree dispatch above
+\claim{ocl_igpu_tree_cap} compartments there, says so, and runs the model step by
+step, unless \texttt{GENESIS\_OCL\_TREE\_MAX\_NCOMPTS} says otherwise; E9 checks that
+it does. The same kind of limit stops the longest single-compartment run under
+rusticl, which uses the graphics queue: the network of $N=50\,000$ cells batched over
+50\,000 steps in one dispatch is reset by the driver. Under rusticl such a model has to
+run one dispatch per step (\claim{e9_rusticl_perstep_n50000_s}\,s, slower than the
+laptop's CPU at \claim{e9_t1_cpu_n50000_s}\,s), while ROCm runs it batched in
+\claim{e9_t1_rocm_n50000_s}\,s.
 
 \item Sample code
 A model needs no change beyond the solver mode that GENESIS~2.4 already has. An

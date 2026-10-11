@@ -3,7 +3,7 @@
 
     python3 reproduce/tests/fixtures/make_campaign_fixture.py <outdir>
 
-Writes E1, E2, E3, E4, E5, E6, E7, E8 and E3c session CSVs in the harness format
+Writes E1, E2, E3, E4, E5, E6, E7, E8, E9 and E3c session CSVs in the harness format
 (cluster_bringup/campaign/lib.sh) with OBVIOUSLY SYNTHETIC values: straight
 lines with a seeded +-3% jitter, chosen so the figures have a shape and the
 staged claims have known expected values (asserted in
@@ -20,6 +20,7 @@ reproduce/tests/test_campaign_claims.sh):
         8 s behind, so it passes the CPU end to end from N = 10000 (regimes)
     e6: GENESIS network 21% synapses + 16% dispatch = 37%, CoreNEURON 46.19% in libm;
         CoreNEURON/GENESIS time 76/34 = 2.24 (network), 16/6 = 2.67 (trees)
+    e9: the 890M laptop, ROCm 32.0/5.7 = 5.61x on the 50000-cell network
     e5: CPU 27.0 Hz; first departure g64 2.65 ms, per-cell CPU 2.35 ms;
         seeds 24.0-29.0 Hz, KS 0.020-0.050 (the spike comparison, _spikes.csv)
 
@@ -121,6 +122,11 @@ def main(d):
           [("g_cpu_1s", 35.0, 4000), ("g_cpu_pub", 70.0, 4000), ("g_gpu32_1s", 40.0, 4000),
            ("g_gpu64_1s", 45.0, 4000), ("nrn_cpu", 87.5, 0), ("nrn_cb_cpu", 80.0, 0),
            ("cn_cpu", 70.0, 0), ("cn_gpu", 24.5, 0), ("arbor_gpu", 150.0, 0)])
+    write(d, "E9", "victor", "none",
+          [("t1_cpu_n5000", 3.3, 5000), ("t1_cpu_n50000", 32.0, 50000),
+           ("t1_rocm_n5000", 0.8, 5000), ("t1_rocm_n50000", 5.7, 50000),
+           ("t1_rusticl_n5000", 0.55, 5000), ("tr_cpu_n1000", 1.9, 0),
+           ("tr_rocm_n1000", 1.3, 0), ("tr_rusticl_n1000", 1.7, 0)])
     write(d, "E6", "inf03", "A100",
           [("g_spk", 34.0, 0), ("cn_spk", 76.0, 0), ("g_tree", 6.0, 0), ("cn_tree", 16.0, 0)])
     profile_files(d, "E6", "inf03")

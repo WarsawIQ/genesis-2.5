@@ -75,6 +75,7 @@ check e6_cn_spk_libm 46.19 1
 check e6_g_tree_chan 85 1
 check e6_cn_over_g_spk 2.24 6
 check e6_cn_over_g_tree 2.67 6
+check e9_t1_rocm_n50000_x 5.61 6
 check e5_rate_cpu_hz 27.0 1
 check e5_div_g64_ms 2.65 1
 check e5_div_pcell_ms 2.35 1

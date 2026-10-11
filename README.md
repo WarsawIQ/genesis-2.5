@@ -57,8 +57,10 @@ What reproduces which numbers, and what it needs:
 | 12 | results text | `cluster_bringup/campaign/E6_profile.sh` | any Linux machine | 40 min |
 | 3 | sec:2 | `cluster_bringup/campaign/E7_imbalance.sh` | NVIDIA A100 | 30 min |
 | 10 | sec:2 | `cluster_bringup/campaign/E8_graphs.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
+| 12 | sec:2 | `cluster_bringup/campaign/E9_890m.sh` | AMD Radeon 890M (OpenCL) | 60 min |
 | 2 | results text | `cluster_bringup/campaign/chanmode_check.sh` | any Linux machine | 10 min |
 | 1 | fig:construction; sec:4 | `cluster_bringup/campaign/construction_before.sh` | any Linux machine | 30 min |
+| 1 | sec:2 | `cluster_bringup/campaign/e9_rusticl_perstep.sh` | AMD Radeon 890M (OpenCL) | 5 min |
 | 5 | sec:2 | `cluster_bringup/campaign/host_kernel_profile.sh` | NVIDIA A100 | 10 min |
 | 2 | results text | `cluster_bringup/campaign/numa_check.sh` | any Linux machine | 10 min |
 | 52 | dendritic-tree speedups (figure); dendritic-tree speedups (table) | `cluster_bringup/clean_multicomp_sweep.sh` | NVIDIA A100, NVIDIA A40 | 240 min |
@@ -69,6 +71,7 @@ What reproduces which numbers, and what it needs:
 | 2 | results text | `cluster_bringup/coreneuron/rate_vs_walltime.sh` | NVIDIA GPU with Arbor built for CUDA | 20 min |
 | 2 | spiking network against NEURON and CoreNEURON (table) | `cluster_bringup/coreneuron/spike_compare.sh` | NVIDIA A100 | 30 min |
 | 2 | speedup against run length (table) | `cluster_bringup/verify_k5000.sh` | NVIDIA A40 | 30 min |
+| 1 | sec:2 | `genesis/src/hines/opencl/ocl_hsolve.c` | any Linux machine | - |
 | 6 | model construction (figure); results text | `paper/scripts/plot_construction_scaling.py` | any Linux machine | 30 min |
 | 4 | results text | `paper/scripts/run_pgenesis_mpi_scaling.sh` | MPI cluster, up to 24 ranks | 60 min |
 | 1 | results text | `reproduce/stages/05_cpu.sh` | any Linux machine | 1 min |
