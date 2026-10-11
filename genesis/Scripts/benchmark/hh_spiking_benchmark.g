@@ -160,11 +160,15 @@ echo "Neurons:              " {N_NEURONS}
 echo "Steps:                " {N_STEPS}
 echo "CPU-timer step time:  " {t_total} " s"
 
-// Sanity marker only. HGET syncs the hsolve-internal Vm to the element field
-// (required for chanmode 4). NB: for driven repetitively-spiking neurons the
-// instantaneous Vm after many cycles is phase-sensitive and diverges between
-// fp64 (CPU) and fp32 (GPU); it is NOT a correctness metric. Correctness is
-// validated separately (single-AP window) by hh1952_ap_verify.g.
+// Sanity marker. HGET syncs the hsolve-internal Vm to the element field
+// (required for chanmode 4). A multiloop of K steps runs all of them at the
+// first solver call, i.e. during the 10 warm-up steps above, so it matches the
+// CPU's 10 + N steps only with GENESIS_*_MULTILOOP = N + 10; then the fp64 GPU
+// prints the CPU's VMFINAL to every digit (multiloop_offset_check.sh). With
+// K = N it runs 10 steps fewer, and for driven repetitively-spiking neurons the
+// instantaneous Vm then differs by far more than precision: an earlier version
+// of this comment blamed fp32 for that. fp32 against fp64 is measured over one
+// action potential by hh1952_ap_verify.g.
 call /net/solver HGET /net/cell0/soma
 echo "VMFINAL 0 " {getfield /net/cell0/soma Vm}
 

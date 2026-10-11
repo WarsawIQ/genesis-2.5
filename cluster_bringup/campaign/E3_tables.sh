@@ -25,16 +25,19 @@ need genesis/src/nxgenesis_ocl "cluster_bringup/11_build_opencl.sh, before 10_bu
 need_sass genesis/src/nxgenesis
 S1=genesis/Scripts/benchmark/hh_spiking_benchmark.g
 
+# The benchmark steps 10 times (a warm-up) before the K timed steps, and a
+# multiloop runs all its steps at the first solver call: K + 10 makes the GPU
+# run the steps the CPU runs (until v2.6.0 it was K, 10 steps short).
 single() {   # <arm> <rep> <order> <cpu|cuda|ocl> <N>: Table 1, as 53_ and 56_ ran it
     EXPECT_N=$5 EXPECT_STEPS=$T1_K
     case "$4" in
         cpu)  run_rep "$1" "$2" "$3" 0 "$BANNER_CPU" sanity_single \
                   timeout 1800 ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch "$S1" "$5" "$T1_K" ;;
         cuda) run_rep "$1" "$2" "$3" 1 "$BANNER_CUDA32" sanity_single \
-                  env GENESIS_CUDA_MULTILOOP="$T1_K" \
+                  env GENESIS_CUDA_MULTILOOP=$((T1_K + 10)) \
                   timeout 1800 ./genesis/src/nxgenesis -nosimrc -notty -batch "$S1" "$5" "$T1_K" ;;
         ocl)  run_rep "$1" "$2" "$3" 1 "$BANNER_OCL32" sanity_single \
-                  env GENESIS_OCL_MULTILOOP="$T1_K" \
+                  env GENESIS_OCL_MULTILOOP=$((T1_K + 10)) \
                   timeout 1800 ./genesis/src/nxgenesis_ocl -nosimrc -notty -batch "$S1" "$5" "$T1_K" ;;
     esac
 }

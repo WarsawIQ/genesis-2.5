@@ -89,7 +89,7 @@ S=$(mktemp -d); mkdir -p "$S/run/genesis/src" "$S/run/genesis/Scripts/benchmark"
 tar -C "$S" -xzf "$OUT/$NAME.tar.gz"
 ln -s "$S/$NAME/startup" "$S/run/genesis/src/startup"
 cp genesis/Scripts/benchmark/hh_spiking_benchmark.g "$S/run/genesis/Scripts/benchmark/"
-( cd "$S/run" && GENESIS_OCL_MULTILOOP=200 "$S/$NAME/bin/nxgenesis_ocl" -nosimrc -notty -batch \
+( cd "$S/run" && GENESIS_OCL_MULTILOOP=210 "$S/$NAME/bin/nxgenesis_ocl" -nosimrc -notty -batch \
       genesis/Scripts/benchmark/hh_spiking_benchmark.g 100 200 > smoke.log 2>&1 )
 if grep -q "nie znaleziono ocl_channel.cl" "$S/run/smoke.log"; then
     echo "REFUSED: the packaged OpenCL binary does not find its kernel" >&2; rm -rf "$S" "$T"; exit 1

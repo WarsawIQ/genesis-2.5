@@ -7,11 +7,14 @@
 # GENESIS_OCL_DISPATCH_MS (500 ms by default) instead of one, because one long
 # dispatch tripped the driver's lockup timeout under Mesa rusticl (E9 on
 # v2.6.0-rc4, KNOWN_ISSUES.md). The pieces must not change the result. This
-# runs hh_spiking_benchmark.g (500 cells; K = N + 10, so the GPU runs the steps
-# the CPU runs) on the CPU and under each OpenCL runtime found, with one
-# dispatch (GENESIS_OCL_DISPATCH_MS=0), the default and many tiny pieces
+# runs hh_spiking_benchmark.g (K = N + 10, so the GPU runs the steps the CPU
+# runs) for 500 cells (one piece: the first, short piece covers the run) and
+# for 50 000 cells over 2000 steps (many pieces, while one dispatch is still
+# safe) on the CPU and under each OpenCL runtime found, with one dispatch
+# (GENESIS_OCL_DISPATCH_MS=0), the default and tiny pieces
 # (GENESIS_OCL_DISPATCH_MS=1), and checks:
-#   - fp64: every variant prints the CPU's final voltage to every digit;
+#   - fp64: every variant prints the CPU's final voltage to every digit (a
+#     runtime without double precision must refuse and compute on the CPU);
 #   - fp32: the three variants print the same voltage;
 # then runs E9's case that was reset (50 000 cells, 50 000 steps) under
 # rusticl with the default pieces and checks the kernel log for ring timeouts.
@@ -38,10 +41,11 @@ ocl() {   # icd precision dispatch_ms n steps log
 echo "# $(hostname -s), $(git describe --tags --always --dirty) $(git rev-parse HEAD)"
 echo "# nxgenesis_ocl sha256 $(sha256sum genesis/src/nxgenesis_ocl | cut -d' ' -f1)"
 T=$(mktemp -d)
-for N in 200 2000; do
-    ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch $G 500 $N > "$T/cpu.log" 2>&1
+for case in 500:200 500:2000 50000:2000; do
+    C=${case%:*}; N=${case#*:}
+    ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch $G $C $N > "$T/cpu.log" 2>&1
     cpu=$(vm "$T/cpu.log")
-    echo "== N=$N: cpu $cpu"
+    echo "== $C cells, N=$N: cpu $cpu"
     for rt in rocm rusticl; do
         icd=$ROCM; [ $rt = rusticl ] && icd=$RUSTICL
         [ -f "$icd" ] || { echo "   $rt: no ICD, skipped"; continue; }
@@ -49,19 +53,23 @@ for N in 200 2000; do
             line="   $rt $p:"
             for ms in 0 default 1; do
                 d=$ms; [ $ms = default ] && d=""
-                if [ -n "$d" ]; then ocl "$icd" $p "$d" 500 $N "$T/o.log"
+                if [ -n "$d" ]; then ocl "$icd" $p "$d" $C $N "$T/o.log"
                 else env -u GENESIS_OCL_DISPATCH_MS OCL_ICD_VENDORS="$icd" RUSTICL_ENABLE=radeonsi GENESIS_GPU_PRECISION=$p \
                          GENESIS_OCL_MULTILOOP=$((N + 10)) ./genesis/src/nxgenesis_ocl -nosimrc -notty \
-                         -batch $G 500 $N > "$T/o.log" 2>&1; fi
+                         -batch $G $C $N > "$T/o.log" 2>&1; fi
                 v=$(vm "$T/o.log")
-                grep -q "kernele $p" "$T/o.log" || v="NOT-ON-GPU"
+                if ! grep -q "kernele $p" "$T/o.log"; then
+                    if [ $p = fp64 ] && grep -q "has no double-precision support" "$T/o.log"; then
+                        v="$v(refused,cpu)"
+                    else v="NOT-ON-GPU"; fi
+                fi
                 np=$(sed -n 's/^OCL MULTILOOP: \([0-9]*\) dispatches.*/\1/p' "$T/o.log"); np=${np:-1}
                 line="$line ms=$ms -> $v ($np)"
                 eval "v_$ms=\$v"
             done
             echo "$line"
             if [ $p = fp64 ]; then
-                for x in "$v_0" "$v_default" "$v_1"; do [ "$x" = "$cpu" ] || { echo "   FAIL: fp64 differs from the CPU"; fail=1; break; }; done
+                for x in "$v_0" "$v_default" "$v_1"; do [ "${x%(refused,cpu)}" = "$cpu" ] || { echo "   FAIL: fp64 differs from the CPU"; fail=1; break; }; done
             elif [ "$v_0" != "$v_default" ] || [ "$v_0" != "$v_1" ]; then
                 echo "   FAIL: fp32 pieces differ from one dispatch"; fail=1
             fi

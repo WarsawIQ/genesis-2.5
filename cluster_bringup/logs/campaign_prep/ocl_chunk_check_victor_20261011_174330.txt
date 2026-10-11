@@ -1,0 +1,16 @@
+# victor, v2.6.0-9-g12c1cb3-dirty 12c1cb36da078ff6286297abb477faff24f1b4c1
+# nxgenesis_ocl sha256 8f3631f241dc6f506243f855b849b483c51c060eed752c1d5d96b4318f1b4ce2
+== N=200: cpu -0.0402014883
+   rocm fp64: ms=0 -> -0.0402014883 (1) ms=default -> -0.0402014883 (1) ms=1 -> -0.0402014883 (1)
+   rocm fp32: ms=0 -> -0.04020150378 (1) ms=default -> -0.04020150378 (1) ms=1 -> -0.04020150378 (1)
+   rusticl fp64: ms=0 -> NOT-ON-GPU (1) ms=default -> NOT-ON-GPU (1) ms=1 -> NOT-ON-GPU (1)
+   FAIL: fp64 differs from the CPU
+   rusticl fp32: ms=0 -> -0.04020140693 (1) ms=default -> -0.04020140693 (1) ms=1 -> -0.04020140693 (1)
+== N=2000: cpu -0.08130143871
+   rocm fp64: ms=0 -> -0.08130143871 (1) ms=default -> -0.08130143871 (1) ms=1 -> -0.08130143871 (1)
+   rocm fp32: ms=0 -> -0.08130151033 (1) ms=default -> -0.08130151033 (1) ms=1 -> -0.08130151033 (1)
+   rusticl fp64: ms=0 -> NOT-ON-GPU (1) ms=default -> NOT-ON-GPU (1) ms=1 -> NOT-ON-GPU (1)
+   FAIL: fp64 differs from the CPU
+   rusticl fp32: ms=0 -> -0.08130148053 (1) ms=default -> -0.08130148053 (1) ms=1 -> -0.08130148053 (1)
+== rusticl, 50000 cells x 50000 steps, default pieces: exit 0, wall 23.5 s, OCL MULTILOOP: 46 dispatches of at most ~500 ms each (integrated GPU; GENESIS_OCL_DISPATCH_MS), kernel-log resets: 0
+result: FAIL

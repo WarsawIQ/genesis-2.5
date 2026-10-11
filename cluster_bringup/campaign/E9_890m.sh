@@ -68,7 +68,7 @@ arm() {
                        ./genesis/src/nxgenesis_nocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh_spiking_benchmark.g "$n" "$T1K" ;;
     t1_*_n*)       r=${1#t1_}; r=${r%%_*}; EXPECT_N=$n EXPECT_STEPS=$T1K
                    run_rep "$1" "$2" "$3" 0 "$DEV;$BANNER_OCL32" sanity_single \
-                       env $(rt "$r") GENESIS_OCL_MULTILOOP="$T1K" ./genesis/src/nxgenesis_ocl -nosimrc -notty \
+                       env $(rt "$r") GENESIS_OCL_MULTILOOP=$((T1K + 10)) ./genesis/src/nxgenesis_ocl -nosimrc -notty \
                        -batch genesis/Scripts/benchmark/hh_spiking_benchmark.g "$n" "$T1K" ;;
     tr_cpu_n*)     tree_rep "$1" "$2" "$3" cpu "$n" "$TRK" 16 ;;
     tr_rocm64_n*)  tree_rep "$1" "$2" "$3" ocl64 "$n" "$TRK" 16 $(rt rocm) ;;
