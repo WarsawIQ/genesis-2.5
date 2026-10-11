@@ -1,6 +1,14 @@
 # Known issues
 
-## OpenCL: a long single-compartment batch can reset an integrated GPU (fix planned for 2.6.1)
+## OpenCL: a long single-compartment batch can reset an integrated GPU (fixed for 2.6.1)
+
+**Fixed on `dev-2.6.1` (12c1cb3).** On a device with host-unified memory the
+multiloop runs in dispatches of about `GENESIS_OCL_DISPATCH_MS` (default 500 ms),
+bit for bit the result of one dispatch; a discrete GPU keeps one dispatch. Checked
+by `cluster_bringup/campaign/ocl_chunk_check.sh` on the Radeon 890M
+(`cluster_bringup/logs/campaign_prep/ocl_chunk_check_victor_20261011_174433.txt`):
+E9's reset case completes under rusticl in 46 dispatches with no ring timeout.
+What follows describes 2.6.0.
 
 **What happens.** With `GENESIS_OCL_MULTILOOP=<K>` the OpenCL backend runs a
 single-compartment network for all K steps in one kernel dispatch. Under Mesa
@@ -40,7 +48,10 @@ of the SoftwareX paper was measured on (decided 2026-10-11).
   E9's `t1_rusticl_n50000` arm must complete with no ring timeout in the kernel
   log.
 
-## Table 1's GPU arms ran 10 steps fewer than the CPU arm (0.02%; fix in the benchmark for 2.6.1)
+## Table 1's GPU arms ran 10 steps fewer than the CPU arm (0.02%; fixed for 2.6.1)
+
+**Fixed on `dev-2.6.1` (b9820fb):** E3 and E9 set K = N + 10, and the benchmark's
+comment says why. What follows describes 2.6.0.
 
 `hh_spiking_benchmark.g` does `reset`, `step 10` (a warm-up) and `step N`. A
 single-compartment multiloop of K steps runs all K at the first solver call,
