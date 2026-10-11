@@ -1,0 +1,84 @@
+#!/bin/sh
+# The binary tarball attached to a GitHub release.
+#
+#     sh cluster_bringup/campaign/package_release.sh <release checkout> <version> [<measured tag>]
+#
+# Packs the three binaries of <release checkout> (built there by
+# prepare_node.sh: nxgenesis with CUDA, nxgenesis_ocl with OpenCL,
+# nxgenesis_nocl for the CPU) with genesis/startup into
+# genesis-<version>-linux-x86_64.tar.gz. If <measured tag> is given, the
+# checkout must be at that tag and its binaries must match the sha256 recorded
+# by that tag's campaign build on this node, so the tarball holds the very
+# binaries the paper was measured with. The tarball's README.txt records where
+# they come from, the libraries they need (ldd) and the GPU architectures the
+# CUDA binary carries (cuobjdump).
+#
+# Writes the tarball and its manifest to logs/release/<version>/ under this
+# script's repository; commit the manifest, attach the tarball to the release.
+set -u
+[ $# -ge 2 ] || { echo "usage: $0 <release checkout> <version> [<measured tag>]" >&2; exit 2; }
+REL=$(cd "$1" && pwd); VER=$2; MEAS=${3:-}
+GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$GENESIS_ROOT/cluster_bringup/env.sh"
+OUT=$GENESIS_ROOT/cluster_bringup/logs/release/$VER
+NAME=genesis-$VER-linux-x86_64
+mkdir -p "$OUT"
+cd "$REL" || exit 2
+if [ -n "$MEAS" ]; then
+    [ "$(git describe --tags --exact-match 2>/dev/null)" = "$MEAS" ] \
+        || { echo "REFUSED: $REL is not at $MEAS" >&2; exit 1; }
+    REC=cluster_bringup/logs/campaign_$MEAS/build_$(hostname -s)/binaries.sha256
+    [ -f "$REC" ] || { echo "REFUSED: no $REC" >&2; exit 1; }
+    for b in nxgenesis nxgenesis_ocl nxgenesis_nocl; do
+        want=$(awk -v b="$b" '$2 == b || $2 ~ "/"b"$" { print $1 }' "$REC" | head -1)
+        have=$(sha256sum "genesis/src/$b" | cut -d' ' -f1)
+        [ -n "$want" ] && [ "$want" = "$have" ] \
+            || { echo "REFUSED: genesis/src/$b is not the binary $REC records" >&2; exit 1; }
+    done
+fi
+T=$(mktemp -d); P=$T/$NAME
+mkdir -p "$P/bin" "$P/startup"
+cp genesis/src/nxgenesis genesis/src/nxgenesis_ocl genesis/src/nxgenesis_nocl "$P/bin/"
+cp -r genesis/startup/. "$P/startup/"
+NVCC=${CUDA_HOME:-/nonexistent}/bin
+{
+echo "GENESIS $VER, Linux x86_64 binaries"
+echo
+echo "Built from $(git describe --tags --always) ($(git rev-parse HEAD)) on $(hostname -s),"
+echo "$(. /etc/os-release && echo "$PRETTY_NAME"), $(ldd --version | head -1), $(gcc --version | head -1)."
+[ -n "$MEAS" ] && echo "These are the binaries every number of the SoftwareX paper was measured with ($MEAS);"
+[ -n "$MEAS" ] && echo "the GENESIS sources of $VER are identical to those of $MEAS."
+echo
+echo "bin/nxgenesis_nocl  CPU only; needs glibc and ncurses."
+echo "bin/nxgenesis_ocl   OpenCL 1.2 (any vendor's ICD, e.g. ROCm, Mesa rusticl, NVIDIA)."
+echo "bin/nxgenesis       CUDA; needs the NVIDIA driver and the CUDA 12 runtime libraries."
+echo
+echo "Run from a directory holding a .simrc that puts startup/ on SIMPATH, as genesis/startup"
+echo "is used in a source build (see README.md of the repository), e.g."
+echo "    setenv SIMPATH . <this directory>/startup"
+echo "Choose precision and batching at run time: GENESIS_GPU_PRECISION=fp32|fp64,"
+echo "GENESIS_CUDA_MULTILOOP=<K>, GENESIS_OCL_MULTILOOP=<K>. Known issues: KNOWN_ISSUES.md"
+echo "in the repository."
+echo
+for b in nxgenesis_nocl nxgenesis_ocl nxgenesis; do
+    echo "== ldd $b"; ldd "genesis/src/$b" | sed 's/ (0x[0-9a-f]*)//'
+done
+if [ -x "$NVCC/cuobjdump" ]; then
+    echo "== GPU code in nxgenesis (cuobjdump --list-elf --list-ptx)"
+    "$NVCC/cuobjdump" --list-elf --list-ptx genesis/src/nxgenesis 2>&1
+fi
+} > "$P/README.txt"
+( cd "$P" && find . -type f ! -name SHA256SUMS -exec sha256sum {} + | sort -k2 > SHA256SUMS )
+tar -C "$T" -czf "$OUT/$NAME.tar.gz" "$NAME"
+{
+echo "# $NAME.tar.gz, $(date -Is)"
+sha256sum "$OUT/$NAME.tar.gz" | sed "s|$OUT/||"
+echo
+cat "$P/README.txt"
+echo
+echo "== SHA256SUMS"
+cat "$P/SHA256SUMS"
+} > "$OUT/manifest.txt"
+rm -rf "$T"
+cat "$OUT/manifest.txt" | head -40
+echo "written: $OUT"
