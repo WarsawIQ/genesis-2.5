@@ -10,7 +10,7 @@ A maintenance release that fixes the two known issues of 2.6.0. The CPU and CUDA
 ## Verified
 
 - `cluster_bringup/campaign/ocl_chunk_check.sh` on the Radeon 890M: with 50 000 cells over 2000 steps, ROCm in fp64 prints the CPU's final voltage to every digit in 1, 5 and 1962 dispatches; fp32 under ROCm and under rusticl is the same in every split; rusticl's refused fp64 computes on the CPU, equal too. The case that was reset, 50 000 cells over 50 000 steps under rusticl, completes in 46 dispatches with no ring timeout in the kernel log.
-- [freeze gate on the A40 and A100]
+- Freeze gate on the A40 and the A100 against ce21b63 (the GENESIS sources of v2.5.4): fp32 byte-identical with CUDA, graphs off and on, and with OpenCL; fp64 within 1e-10 V of the CPU solver (`cluster_bringup/logs/verify_against_base/inf0[23]_20261011_18*`). On these discrete GPUs the OpenCL multiloop still runs as one dispatch, so their output is that of 2.6.0.
 - [E9 on the Radeon 890M]
 
 ## Binaries
