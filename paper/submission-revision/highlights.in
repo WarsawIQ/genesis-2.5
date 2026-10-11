@@ -1,0 +1,5 @@
+Opt-in CUDA and OpenCL backends for the GENESIS 2.4 solver; models run unchanged.
+GPU Hines solve for tree populations: {{e2_max_e2e_a100}}x faster end to end on an A100.
+Precision chosen at run time; in fp64 the GPU matches the CPU to every digit.
+Model construction made linear; two Hines-solver defects of GENESIS 2.4 fixed.
+Every published number is regenerated from raw data by a script checked in CI.

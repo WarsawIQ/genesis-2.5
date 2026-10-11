@@ -24,6 +24,7 @@
 \input{numbers}
 \newcommand{\pending}[1]{\textcolor{red}{\textbf{[\detokenize{#1}]}}}
 \usepackage{hyperref}
+\graphicspath{{figures/}{./}}
 \setlength{\parindent}{0pt}
 \setlength{\emergencystretch}{3em}
 
@@ -150,7 +151,7 @@ the hardware the user has.
 %% Fig. 1: architecture diagram (new; replaces the fp32/fp64 divergence figure).
 \begin{figure}[!h]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_architecture.pdf}
+\includegraphics[width=\textwidth]{fig_architecture.pdf}
 \caption{How a model reaches the GPU. \texttt{hsolve} compiles the model into an opcode
 program at \texttt{SETUP}. A gate checks the program against what the kernels
 implement; anything else stays on the CPU. Accepted models run as one of three
@@ -336,7 +337,7 @@ the CPU solver (E3, 10 replicates).}
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_trees.pdf}
+\includegraphics[width=\textwidth]{fig_trees.pdf}
 \caption{Dendritic trees, $N\times16$ compartments, 200 steps: speedup over the CPU
 solver, end to end and step phase, on the A40 and A100 (E3).}
 \label{fig:trees}
@@ -344,7 +345,7 @@ solver, end to end and step phase, on the A40 and A100 (E3).}
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.62\textwidth]{figures/fig_runlength.pdf}
+\includegraphics[width=0.62\textwidth]{fig_runlength.pdf}
 \caption{End-to-end speedup against run length, $10\,000\times16$ compartments, fp32
 and fp64, both cards (E2).}
 \label{fig:runlength}
@@ -402,7 +403,7 @@ the CPU; below 1 is faster.}
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_crossover.pdf}
+\includegraphics[width=\textwidth]{fig_crossover.pdf}
 \caption{GENESIS and Arbor on the same GPU against run length, GENESIS in fp32 and fp64
 (E4).}
 \label{fig:crossover}
@@ -508,7 +509,7 @@ and would serve any computational paper.
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.62\textwidth]{figures/fig_construction.pdf}
+\includegraphics[width=0.62\textwidth]{fig_construction.pdf}
 \caption{Model construction time against model size on inf03, 3 replicates each:
 GENESIS~2.4 before the construction fixes (the upstream branch without them, built
 on the node and timed the same way) and v2.6.0 (E3c). The code from before the fixes
