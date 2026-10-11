@@ -51,7 +51,15 @@ echo "$(. /etc/os-release && echo "$PRETTY_NAME"), $(ldd --version | head -1), $
 echo
 echo "bin/nxgenesis_nocl  CPU only; needs glibc and ncurses."
 echo "bin/nxgenesis_ocl   OpenCL 1.2 (any vendor's ICD, e.g. ROCm, Mesa rusticl, NVIDIA)."
-echo "bin/nxgenesis       CUDA; needs the NVIDIA driver and the CUDA 12 runtime libraries."
+cudalibs="the NVIDIA driver and the CUDA 12 runtime (libcudart.so.12)"
+ldd genesis/src/nxgenesis | grep -q libOpenCL && cudalibs="$cudalibs, and an OpenCL ICD loader (libOpenCL.so.1)"
+echo "bin/nxgenesis       CUDA; needs $cudalibs."
+if [ -x "$NVCC/cuobjdump" ]; then
+    sass=$("$NVCC/cuobjdump" --list-elf genesis/src/nxgenesis 2>/dev/null | sed -n 's/.*\.\(sm_[0-9]*\)\.cubin.*/\1/p' | sort -u | tr '\n' ' ')
+    ptx=$("$NVCC/cuobjdump" --list-ptx genesis/src/nxgenesis 2>/dev/null | sed -n 's/.*\.\(sm_[0-9]*\)\.ptx.*/\1/p' | sort -u | tr '\n' ' ')
+    echo "                    GPU code: native for ${sass:-none}; PTX for ${ptx:-none}, which the driver"
+    echo "                    compiles for newer GPUs. GPUs older than the lowest of these do not run it."
+fi
 echo
 echo "Run from a directory holding a .simrc that puts startup/ on SIMPATH, as genesis/startup"
 echo "is used in a source build (see README.md of the repository), e.g."
