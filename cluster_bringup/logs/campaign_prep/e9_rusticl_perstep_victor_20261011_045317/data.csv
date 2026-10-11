@@ -1,0 +1,5 @@
+# host victor; binary v2.6.0-rc4 nxgenesis_ocl sha256 7f38e701bdc63a178b18a54d079cef464ca69a001627e2de4d328fdc041d4241
+# hh_spiking_benchmark.g N=50000 K=50000, rusticl (/etc/OpenCL/vendors/rusticl.icd), fp32, no GENESIS_OCL_MULTILOOP; power 1
+rep,wall_s,exit,banner
+1,47.379,0,OCL: gotowy (50000 kompartmentow; 550000 chips; kernele fp32)
+2,47.596,0,OCL: gotowy (50000 kompartmentow; 550000 chips; kernele fp32)
