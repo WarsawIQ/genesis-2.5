@@ -37,8 +37,10 @@ if [ -n "$MEAS" ]; then
     done
 fi
 T=$(mktemp -d); P=$T/$NAME
-mkdir -p "$P/bin" "$P/startup"
+mkdir -p "$P/bin/hines/opencl" "$P/startup"
 cp genesis/src/nxgenesis genesis/src/nxgenesis_ocl genesis/src/nxgenesis_nocl "$P/bin/"
+# the OpenCL backend compiles this at run time and looks for it next to the binary
+cp genesis/src/hines/opencl/ocl_channel.cl "$P/bin/hines/opencl/"
 cp -r genesis/startup/. "$P/startup/"
 NVCC=${CUDA_HOME:-/nonexistent}/bin
 {
@@ -50,7 +52,10 @@ echo "$(. /etc/os-release && echo "$PRETTY_NAME"), $(ldd --version | head -1), $
 [ -n "$MEAS" ] && echo "the GENESIS sources of $VER are identical to those of $MEAS."
 echo
 echo "bin/nxgenesis_nocl  CPU only; needs glibc and ncurses."
-echo "bin/nxgenesis_ocl   OpenCL 1.2 (any vendor's ICD, e.g. ROCm, Mesa rusticl, NVIDIA)."
+echo "bin/nxgenesis_ocl   OpenCL 1.2 (any vendor's ICD, e.g. ROCm, Mesa rusticl, NVIDIA). It compiles"
+echo "                    bin/hines/opencl/ocl_channel.cl at run time and finds it next to itself;"
+echo "                    keep the two together or name the file in GENESIS_OCL_KERNEL. Without it"
+echo "                    the backend says 'nie znaleziono ocl_channel.cl' and computes on the CPU."
 cudalibs="the NVIDIA driver and the CUDA 12 runtime (libcudart.so.12)"
 ldd genesis/src/nxgenesis | grep -q libOpenCL && cudalibs="$cudalibs, and an OpenCL ICD loader (libOpenCL.so.1)"
 echo "bin/nxgenesis       CUDA; needs $cudalibs."
@@ -78,11 +83,26 @@ fi
 } > "$P/README.txt"
 ( cd "$P" && find . -type f ! -name SHA256SUMS -exec sha256sum {} + | sort -k2 > SHA256SUMS )
 tar -C "$T" -czf "$OUT/$NAME.tar.gz" "$NAME"
+# Smoke test of the tarball as a user gets it: unpacked elsewhere, the OpenCL
+# binary must find its kernel and start on the device (when there is one).
+S=$(mktemp -d); mkdir -p "$S/run/genesis/src" "$S/run/genesis/Scripts/benchmark"
+tar -C "$S" -xzf "$OUT/$NAME.tar.gz"
+ln -s "$S/$NAME/startup" "$S/run/genesis/src/startup"
+cp genesis/Scripts/benchmark/hh_spiking_benchmark.g "$S/run/genesis/Scripts/benchmark/"
+( cd "$S/run" && GENESIS_OCL_MULTILOOP=200 "$S/$NAME/bin/nxgenesis_ocl" -nosimrc -notty -batch \
+      genesis/Scripts/benchmark/hh_spiking_benchmark.g 100 200 > smoke.log 2>&1 )
+if grep -q "nie znaleziono ocl_channel.cl" "$S/run/smoke.log"; then
+    echo "REFUSED: the packaged OpenCL binary does not find its kernel" >&2; rm -rf "$S" "$T"; exit 1
+fi
+smoke=$(grep -m1 "^OCL: gotowy" "$S/run/smoke.log" || echo "no OpenCL device here; kernel found")
+rm -rf "$S"
 {
 echo "# $NAME.tar.gz, $(date -Is)"
 sha256sum "$OUT/$NAME.tar.gz" | sed "s|$OUT/||"
 echo
 cat "$P/README.txt"
+echo
+echo "== smoke test (unpacked elsewhere, nxgenesis_ocl, 100 cells): $smoke"
 echo
 echo "== SHA256SUMS"
 cat "$P/SHA256SUMS"
