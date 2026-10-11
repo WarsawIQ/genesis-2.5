@@ -1,0 +1,5 @@
+# host victor; binaries v2.6.0-rc4 nxgenesis_ocl sha256 7f38e701bdc63a178b18a54d079cef464ca69a001627e2de4d328fdc041d4241; ICD /etc/OpenCL/vendors/amdocl64_60301_48.icd; fp64; 500 cells
+n_steps,cpu_vm,ocl_K_eq_N_vm,ocl_K_eq_N_plus_10_vm,equal_with_plus_10
+1,0.04495397006,-0.05903075927,0.04495397006,yes
+200,-0.0402014883,-0.06654969423,-0.0402014883,yes
+2000,-0.08130143871,-0.0202541349,-0.08130143871,yes

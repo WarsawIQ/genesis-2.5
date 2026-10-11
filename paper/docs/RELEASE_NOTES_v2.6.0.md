@@ -54,6 +54,10 @@ The checks that found them run on every backend:
   Radeon 890M) exceeds the driver's lockup timeout and the GPU is reset. Run such
   models without `GENESIS_OCL_MULTILOOP` under rusticl, or use ROCm. Fix planned
   for 2.6.1 (KNOWN_ISSUES.md).
+- In `hh_spiking_benchmark.g` a multiloop of K = N steps runs during the warm-up,
+  so the GPU does N steps where the CPU does N + 10 (0.02% of Table 1's work);
+  with K = N + 10 the GPU matches the CPU to every digit in fp64. The campaign's
+  setting is corrected in 2.6.1 (KNOWN_ISSUES.md).
 
 ## Measurement
 
@@ -75,7 +79,7 @@ reported as 114x against chanmode 1).
 
 ## Binaries
 
-`genesis-2.6.0-linux-x86_64.tar.gz` holds the three binaries the paper was measured
+`genesis-v2.6.0-linux-x86_64.tar.gz` holds the three binaries the paper was measured
 with (built from v2.6.0-rc4 on the UMCS cluster, AlmaLinux 8.10, glibc 2.28):
 `nxgenesis_nocl` (CPU), `nxgenesis_ocl` (OpenCL 1.2) and `nxgenesis` (CUDA 12), with
 `startup/`. Its `README.txt` lists the libraries each needs and the GPU code the CUDA

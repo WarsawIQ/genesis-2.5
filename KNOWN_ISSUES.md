@@ -39,3 +39,21 @@ of the SoftwareX paper was measured on (decided 2026-10-11).
 - Tests: the 80_accel_regression golden must not change (fp32 byte-identical);
   E9's `t1_rusticl_n50000` arm must complete with no ring timeout in the kernel
   log.
+
+## Table 1's GPU arms ran 10 steps fewer than the CPU arm (0.02%; fix in the benchmark for 2.6.1)
+
+`hh_spiking_benchmark.g` does `reset`, `step 10` (a warm-up) and `step N`. A
+single-compartment multiloop of K steps runs all K at the first solver call,
+which is the first warm-up step, and makes every later call a no-op. E3 (Table 1)
+and E9 set K = N, so their GPU arms ran N steps where the CPU arm ran N + 10. The
+kernels are not at fault: with K = N + 10 the OpenCL multiloop in fp64 prints the
+CPU's final voltage to every digit
+(`cluster_bringup/logs/campaign_prep/multiloop_offset_victor_20261011_142935.csv`,
+`cluster_bringup/campaign/multiloop_offset_check.sh`). With N = 50 000 the CPU did
+0.02% more work, which moves no Table 1 speedup at the precision printed (their
+standard deviations are 1-2%). The dendritic-tree arms set K + 10 and are not
+affected. The script's comment, which attributes the different final voltages
+to fp32, is wrong.
+
+**Plan for 2.6.1.** E3 and E9 set K = N + 10 as `tree_rep` does, and the
+benchmark's comment says why the final voltage depends on K.
