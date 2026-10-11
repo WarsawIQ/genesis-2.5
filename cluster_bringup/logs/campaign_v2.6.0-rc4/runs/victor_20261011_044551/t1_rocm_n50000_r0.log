@@ -1,0 +1,63 @@
+# experiment: E9
+# session: victor_20261011_044551
+# commit: 9d76734490e15b17ddc6385d01527f69956c8f1f
+# describe: v2.6.0-rc4
+# dirty: 0
+# build_generated_changed: 22
+# node: victor
+# cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# governor: powersave
+# loadavg: 1.15 1.07 1.20
+# numa_bind: none
+# gpu: none
+# arm: t1_rocm_n50000
+# rep: 0
+# command:  env OCL_ICD_VENDORS=/etc/OpenCL/vendors/amdocl64_60301_48.icd GENESIS_OCL_MULTILOOP=50000 ./genesis/src/nxgenesis_ocl -nosimrc -notty -batch genesis/Scripts/benchmark/hh_spiking_benchmark.g 50000 50000
+Starting Genesis
+Executable:         /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/./genesis/src/nxgenesis_ocl
+The diskio library uses the netcdf-version 3.4 library, which is provided
+"as is" under the terms of distribution and usage by UCAR/Unidata.
+Please see src/diskio/interface/netcdf/netcdf-3.4/copyright.html
+for the full notice.
+
+The kinetics library is copylefted under the LGPL, see kinetics/COPYRIGHT.
+
+Simulation Script:  genesis/Scripts/benchmark/hh_spiking_benchmark.g
+=== HH Spiking Benchmark (single hsolve, driven neurons) ===
+Neurons:    50000
+Steps:      50000
+dt:         5e-05  s
+inject:     1e-09  A
+record:     0
+
+/library
+/
+Building driven HH cells...
+changing clock [0] from 1 to 5e-05
+Configuring single hsolve (chanmode=4, N= 50000  neurons)...
+ncompts:  50000
+nchips:   550000
+time = 0.000000 ; step = 0          
+OCL: urzadzenie: gfx1150
+OCL: tryb multiloop — 50000 krokow w jednym dispatchu
+OCL: gotowy (50000 kompartmentow, 550000 chips, kernele fp32)
+OCL MULTILOOP: 50000 krokow | kernel 3403.9 ms | total 3408.4 ms | 68.167 us/krok
+time = 0.000500 ; step = 10          
+completed 10 steps in 0.292813 cpu seconds
+user time used		= 1 sec  541832 usec
+system time used	= 0 sec  81254 usec
+time = 2.500500 ; step = 50010          
+completed 50000 steps in 0.001915 cpu seconds
+user time used		= 1 sec  543997 usec
+system time used	= 0 sec  81263 usec
+
+=== Results ===
+Neurons:               50000
+Steps:                 50000
+CPU-timer step time:   0  s
+VMFINAL 0  -0.07758073509
+OCL MULTILOOP SUMMARY (1 hsolve state(s))
+  batch dispatched : 1 kernel call covering 50000 steps
+  no-op steps      : 50009 (CPU Hines identity pass-through)
+  (timing per-dispatch printed at dispatch time above)
+OCL: zasoby zwolnione

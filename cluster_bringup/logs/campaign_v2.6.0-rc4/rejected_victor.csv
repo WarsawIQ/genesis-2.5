@@ -1,0 +1,9 @@
+session,experiment,arm,rep,try,wall_s,reason,log
+victor_20261011_044551,E9,t1_rusticl_n50000,0,1,4.0697,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r0.log
+victor_20261011_044551,E9,t1_rusticl_n50000,0,2,8.6485,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r0_try2.log
+victor_20261011_044551,E9,t1_rusticl_n50000,1,1,4.0514,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r1.log
+victor_20261011_044551,E9,t1_rusticl_n50000,1,2,3.9598,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r1_try2.log
+victor_20261011_044551,E9,t1_rusticl_n50000,2,1,8.6688,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r2.log
+victor_20261011_044551,E9,t1_rusticl_n50000,2,2,3.9160,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r2_try2.log
+victor_20261011_044551,E9,t1_rusticl_n50000,3,1,4.0382,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r3.log
+victor_20261011_044551,E9,t1_rusticl_n50000,3,2,3.9941,exit code 134;,/datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/runs/victor_20261011_044551/t1_rusticl_n50000_r3_try2.log

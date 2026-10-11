@@ -1,0 +1,21 @@
+commit 9d76734490e15b17ddc6385d01527f69956c8f1f (v2.6.0-rc4) on victor
+no CUDA toolkit at /usr/local/cuda: OpenCL and CPU binaries only (the 890M laptop)
+ebe41a1b51e0febbe74f25ffe277313f97f24027a4ddc4744665cf74619d0ddf  nxgenesis_nocl
+7f38e701bdc63a178b18a54d079cef464ca69a001627e2de4d328fdc041d4241  nxgenesis_ocl
+ready
+[04:45:51] E9: session victor_20261011_044551, v2.6.0-rc4 (9d76734490e15b17ddc6385d01527f69956c8f1f), data /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/E9_victor_20261011_044551.csv
+[04:46:41] t1_rusticl_n50000 rep 0 try 1 rejected: exit code 134
+[04:46:50] t1_rusticl_n50000 rep 0 try 2 rejected: exit code 134
+[04:48:06] t1_rusticl_n50000 rep 1 try 1 rejected: exit code 134
+[04:48:10] t1_rusticl_n50000 rep 1 try 2 rejected: exit code 134
+[04:49:31] t1_rusticl_n50000 rep 2 try 1 rejected: exit code 134
+[04:49:35] t1_rusticl_n50000 rep 2 try 2 rejected: exit code 134
+[04:50:51] t1_rusticl_n50000 rep 3 try 1 rejected: exit code 134
+[04:50:55] t1_rusticl_n50000 rep 3 try 2 rejected: exit code 134
+ap_cpu -0.02143485882
+ap_rocm32 -0.02143507321
+ap_rocm64 -0.02143485882
+ap_rusticl32 -0.02143504861
+ap_rusticl64 -0.02143485882
+report: /datadisk/od-kchlasta/1.Ac/0.Nauka/61.GENESIS/campaign-dry-laptop/cluster_bringup/logs/campaign_v2.6.0-rc4/E9_victor_20261011_044551_report.md
+E9_EXIT 4
