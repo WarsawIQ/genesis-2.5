@@ -62,7 +62,9 @@ cards of the paper; on any other card only its shape is checked: a speedup must
 stay on the same side of 1. The ratios of the CPU solver's modes are checked by
 their shape too, because they depend on the processor: chanmode 1 takes 4.2
 times as long as chanmode 4 on inf03, 4.0 on our laptop and 2.0 on GitHub's
-runners. Absolute times are printed for information. `python3 reproduce/measure.py --self-test` lays our
+runners. A ratio within its own tolerance of 1 (chanmode 3 against 4, at 1.08)
+has no side on a machine where the two are equally fast, and is printed for
+information, as are absolute times. `python3 reproduce/measure.py --self-test` lays our
 own data out as a reader's run and requires every published number back.
 
 Validation runs from clean clones are in `cluster_bringup/logs/repro_check/`: the

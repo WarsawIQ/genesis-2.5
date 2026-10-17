@@ -50,4 +50,14 @@ if $M "$T/empty" > "$T/out" 2>&1; then bad "empty run accepted"; else
     grep -q "nothing measured" "$T/out" && ok "an empty run is refused" || bad "empty run message"
 fi
 
+# 4. Shape: a ratio within its own tolerance of 1 has no side; beyond it, the side counts.
+if python3 - "$ROOT/reproduce" <<'EOF2'
+import sys; sys.path.insert(0, sys.argv[1]); import measure
+c = {"tolerance_pct": "10"}
+got = [measure.shape(c, [1.08], 1.00), measure.shape(c, [4.2], 2.0), measure.shape(c, [1.08], 0.85)]
+sys.exit(0 if got == ["info", "same shape", "DIFFERENT SHAPE"] else 1)
+EOF2
+then ok "shape: within the tolerance of 1 is information, beyond it the side counts"
+else bad "shape verdicts"; fi
+
 exit $fail

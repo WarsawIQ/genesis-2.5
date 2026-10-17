@@ -21,7 +21,8 @@ a ratio of two CPU modes, the CPU's membrane potential) is checked against its
 tolerance in claims.csv. An absolute time (seconds on our machine) is printed
 for information only: it depends on the machine. A ratio whose notes in
 claims.csv say "shape only" (the CPU solver's modes, whose ratio depends on the
-processor) is checked by its shape, like a GPU number on another card. A number measured on an A40 or an A100 is checked the
+processor) is checked by its shape, like a GPU number on another card; a ratio
+within its own tolerance of 1 has no side and is printed for information. A number measured on an A40 or an A100 is checked the
 same way when the reader's card is that card; on another card only its shape
 is checked: a speedup must stay on the same side of 1. Uncertainties (_sd) are
 printed with nothing to check.
@@ -193,6 +194,15 @@ def evaluate(results, claims, ids):
     return vals, files
 
 
+def shape(claim, pubs, val):
+    """Same side of 1 as every published value. A ratio within the claim's own
+    tolerance of 1 has no side here (two arms within the noise): information."""
+    tol = float(claim["tolerance_pct"] or 25) / 100.0
+    if abs(val - 1.0) <= tol or any(p == 1.0 for p in pubs):
+        return "info"
+    return "same shape" if all((val - 1.0) * (p - 1.0) > 0 for p in pubs) else "DIFFERENT SHAPE"
+
+
 def within(claim, pub, val):
     tol = float(claim["tolerance_pct"] or 25)
     return abs(val - pub) <= abs(pub) * tol / 100.0
@@ -247,9 +257,9 @@ def table(results):
         cards = [c for c in ids if claims[c]["hardware"] in CARD]
         timed = c0["kind"] == "measured" and c0["extract"] in ("mean", "sd") and c0["col"] in WALL
         shape_only = c0["notes"].startswith("shape only")
-        if shape_only and got[0] in pub and pub[got[0]] != 1.0 and v != 1.0:
+        if shape_only and got[0] in pub:
             published = fmt(pub[got[0]], c0["format"])
-            verdict = "same shape" if (v - 1.0) * (pub[got[0]] - 1.0) > 0 else "DIFFERENT SHAPE"
+            verdict = shape(c0, [pub[got[0]]], v)
             card_note = ""
         elif timed:
             published = " / ".join(("%s " % CARD[claims[c]["hardware"]] if claims[c]["hardware"] in CARD else "")
@@ -265,9 +275,8 @@ def table(results):
                 c = mine[0]
                 v = vals[c]
                 verdict = "ok" if within(claims[c], pub[c], v) else "OUTSIDE"
-            elif c0["units"] == "x" and all(pub.get(c) not in (None, 1.0) for c in cards) and v != 1.0:
-                same = all((v - 1.0) * (pub[c] - 1.0) > 0 for c in cards)
-                verdict = "same shape" if same else "DIFFERENT SHAPE"
+            elif c0["units"] == "x" and all(c in pub for c in cards):
+                verdict = shape(c0, [pub[c] for c in cards], v)
             else:
                 verdict = "info"
             card_note = gpu_of(path) or "unknown card"
