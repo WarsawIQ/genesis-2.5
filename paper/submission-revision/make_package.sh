@@ -10,7 +10,8 @@
 #   abstract.txt                         the manuscript's abstract with its values, as plain text
 #   latex_source.zip                     the .tex, numbers.tex, bibliography.tex and the
 #                                        figures, flat (Editorial Manager refuses subfolders),
-#                                        rebuilt from an empty directory to prove it compiles
+#                                        without the %% working comments, rebuilt from an
+#                                        empty directory to prove it compiles
 # With <private dir> (softwarex-revision/), also <private dir>/submission/:
 #   response_to_reviewers.pdf, cover_letter.pdf   from the Markdown letters, which stay
 #                                        out of the public repository
@@ -72,6 +73,15 @@ Z=$(mktemp -d "$ROOT/../.mkzip.XXXXXX")
 cp "$P/manuscript_softwarex_revision.tex" "$P/numbers.tex" "$P/bibliography.tex" "$P"/figures/fig_architecture.pdf \
    "$P"/figures/fig_trees.pdf "$P"/figures/fig_runlength.pdf "$P"/figures/fig_crossover.pdf \
    "$P"/figures/fig_construction.pdf "$Z/"
+# the copy sent to the journal loses our %% working comments (word budgets,
+# reviewer point numbers, notes to ourselves); the build below proves it still compiles
+python3 - "$Z/manuscript_softwarex_revision.tex" <<'PY'
+import re, sys
+p = sys.argv[1]
+out = [re.sub(r"\s*(?<!\\)%%.*$", "", l) for l in open(p).read().split("\n")
+       if not l.lstrip().startswith("%%")]
+open(p, "w").write("\n".join(out))
+PY
 rm -f "$S/latex_source.zip"
 ( cd "$Z" && zip -q -X "$S/latex_source.zip" ./* )
 T=$(mktemp -d "$ROOT/../.mktest.XXXXXX")

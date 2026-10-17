@@ -207,6 +207,8 @@ def render_table(by_id):
         if c["kind"] == "derived":
             continue
         key = c["stage"] if c["kind"] != "prose" else ""
+        if c["kind"] == "cited":
+            key = "(cited)"
         s = stages.setdefault(key, {"n": 0, "hw": set(), "min": 0, "where": set()})
         s["n"] += 1
         s["hw"].add(c["hardware"])
@@ -222,6 +224,10 @@ def render_table(by_id):
         if key == "":
             rows.append("| %d | %s | none yet: typed into the paper with no raw data kept; "
                         "re-measured by the revision campaign | - | - |" % (s["n"], where))
+            continue
+        if key == "(cited)":
+            rows.append("| %d | %s | none: taken from the cited literature (source in "
+                        "`reproduce/claims.csv`) | - | - |" % (s["n"], where))
             continue
         hw = ", ".join(HARDWARE_TEXT[h] for h in sorted(s["hw"]))
         rows.append("| %d | %s | `%s` | %s | %s |"

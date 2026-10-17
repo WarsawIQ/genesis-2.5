@@ -233,7 +233,7 @@ rate_insensitivity_arbor_gpu,0.9987179487,x,measured
 vm_ap_peak_neuron_arbor_mv,0.02,mV,prose
 vm_ap_peak_genesis_lower_mv,4.6,mV,prose
 spiking_accelerable_fraction_pct,59,pct,prose
-fp32_single_ap_v,2e-07,V,prose
+fp32_single_ap_v,2.1439e-07,V,derived
 single_morphology_slower_x,20,x,prose
 multicomp_build_n50000_s,23.8,s,prose
 ksweep_step_k5000,116.2,x,prose
@@ -252,9 +252,13 @@ vanet2_spikes_arbor_a100,602720,spikes,prose
 vanet2_level_at_12500_ratio,1,x,prose
 spiking_speedup_ceiling,2.43902439,x,derived
 harness_fix_walltime_change_pct,1.3,pct,prose
-igpu_tree_limit_compartments,22000,compartments,prose
 cpu_ap_vm,-0.02143485882,V,measured
+gpu32_ap_vm,-0.02143492922,V,measured
+gpu32_ap_dv,7.04e-08,V,derived
 e3c_before_exponent_inf03,2.178545664,exponent,measured
+e3c_before_272k_s,477.5416667,s,measured
+e3c_before_272k_min,7.959027778,min,derived
+e3c_before_1700k_h,7.187365501,h,derived
 f2_kern_elim_ns,259312346,ns,measured
 f2_kern_chan_ns,120080744,ns,measured
 f2_steps,5010,steps,measured
@@ -276,9 +280,11 @@ e2_fp64_cost_a100,1.167567158,x,measured
 e4_crossover_k_a40,1288.587078,steps,measured
 e4_crossover_ms_a40,12.88587078,ms,derived
 e4_fp64_over_arbor_a40,1.052188151,x,measured
+e4_g32_over_arbor_a40,0.5474082996,x,measured
 e4_crossover_k_a100,4776.509922,steps,measured
 e4_crossover_ms_a100,47.76509922,ms,derived
 e4_fp64_over_arbor_a100,1.097231158,x,measured
+e4_g32_over_arbor_a100,0.7410651929,x,measured
 e7_inter_over_uniform,1.082970166,x,measured
 e7_block_over_uniform,1.273671298,x,measured
 e7_cpu_inter_over_uniform,1.091206423,x,measured
@@ -415,3 +421,4 @@ e9_t1_rocm_n5000_x,4.025803011,x,measured
 e9_t1_rusticl_n5000_x,6.080736105,x,measured
 e9_tr_rocm_n1000_x,1.450179829,x,measured
 e9_tr_rusticl_n1000_x,1.122182588,x,measured
+markram_microcircuit_neurons,31000,neurons,cited

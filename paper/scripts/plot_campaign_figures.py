@@ -191,8 +191,9 @@ def fig_construction(sessions, before_csv, dest):
     for head, rows in sessions:
         s = arm_series(rows, r"con_n(\d+)$")
         s17 = {k * 17: v for k, v in s.items()}   # 17 compartments per cell
-        errplot(ax, s17, "%s (%s)" % (head.get("describe", "v2.6.0"), head.get("node", "?")),
-                CARD_COLOR["A100"])
+        # the campaign ran on v2.6.0-rc4, whose sources the release v2.6.0 keeps
+        # unchanged; the paper names the release, so the legend does too
+        errplot(ax, s17, "v2.6.0 (%s)" % head.get("node", "?"), CARD_COLOR["A100"])
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("compartments")

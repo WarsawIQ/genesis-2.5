@@ -32,8 +32,7 @@
 
 \begin{frontmatter}
 
-%% Title: keep, or name the release (v2.6.0)? Karol to decide.
-\title{GENESIS 2.5: optimisation and opt-in OpenCL/CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator}
+\title{GENESIS 2.5: CUDA and OpenCL acceleration for existing models of the GENESIS compartmental neural simulator}
 
 \author[1]{Karol Chlasta\corref{cor1}}
 \ead{karol@chlasta.pl}
@@ -47,13 +46,13 @@
 %% about 100 words (R10). One speed number, one correctness number, one limit.
 GENESIS is a long-established compartmental neural simulator. GENESIS~2.5 adds
 optional CUDA and OpenCL backends to its \texttt{hsolve} solver, including a GPU
-Hines elimination for dendritic-tree populations, without changing existing models,
-scripts or MPI workflows. On 160\,000 compartments over 10\,000 steps an A100 runs
-\claim{e2_max_e2e_a100}$\times$ faster end to end than the CPU solver; in double
-precision it reproduces the CPU solver to every printed digit.
-Networks that exchange spikes every step gain nothing on the GPU, and we show
-why. The release also makes model construction linear and fixes two defects
-in the Hines solver of GENESIS~2.4.
+Hines elimination for dendritic-tree populations, without changes to existing models
+or scripts. On 160\,000 compartments over 10\,000 steps an A100 runs
+\claim{e2_max_e2e_a100}$\times$ faster end to end than the CPU solver. In double
+precision it matches the CPU solver to ten significant figures. Spiking networks with
+zero axonal delay run slower, because the host delivers spikes every step. The release
+also makes model construction linear in the common case and fixes two Hines-solver
+defects of GENESIS~2.4.
 \end{abstract}
 
 \begin{keyword}
@@ -80,7 +79,7 @@ C4 & Code versioning system used & git \\
 \hline
 C5 & Software code languages, tools, and services used & C, CUDA C++, OpenCL C, MPI (PGENESIS), Python and POSIX shell (reproduction and analysis) \\
 \hline
-C6 & Compilation requirements, operating environments \& dependencies & Linux x86\_64 or aarch64, GCC, GNU make, flex, bison, ncurses. Optional: CUDA 12.x (tested 12.8 on NVIDIA A40 and A100), an OpenCL 1.2 runtime (tested NVIDIA, AMD ROCm 6.3.1, Mesa rusticl 26.1), MPICH or Open~MPI for PGENESIS \\
+C6 & Compilation requirements, operating environments \& dependencies & Linux x86\_64, GCC, GNU make, flex, bison, ncurses. Optional: CUDA 12.x (tested 12.8 on NVIDIA A40 and A100), an OpenCL 1.2 runtime (tested NVIDIA, AMD ROCm 6.3.1, Mesa rusticl 26.1), MPICH or Open~MPI for PGENESIS \\
 \hline
 C7 & If available Link to developer documentation/manual & \texttt{README.md}, \path{reproduce/README.md}, \path{paper/docs/REPLICATION.md} \\
 \hline
@@ -107,25 +106,30 @@ that program ran on the CPU.
 \textbf{Relationship to GENESIS~2.4.} %% R1
 GENESIS~2.5 is an independently maintained derivative of GENESIS~2.4, released under
 the same licence as a fork of the project's repository (\texttt{genesis-sim/genesis-2.4},
-last changed in 2019). It is not an official release of the GENESIS project. The second
+last changed in 2019). It is not an official release of the GENESIS project. Its number
+continues GENESIS~2. GENESIS~3 took a different path, a modularisation of the simulator
+into stand-alone components based on the Neurospaces
+project~\cite{cornelis2007dendrite,cornelis2008cbi,cornelis2011,cornelis2012python,cornelis2013interop};
+GENESIS~2.5 keeps the code base of GENESIS~2.4 and runs its scripts unchanged. This paper
+describes release v2.6.0 of GENESIS~2.5. The second
 author has used GENESIS and PGENESIS since his doctoral work~\cite{wojcik2004lsm} and
 met its maintainer, Dave Beeman, at the EU Advanced Course in Computational
 Neuroscience in \'Obidos in 2001; the first author completed his PhD under the second
 author's supervision in 2023. On 30 September 2026
-we offered the work to the original project: the solver fixes as a pull request, and
+we offered the work to the original project: the fixes as a pull request, and
 the whole release as its next version. Dave Beeman had not replied by the time we
 submitted this revision; the solver and construction fixes are open as pull request
 \href{https://github.com/genesis-sim/genesis-2.4/pull/7}{\#7} in that repository.
 
-\textbf{Alternatives, and what they ask of a user.} NEURON~\cite{hines1997neuron} with
-its engine CoreNEURON~\cite{kumbhar2019coreneuron} and Arbor~\cite{arbor2019} run
-compartmental models on GPUs and are strong choices for a new model. For an existing
-GENESIS model each means re-expressing it in another description, and establishing
-that the port computes the same thing is itself experimental work. For the published
-network used below, it took a transcription of the channels and a comparison of spike
-trains (Section~3). NEST~\cite{gewaltig2007nest} and Brian~2~\cite{stimberg2019brian} simulate
-point neurons. GENESIS~2.5 offers acceleration without migration: the same scripts on
-the hardware the user has.
+\textbf{Alternatives.} NEURON~\cite{hines1997neuron} with its engine
+CoreNEURON~\cite{kumbhar2019coreneuron} and Arbor~\cite{arbor2019} run compartmental
+models on GPUs and are strong choices for a new model. For an existing GENESIS model
+each means re-expressing it in another description and showing that the port computes
+the same thing, which is itself experimental work. For the published network of
+Section~3 it took a transcription of the channels and a comparison of spike trains.
+NEST~\cite{gewaltig2007nest} and Brian~2~\cite{stimberg2019brian} simulate networks of
+point neurons, and GeNN~\cite{yavuz2016genn} generates GPU code for such networks.
+GENESIS~2.5 runs existing GENESIS scripts on a GPU without porting them.
 
 \textbf{Contributions.}
 \begin{enumerate}
@@ -135,7 +139,7 @@ the hardware the user has.
 \item Two fixes to the Hines solver of GENESIS~2.4, which with several cells under
       one solver computed wrong voltages (backward Euler) or diverged and crashed
       (Crank--Nicolson), and model construction in linear time; both apply with or
-      without a GPU and are offered to the original project.
+      without a GPU and are open as a pull request to the original project.
 \item A comparison with NEURON, CoreNEURON and Arbor in which every arm is measured in
       one session, and a reproduction package that regenerates every number in this
       paper from raw data (Section~3).
@@ -169,10 +173,8 @@ and the PGENESIS MPI layer are those of GENESIS~2.4. A user selects a backend wi
 
 An accepted model runs on one of three paths. \emph{Per step}: the device updates
 channels and solves each step, and the host delivers synaptic events and spikes between
-steps. This is the path of any network whose cells exchange spikes. A spike emitted in
-one step therefore reaches its targets in the next; the CPU solver delivers it within the
-step to the cells after the sender in its loop, so with zero axonal delay the two can
-differ by one step for some synapses (Section~3, correctness over a long run).
+steps. Networks whose cells exchange spikes take this path; on it a spike reaches some
+of its targets one step later than on the CPU (Section~3(d)).
 \emph{Multiloop}:
 for isopotential cells without synaptic input, one launch runs $K$ steps.
 \emph{Tree loop}: for populations of dendritic trees, the channel update and \hte{}
@@ -185,55 +187,54 @@ costs one transfer instead of $K$.
 \item \emph{The kernels interpret the solver's own program.} Both backends execute the
       opcode program \texttt{hsolve} already builds, so every model it accepts runs
       unchanged. GPU-native simulators generate code per mechanism instead. Interpreting
-      costs divergence and a fixed setup time (Section~3), and is why existing
+      costs divergence and a fixed setup time (Section~3); in exchange, existing
       models need no porting.
 \item \emph{The tree solve needs no synchronisation.} The elimination program of a
-      population is block-diagonal: each tree touches only its own rows. One thread per
-      tree runs the CPU's elimination with no barrier, once the opcode that joins two
-      trees in the CPU program is split per tree.
-\item \emph{What the kernels cannot compute is refused, not approximated.} The first
-      release accepted models with synaptic, spike, GHK and concentration elements and
-      returned plausible wrong voltages. Such programs are now detected at
+      population is block-diagonal: each tree touches only its own rows. Each thread
+      therefore runs the CPU's elimination for one tree, with no barrier. The only
+      change needed was to split, per tree, the opcode that joins two trees in the CPU
+      program.
+\item \emph{What the kernels cannot compute is refused, not approximated.} Release v2.5,
+      which the first version of this paper described, accepted models with synaptic,
+      spike, GHK and concentration elements and returned plausible but wrong voltages. Such programs are now detected at
       \texttt{SETUP} and computed on the CPU.
 \item \emph{The device owns the state it computes.} With synaptic input the host
-      writes only the slots it owns each step. Uploading the whole state, as the first
-      release did, overwrote gating variables the kernel had just updated.
+      writes only the slots it owns each step. Release v2.5 uploaded the whole state,
+      which overwrote gating variables the kernel had just updated.
 \end{enumerate}
 
 \textbf{Execution model.} %% R6
-Four properties of the device code decide where it pays off.
+Four properties of the device code determine when the GPU pays off.
 \emph{Work imbalance.} \hte{} runs one thread per tree, so the threads of a warp wait
 for the largest tree among them. A population that mixes trees of 8 and 64
 compartments in every warp takes \claim{e7_inter_over_uniform}$\times$ as long per
-step as uniform trees with the same total number of compartments, about what the CPU
-itself pays for the same mix (\claim{e7_cpu_inter_over_uniform}$\times$), so the wait
-within a warp costs little. The same mixed trees grouped by size take
-\claim{e7_block_over_uniform}$\times$ (E7). Grouping is worse, not better: it puts all
-the long trees on some of the multiprocessors, which then finish last, while
-interleaving spreads them across the device.
+step as uniform trees with the same total number of compartments. The CPU pays about
+the same for this mix (\claim{e7_cpu_inter_over_uniform}$\times$), so the waiting
+costs little. Grouping the same trees by size is slower
+(\claim{e7_block_over_uniform}$\times$, E7), because it puts all the long trees on a
+few multiprocessors, which then finish last.
 \emph{Divergence.} Compartments with different channel sets follow different opcode
 streams through the interpreter, so heterogeneous cells cost more than their
 compartment count suggests.
 \emph{Transfers.} On the batched paths transfers are fixed per batch, not per step
 (above). On the per-step path they are paid every step.
-\emph{Launch overhead.} In the tree loop on the A100 the host spends
-\claim{f2_host_us_per_step}\,\textmu s per step launching the two kernels, which take
-\claim{f2_kernel_us_per_step}\,\textmu s (Nsight Systems, $N=10\,000$ trees); the
-launches overlap the kernels, so the host is not what limits the loop. CUDA Graphs,
-which replay a recorded sequence of launches, cut the host's part to
-\claim{f2_host_graph_us_per_step}\,\textmu s per step and recover
-\claim{e8_gain_tree_k50000_a100}\,$\pm$\,\claim{e8_gain_tree_k50000_a100_sd}\% of the
-run time on the A100 and
+\emph{Launch overhead.} In the tree loop on the A100 the host needs
+\claim{f2_host_us_per_step}\,\textmu s per step to launch the two kernels, which run
+for \claim{f2_kernel_us_per_step}\,\textmu s (Nsight Systems, $N=10\,000$ trees). The
+launches overlap the kernels and do not limit the loop. CUDA Graphs, which replay a
+recorded sequence of launches, cut the host's part to
+\claim{f2_host_graph_us_per_step}\,\textmu s per step. In a run of $K=50\,000$ steps
+they save \claim{e8_gain_tree_k50000_a100}\,$\pm$\,\claim{e8_gain_tree_k50000_a100_sd}\%
+of the run time on the A100 and
 \claim{e8_gain_tree_k50000_a40}\,$\pm$\,\claim{e8_gain_tree_k50000_a40_sd}\% on the A40
-in a run of $K=50\,000$ steps (E8); at $K=5000$ the gain is
+(E8). At $K=5000$ they save
 \claim{e8_gain_tree_k5000_a100}\,$\pm$\,\claim{e8_gain_tree_k5000_a100_sd}\% on the
-A100 and, within the noise,
-\claim{e8_gain_tree_k5000_a40}\,$\pm$\,\claim{e8_gain_tree_k5000_a40_sd}\% on the
-A40. They change no result, so they are on by default for the tree loop. On the
-spiking network they gain nothing within error
-(\claim{e8_gain_spiking_a100}\,$\pm$\,\claim{e8_gain_spiking_a100_sd}\%): its
-cost is the host's event delivery and the synchronisation it forces every step, not
-the launches. Moving spike delivery to the device is the next step for that workload.
+A100 and \claim{e8_gain_tree_k5000_a40}\,$\pm$\,\claim{e8_gain_tree_k5000_a40_sd}\% on
+the A40, which is within the noise. Graphs change no result, so they are on by default
+for the tree loop. On the spiking network they make no difference within error
+(\claim{e8_gain_spiking_a100}\,$\pm$\,\claim{e8_gain_spiking_a100_sd}\%). There the
+cost is the host's event delivery and the synchronisation it forces every step. Moving
+spike delivery to the device is the next step for that workload.
 
 \item Software functionalities
 
@@ -241,34 +242,37 @@ the launches. Moving spike delivery to the device is the next step for that work
 Single precision is the default. \texttt{GENESIS\_\allowbreak GPU\_\allowbreak PRECISION=fp64} selects double
 precision at run time in the same binary, and a device without it refuses with a
 message and computes on the CPU. In fp64 the GPU reproduces the CPU solver to every
-printed digit on our verification models; in fp32 it agrees to
-\claim{fp32_single_ap_v}\,V over one action potential. Synaptic weights and
+printed digit (ten significant figures) on our verification models; in fp32 it agrees
+to within \claim{fp32_single_ap_v}\,V over one action potential on every device we
+tested. Synaptic weights and
 plasticity are computed by the synapse objects on the host in double precision in every
-mode. Only the resulting activation reaches the device. What double precision costs
-on each card, and how the two precisions compare over a 10\,s run, are measured in
-Section~3.
+mode. Only the resulting activation reaches the device. Section~3 measures the cost of
+double precision on each card and compares the two precisions over a 10\,s run.
 
 \textbf{Portability.} %% R7
 The OpenCL backend runs the same kernels on any OpenCL~1.2 device. We test it on the
 NVIDIA A40 and A100 and on the AMD Radeon~890M integrated GPU under two independent
-implementations, AMD ROCm and Mesa rusticl (E9). The two differ even in what they
-offer on the same chip: ROCm exposes double precision and rusticl does not, so under
-rusticl a request for fp64 is refused and the model computes on the CPU. On an
-integrated GPU that also drives the display, a long tree dispatch trips the driver's
-watchdog (in our tests from about \claim{igpu_tree_limit_compartments} compartments).
-The backend therefore declines the batched tree dispatch above
-\claim{ocl_igpu_tree_cap} compartments there, says so, and runs the model step by
-step, unless \texttt{GENESIS\_\allowbreak OCL\_\allowbreak TREE\_\allowbreak MAX\_\allowbreak NCOMPTS} says otherwise; E9 checks that
-it does. The same kind of limit stops the longest single-compartment run under
-rusticl, which uses the graphics queue: the network of $N=50\,000$ cells batched over
-50\,000 steps in one dispatch is reset by the driver. Under rusticl such a model has to
-run one dispatch per step (\claim{e9_rusticl_perstep_n50000_s}\,s, slower than the
-laptop's CPU at \claim{e9_t1_cpu_n50000_s}\,s), while ROCm runs it batched in
-\claim{e9_t1_rocm_n50000_s}\,s.
+implementations, AMD ROCm and Mesa rusticl (E9). On the same chip the two differ:
+ROCm exposes double precision and rusticl does not, so under rusticl a request for
+fp64 is refused and the model computes on the CPU. On an integrated GPU that also
+drives the display, a long tree dispatch trips the driver's watchdog. There the
+backend declines the batched tree dispatch above \claim{ocl_igpu_tree_cap}
+compartments, prints a message and runs the model step by step;
+\texttt{GENESIS\_\allowbreak OCL\_\allowbreak TREE\_\allowbreak MAX\_\allowbreak NCOMPTS}
+overrides the limit, and E9 checks that the limit is enforced. Under rusticl, which
+submits to the graphics queue, the same kind of limit stops the longest
+single-compartment run: the driver resets the GPU during the network of $N=50\,000$
+cells batched over 50\,000 steps. Run one dispatch per step, the model takes
+\claim{e9_rusticl_perstep_n50000_s}\,s, slower than the laptop's CPU at
+\claim{e9_t1_cpu_n50000_s}\,s, while ROCm runs it batched in
+\claim{e9_t1_rocm_n50000_s}\,s. Release v2.6.1 splits such a run into dispatches of
+about half a second, with the same result, so under rusticl it too runs batched on
+the GPU.
 
 \item Sample code
-A model needs no change beyond the solver mode that GENESIS~2.4 already has. An
-existing script that builds its solver as
+
+A model needs no change as long as its solver uses \texttt{chanmode~4} or \texttt{chanmode~5}, modes
+GENESIS~2.4 already has. An existing script that builds its solver as
 
 {\footnotesize\begin{verbatim}
 create hsolve /net/solver
@@ -277,8 +281,9 @@ setfield /net/solver path "/net/##[][TYPE=compartment]" \
 call /net/solver SETUP
 \end{verbatim}}
 
-runs on the GPU when started with the accelerated binary. Batching and precision are
-chosen when the run starts, for example
+runs on the GPU when started with \texttt{nxgenesis} (CUDA) or
+\texttt{nxgenesis\_ocl} (OpenCL) from the release. Batching and precision are chosen
+when the run starts, for example
 
 {\footnotesize\begin{verbatim}
 GENESIS_CUDA_MULTILOOP=<K> GENESIS_GPU_PRECISION=fp64 \
@@ -292,32 +297,34 @@ a model the device cannot compute is reported and run on the CPU.
 %% ===================================================================== 3
 \item Illustrative examples
 %% 1250 words. R3, R5, R8, R9; all numbers from the campaign on v2.6.0-rc1.
+
 Every number in this section was measured on release v2.6.0 on the UMCS ``Lunar''
 cluster (inf02: Xeon Gold 6342 and NVIDIA A40; inf03: Xeon Platinum 8358 and NVIDIA
-A100). CPU arms are single-threaded. Every time is wall clock around the whole
-process, every value a mean over replicates run in interleaved order,
-every run, CPU arms included, bound to the GPU's NUMA node so that both arms of a
-speedup use the same socket, and every
-speedup the ratio of two means, with the arms' relative sample standard deviations
-combined in quadrature as its uncertainty. On inf02 the A40's socket is the slower
-one: a CPU arm takes \claim{numa_socket_penalty_inf02}$\times$ as long there as on
-the other socket, so the A40's speedups would be that much smaller against it; on
-inf03 the sockets differ by \claim{numa_socket_penalty_inf03}$\times$. The CPU arms
-use the same \texttt{hsolve} mode as the GPU arms (\texttt{chanmode~4}). On the
-trees \texttt{chanmode~3} is faster still by \claim{cpu_cm4_over_cm3_trees}$\times$,
-while \texttt{chanmode~1}, our CPU reference before this revision, is
-\claim{cpu_cm1_over_cm4_trees}$\times$ slower with the same voltages.
+A100). CPU arms are single-threaded. Times are wall-clock times of the whole process,
+and each value is a mean over replicates run in interleaved order. All runs, CPU arms
+included, were bound to the GPU's NUMA node, so both arms of a speedup used the same
+socket. A speedup is the ratio of two means; its uncertainty combines the two arms'
+relative sample standard deviations in quadrature. On inf02 the A40's socket is the
+slower one: a CPU arm takes \claim{numa_socket_penalty_inf02}$\times$ as long there as
+on the other socket, so against a CPU arm on the other socket the A40's speedups would
+be that much smaller. On inf03 the GPU's socket is slightly faster
+(\claim{numa_socket_penalty_inf03}$\times$). The CPU arms use the same \texttt{hsolve}
+mode as the GPU arms (\texttt{chanmode~4}). On the trees \texttt{chanmode~3} is faster
+still by \claim{cpu_cm4_over_cm3_trees}$\times$, so against it the tree speedups would
+be smaller by that factor, while \texttt{chanmode~1}, our CPU reference before this
+revision, is \claim{cpu_cm1_over_cm4_trees}$\times$ slower with the same voltages.
 
 \begin{enumerate}
 \item Speed on populations of cells
 %% E3 (Table 1: single compartment; Fig. 2: dendritic trees), E2 (Fig. 3: run length).
-Table~\ref{tab:single} gives the single-compartment network's speedups;
-Fig.~\ref{fig:trees} the dendritic-tree sweep, end to end and step phase.
-Fig.~\ref{fig:runlength} shows the end-to-end gain growing with run length as the
-fixed setup cost amortises: the largest speedup is
-\claim{e2_max_e2e_a40}$\times$ on the A40 and \claim{e2_max_e2e_a100}$\times$
-on the A100, and double precision costs \claim{e2_fp64_cost_a40}$\times$ and
-\claim{e2_fp64_cost_a100}$\times$ the fp32 time on the two cards.
+
+Table~\ref{tab:single} gives the speedups for the single-compartment network, and
+Fig.~\ref{fig:trees} those for the dendritic trees, end to end and for the step phase
+alone. The end-to-end gain grows with run length as the fixed setup cost is amortised
+(Fig.~\ref{fig:runlength}). On the longest run of Fig.~\ref{fig:runlength} the speedup
+is \claim{e2_max_e2e_a40}$\times$ on the A40 and \claim{e2_max_e2e_a100}$\times$ on the
+A100. Double precision takes \claim{e2_fp64_cost_a40}$\times$ the fp32 time on the A40
+and \claim{e2_fp64_cost_a100}$\times$ on the A100.
 
 \begin{table}[!h]
 \centering\small
@@ -355,28 +362,38 @@ and fp64, both cards (E2).}
 \item Against other simulators %% R3, R9
 %% E1 (Table: spiking network, one session), E4 (Fig. 4: crossover with Arbor,
 %% fp32 and fp64), E6 (profiles: why the ranking differs).
+
 Table~\ref{tab:sim} lists every arm of the spiking-network comparison, measured in
 one session on one node in interleaved order, so no ratio in it mixes machines or
-days. On the dendritic trees, GENESIS and Arbor trade a fixed cost for a marginal
-one, so in single precision neither is faster in general: on the A100 the two
-cross at \claim{e4_crossover_ms_a100}\,ms of simulated time, on the A40 at
-\claim{e4_crossover_ms_a40}\,ms (Fig.~\ref{fig:crossover}). In double precision,
-which Arbor always uses, they do not cross: GENESIS is slower at every run length
-we measured, taking \claim{e4_fp64_over_arbor_a100}$\times$ Arbor's time on the
-A100 and \claim{e4_fp64_over_arbor_a40}$\times$ on the A40 at the longest run. The
-advantage over Arbor is the advantage of single precision. CPU profiles (E6) show
-where the time goes. On the CPU, GENESIS is faster than CoreNEURON on both workloads,
-\claim{e6_cn_over_g_spk}$\times$ on the network and \claim{e6_cn_over_g_tree}$\times$
-on the trees, because it reads its channel gates from tables, while CoreNEURON
-evaluates exponentials: the exponential function alone takes
-\claim{e6_cn_spk_libm}\% of CoreNEURON's time on the network. On the network GENESIS
-spends \claim{e6_g_spk_syn_disp}\% of its time on synapses, spike events and the calls
-that reach them, against CoreNEURON's \claim{e6_cn_spk_syn}\%; that host-side work is
-what keeps the GPU from helping there. On the trees the channels take
+days. Arbor cannot express the benchmark's zero axonal delay, so its arm uses a delay
+of one step (50\,\textmu s). Arbor advances in epochs of half the shortest connection
+delay and exchanges spikes once per epoch~\cite{arbor_docs_epochs}; with this delay it
+does so at least once per step, the same per-step exchange that keeps GENESIS from
+gaining on the GPU. We did not profile Arbor to confirm that this is where its time
+goes.
+
+On the dendritic trees GENESIS pays more than Arbor at setup and less per step. In
+single precision it is slower than Arbor on short runs and faster beyond
+\claim{e4_crossover_ms_a100}\,ms of simulated time on the A100 and
+\claim{e4_crossover_ms_a40}\,ms on the A40; at the longest run it takes
+\claim{e4_g32_over_arbor_a100}$\times$ Arbor's time on the A100 and
+\claim{e4_g32_over_arbor_a40}$\times$ on the A40 (Fig.~\ref{fig:crossover}). In double
+precision, which Arbor always uses, GENESIS is slower at every run length we measured,
+taking \claim{e4_fp64_over_arbor_a100}$\times$ Arbor's time on the A100 and
+\claim{e4_fp64_over_arbor_a40}$\times$ on the A40 at the longest run.
+
+We profiled GENESIS and CoreNEURON on one CPU core (E6). GENESIS is faster on both
+workloads, \claim{e6_cn_over_g_spk}$\times$ on the network and
+\claim{e6_cn_over_g_tree}$\times$ on the trees. GENESIS reads its channel gates from
+tables; CoreNEURON evaluates exponentials, and the exponential function alone takes
+\claim{e6_cn_spk_libm}\% of its time on the network. On the network GENESIS spends
+\claim{e6_g_spk_syn_disp}\% of its time on synapses, spike events and the calls that
+reach them, against CoreNEURON's \claim{e6_cn_spk_syn}\%. This host-side work runs on
+the CPU every step, so the GPU cannot speed it up. On the trees the channels take
 \claim{e6_g_tree_chan}\% of GENESIS's time and the linear solve
 \claim{e6_g_tree_solve}\%, against \claim{e6_cn_tree_chan}\% and
-\claim{e6_cn_tree_solve}\% of CoreNEURON's; most of the remainder is building the
-model in both, and idle library threads in CoreNEURON.
+\claim{e6_cn_tree_solve}\% of CoreNEURON's. Most of the rest is model construction in
+both, plus idle library threads in CoreNEURON.
 
 \begin{table}[!h]
 \centering\small
@@ -411,6 +428,7 @@ the CPU; below 1 is faster.}
 \end{figure}
 
 \item When to use the GPU %% R5
+
 Table~\ref{tab:regimes} gathers what the measurements above say about where the
 accelerator pays off and where it does not.
 \begin{table}[!h]
@@ -419,10 +437,10 @@ accelerator pays off and where it does not.
 \toprule
 Workload & GPU? & Why \\
 \midrule
-One detailed morphology & No & one thread per tree; the GPU is slower than the CPU \\
-Population of dendritic trees & Yes, from about \claim{regime_trees_min_n} cells & many trees fill the device (Fig.~\ref{fig:trees}) \\
+One detailed morphology, or fewer than about \claim{regime_trees_min_n} trees & No & too few trees to fill the device; below the threshold the GPU is slower (Fig.~\ref{fig:trees}) \\
+Population of dendritic trees & Yes, from about \claim{regime_trees_min_n} cells (200 steps) & many trees fill the device (Fig.~\ref{fig:trees}) \\
 Isopotential cells without synapses & Yes & \claim{regime_single_max}$\times$ at $N=50\,000$ (Table~\ref{tab:single}) \\
-Spiking network, zero axonal delay & No gain & spikes are exchanged every step, so every step is a dispatch (Table~\ref{tab:sim}) \\
+Spiking network, zero axonal delay & No: \claim{e1_g_gpu32_1s_rel}$\times$ slower & spikes are exchanged every step, so every step is a dispatch (Table~\ref{tab:sim}) \\
 Long runs & Gain grows with length & the fixed setup cost is amortised (Fig.~\ref{fig:runlength}) \\
 \bottomrule
 \end{tabular}
@@ -432,16 +450,17 @@ Long runs & Gain grows with length & the fixed setup cost is amortised (Fig.~\re
 
 \item Correctness over a long run %% R4
 %% E5, Fig. 6 (or a table if the figure budget is short).
+
 The GPU and CPU solvers do not order spikes the same way. On the GPU a spike emitted
 in one step reaches its targets in the next; the CPU solver delivers it within the step
 to the cells after the sender in its loop. With this network's zero axonal delay the
 two schedules differ by one step (50\,\textmu s) for some synapses, and the network is
 chaotic, so it amplifies the difference. Over 10\,s of the spiking network, twice the
 length of any comparison above, the GPU's spike train first departs from the CPU's
-after \claim{e5_div_g64_ms}\,ms in fp64 and \claim{e5_div_g32_ms}\,ms in fp32.
+after \claim{e5_div_g64_ms}\,ms, in fp64 and in fp32 alike.
 The two precisions part at the same step, so the cause is the order, not rounding. The
-CPU's own order matters as much: run with one solver per cell instead of one per
-layer, the same network with the same seed departs from itself after
+CPU is just as sensitive to its own order: with one solver per cell instead of one per
+layer, the same network and seed depart from the first CPU run after
 \claim{e5_div_pcell_ms}\,ms. From then on only statistics can be compared. Against
 the CPU's \claim{e5_rate_cpu_hz}\,Hz, the spike count differs by
 \claim{e5_count_g64_pct}\% in fp64, \claim{e5_count_g32_pct}\% in fp32 and
@@ -450,21 +469,23 @@ between the interspike-interval distributions are \claim{e5_ks_g64},
 \claim{e5_ks_g32} and \claim{e5_ks_pcell}. Four other seeds, other draws of the
 same network, fire at \claim{e5_rate_seed_min_hz}--\claim{e5_rate_seed_max_hz}\,Hz
 with KS distances of \claim{e5_ks_seed_min}--\claim{e5_ks_seed_max}. Each run
-repeats spike for spike on its own backend. The GPU's spike counts thus differ from the
-CPU's by about as much as the CPU's differ from themselves under another update order,
-its interspike intervals are closer to the CPU's than that run's are, and both
-differences are far smaller than the change from one draw of the network to another.
+repeats spike for spike on its own backend. So the GPU's spike count differs from the
+CPU's about as much as the CPU's own count changes under another update order. Its
+interspike intervals are closer to the CPU's than that run's are, and both differences
+are far smaller than the change from one draw of the network to another.
 
 \item Reproducing these results %% R11
-Every number in this paper is a row of \path{reproduce/claims.csv}, naming the data
-file, the rows and the formula it comes from and the script that measures it;
-\path{make_numbers.py} computes the manuscript's values from those files, and a lint
-lists any number typed by hand. \texttt{sh reproduce/run\_all.sh} measures them
+
+Each number in this paper has a row in \path{reproduce/claims.csv} that names its data
+file, the rows and formula it comes from, and the script that measures it; a number
+taken from the literature names its source. \path{make_numbers.py} computes the values
+in the text from those files, and a lint lists any number typed by hand. \texttt{sh reproduce/run\_all.sh} measures them
 again on the reader's hardware (about 15 minutes for the central claims, 95 for the
 sweeps; NVIDIA GPU, CUDA 12.x). \texttt{--cpu-only} reproduces the
 hardware-independent results in about two minutes on any Linux machine, and the same
 path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
---rm genesis25-cpu}) with nothing installed. Both run in the repository's CI on every
+--rm genesis25-cpu}) with nothing else installed, as in our earlier pipeline for
+GENESIS experiments~\cite{chlasta2023pipeline}. Both run in the repository's CI on every
 commit. A generated table in the README says which results need which hardware. The
 comparison simulators and the reference model are built by committed recipes with
 pinned versions and checksums. Rebuilding them from an empty directory reproduced the
@@ -475,37 +496,39 @@ published CoreNEURON GPU run to the spike.
 \item Impact
 %% 600 words. Construction scaling (Fig. 5) and the solver fixes reach every user,
 %% with or without a GPU.
-Two of the release's changes reach every GENESIS user, with or without a GPU.
-First, the solver fixes: in GENESIS~2.4, putting several cells under one
-\texttt{hsolve} silently gave wrong voltages for every cell under backward Euler (the
-first cell's were perturbed and the others were never computed), and under
-Crank--Nicolson the solve diverged or crashed. The configuration is natural for networks,
-so models may exist whose published results this touched. GENESIS~2.5 computes each
-cell exactly as if it were alone, shown by a committed test against a single-cell
-reference, and the two fixes, with the test, are offered to the original project as
-a pull request (Section~1).
 
-Second, construction. Building a model was quadratic in its size: wall time grew as
-compartments$^{\claim{e3c_before_exponent_inf03}}$, which made population-scale
-models impractical regardless of compute power: a 1.7-million-compartment
-population never finished building. Four scans of the element tree are now constant-
-or linear-time, construction grows as
-compartments$^{\claim{e3c_construction_exponent}}$, and the same population builds
-in \claim{e3c_construction_1700k_s}\,s (Fig.~\ref{fig:construction}). This holds
-for models built element by element, the common case. Copying a whole prototype cell
-thousands of times under one parent remains quadratic; we say so rather than claim
-``linear'' outright. Together with the tree kernel this moves
-population studies (parameter sweeps over thousands of morphological neurons,
-PGENESIS runs partitioned over MPI ranks) from a cluster queue onto the workstation
-a modeller already has, in the simulator their models are written for. The practical regimes, including where the GPU does not help, are in
-Table~\ref{tab:regimes}.
+Two of the release's changes help every GENESIS user, with or without a GPU. The
+first is the solver fixes. In GENESIS~2.4, several cells under one \texttt{hsolve}
+silently gave wrong voltages under backward Euler: the first cell's were perturbed and
+the others were never computed. Under Crank--Nicolson the solve diverged or crashed.
+Networks are often built this way, so published results may be affected. GENESIS~2.5
+computes each cell exactly as if it were alone, which a committed test checks against
+a single-cell reference. The fixes and their tests are open as a pull request to the
+original project (Section~1).
 
-Beyond GENESIS, two elements of this work transfer. The refusal rule (a backend that cannot compute a model says so and computes on the
-CPU, rather than approximating) is, we think, the main lesson for anyone adding an accelerator to
-an existing solver; the first release approximated, and returned plausible wrong
-voltages. And the reproduction mechanism (a claim map from every published number to
-its raw data, regenerated into the text, checked in CI) is independent of GENESIS
-and would serve any computational paper.
+The second is construction. Building a model took time quadratic in its size, growing
+as compartments$^{\claim{e3c_before_exponent_inf03}}$: 272\,000 compartments took
+\claim{e3c_before_272k_min} minutes to build, and at that rate the
+1.7-million-compartment population of Fig.~\ref{fig:construction} would take about
+\claim{e3c_before_1700k_h} hours. Four scans of the element tree are now constant- or
+linear-time. Construction grows as compartments$^{\claim{e3c_construction_exponent}}$,
+and the same population builds in \claim{e3c_construction_1700k_s}\,s.
+This holds for models built element by element, the common case; copying a whole
+prototype cell thousands of times under one parent is still quadratic. That population
+has 100\,000 cells of 17 compartments, about three times the
+\claim{markram_microcircuit_neurons} neurons of a reconstructed neocortical
+microcircuit~\cite{markram2015reconstruction}, though with far simpler cells. With the
+tree kernel, population studies such as parameter sweeps over thousands of
+morphological neurons can run on a workstation instead of in a cluster queue, in the
+simulator the models were written for. Table~\ref{tab:regimes} lists the practical
+regimes, including where the GPU does not help.
+
+Two parts of this work apply beyond GENESIS. The first is the refusal rule: a backend
+that cannot compute a model should say so and leave it to the CPU. Release v2.5
+approximated such models and returned plausible but wrong voltages. The second is the
+reproduction mechanism, a map from every published number to its raw data that
+regenerates the text and runs in CI. It does not depend on GENESIS and would serve any
+computational paper.
 
 \begin{figure}[!h]
 \centering
@@ -513,26 +536,26 @@ and would serve any computational paper.
 \caption{Model construction time against model size on inf03, 3 replicates each:
 GENESIS~2.4 before the construction fixes (the upstream branch without them, built
 on the node and timed the same way) and v2.6.0 (E3c). The code from before the fixes
-grows too fast to measure beyond 16\,000 cells.}
+was measured up to 16\,000 cells, where one build already takes
+\claim{e3c_before_272k_min} minutes.}
 \label{fig:construction}
 \end{figure}
 
 %% ===================================================================== 5
 \item Conclusions
 %% ~170 words.
-GENESIS~2.5 gives a long-established simulator opt-in GPU execution without asking
-its users to migrate: the same SLI scripts, cell files and MPI workflows run
-unchanged. The CUDA and OpenCL kernels execute \texttt{hsolve}'s own compiled
-program, in single or double precision chosen at run time. Populations of dendritic
-trees gain the most, up to \claim{e2_max_e2e_a100}$\times$ end to end. Single
-detailed morphologies and zero-delay spiking networks gain nothing, and the
-measurements say why: too few trees to fill the device in the first case, host-side
-event delivery every step in the second. The next step for that workload is spike
-delivery on the device. The solver and construction fixes stand on their own and have been
-offered to the original project. Every number in this paper regenerates from raw
+
+GENESIS~2.5 runs existing GENESIS models on a GPU with no change to their SLI scripts,
+cell files or MPI workflows. The CUDA and OpenCL kernels execute \texttt{hsolve}'s own
+compiled program, in single or double precision chosen at run time. Populations of
+dendritic trees gain the most, up to \claim{e2_max_e2e_a100}$\times$ end to end. Single
+detailed morphologies and zero-delay spiking networks run slower on the GPU: the first
+has too few trees to fill the device, and the second needs host-side event delivery
+every step. For spiking networks the next step is spike delivery on the device. The
+solver and construction fixes help every GENESIS user and are open as a pull request to
+the original project. Every measured number in this paper can be regenerated from raw
 data in the repository, the hardware-independent ones on any Linux machine or in a
-container, so a reader can check what we claim before trusting it on their own
-models.
+container.
 
 \end{enumerate}
 
@@ -562,12 +585,11 @@ public, commercial, or not-for-profit sectors.
 
 \section*{Acknowledgements}
 
-The authors thank the Maria Curie-Sk\l{}odowska University (UMCS) in Lublin and
-the LubMAN UMCS computing centre for access to the ``Lunar''
-cluster~\cite{umcs_lunar2015}, and Karol S.~Karpowicz and
-Prof.~Przemys\l{}aw Stpiczy\'nski for provisioning and support of the compute
-environment, and WarsawIQ for the AMD Radeon~890M on which the OpenCL backend was
-developed.
+The authors thank Maria Curie-Sk\l{}odowska University (UMCS) in Lublin and its
+LubMAN computing centre for access to the ``Lunar'' cluster~\cite{umcs_lunar2015};
+Karol S.~Karpowicz and Prof.~Przemys\l{}aw Stpiczy\'nski for setting up and supporting
+the compute environment; and WarsawIQ for the AMD Radeon~890M on which the OpenCL
+backend was developed.
 
 \input{bibliography}
 
@@ -584,7 +606,7 @@ S2 & Permanent link to executables of this version & \url{https://github.com/War
 \hline
 S3 & Legal Software License & GNU General Public License v2 or later \\
 \hline
-S4 & Computing platforms/Operating Systems & Linux x86\_64; tested on AlmaLinux 8.10 with CUDA 12.8 (NVIDIA A40, A100) and on Ubuntu 24.04 (TUXEDO OS) with ROCm 6.3 and Mesa rusticl (AMD Radeon 890M) \\
+S4 & Computing platforms/Operating Systems & Linux x86\_64; tested on AlmaLinux 8.10 with CUDA 12.8 (NVIDIA A40, A100) and on Ubuntu 24.04 (TUXEDO OS) with ROCm 6.3.1 and Mesa rusticl 26.1 (AMD Radeon 890M) \\
 \hline
 S5 & Installation requirements \& dependencies & glibc and ncurses; for the GPU binaries an NVIDIA driver for CUDA 12, or an OpenCL 1.2 runtime \\
 \hline

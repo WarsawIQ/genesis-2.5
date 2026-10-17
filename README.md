@@ -44,23 +44,25 @@ What reproduces which numbers, and what it needs:
 <!-- claims-table:begin -->
 | Numbers | Where they appear | Script that measures them | Needs | Time |
 |---:|---|---|---|---|
+| 1 | sec:4 | none: taken from the cited literature (source in `reproduce/claims.csv`) | - | - |
 | 1 | results text | `cluster_bringup/20_validate.sh` | any NVIDIA GPU, CUDA 12 | 5 min |
 | 52 | dendritic-tree speedups (figure); dendritic-tree speedups (table) | `cluster_bringup/51_weekend_campaign.sh` | NVIDIA A100, NVIDIA A40 | 240 min |
 | 12 | single-compartment speedups (table) | `cluster_bringup/53_singlecomp_walltime.sh` | NVIDIA A100, NVIDIA A40 | 30 min |
 | 24 | results text; speedup against run length (table) | `cluster_bringup/55_multicomp_ksweep.sh` | NVIDIA A40 | 60 min |
 | 6 | single-compartment speedups (table) | `cluster_bringup/56_opencl_cluster_bench.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
+| 1 | sec:2 | `cluster_bringup/80_accel_regression.sh` | NVIDIA A40 | - |
 | 26 | tab:sim | `cluster_bringup/campaign/E1_cross_simulator.sh` | NVIDIA A100, NVIDIA GPU with Arbor built for CUDA, NVIDIA GPU with the NVHPC CoreNEURON build | 65 min |
 | 6 | abstract; fig:runlength; results text | `cluster_bringup/campaign/E2_ksweep.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
 | 26 | tab:regimes; tab:single | `cluster_bringup/campaign/E3_tables.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
 | 3 | fig:construction; sec:4 | `cluster_bringup/campaign/E3c_cpu.sh` | any Linux machine | 45 min |
-| 4 | GPU crossover with Arbor (figure); results text | `cluster_bringup/campaign/E4_fp64_cost.sh` | NVIDIA A100, NVIDIA A40 | 25 min |
+| 6 | GPU crossover with Arbor (figure); results text | `cluster_bringup/campaign/E4_fp64_cost.sh` | NVIDIA A100, NVIDIA A40 | 25 min |
 | 18 | results text | `cluster_bringup/campaign/E5_long_run.sh` | NVIDIA A100 | 35 min |
 | 12 | results text | `cluster_bringup/campaign/E6_profile.sh` | any Linux machine | 40 min |
 | 3 | sec:2 | `cluster_bringup/campaign/E7_imbalance.sh` | NVIDIA A100 | 30 min |
 | 10 | sec:2 | `cluster_bringup/campaign/E8_graphs.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
 | 12 | sec:2 | `cluster_bringup/campaign/E9_890m.sh` | AMD Radeon 890M (OpenCL) | 60 min |
 | 2 | results text | `cluster_bringup/campaign/chanmode_check.sh` | any Linux machine | 10 min |
-| 1 | fig:construction; sec:4 | `cluster_bringup/campaign/construction_before.sh` | any Linux machine | 30 min |
+| 2 | fig:construction; sec:4 | `cluster_bringup/campaign/construction_before.sh` | any Linux machine | 30 min |
 | 1 | sec:2 | `cluster_bringup/campaign/e9_rusticl_perstep.sh` | AMD Radeon 890M (OpenCL) | 5 min |
 | 5 | sec:2 | `cluster_bringup/campaign/host_kernel_profile.sh` | NVIDIA A100 | 10 min |
 | 2 | results text | `cluster_bringup/campaign/numa_check.sh` | any Linux machine | 10 min |
@@ -76,7 +78,7 @@ What reproduces which numbers, and what it needs:
 | 6 | model construction (figure); results text | `paper/scripts/plot_construction_scaling.py` | any Linux machine | 30 min |
 | 4 | results text | `paper/scripts/run_pgenesis_mpi_scaling.sh` | MPI cluster, up to 24 ranks | 60 min |
 | 1 | results text | `reproduce/stages/05_cpu.sh` | any Linux machine | 1 min |
-| 29 | impact text; membrane-potential equivalence (figure); results text; spiking network against NEURON and CoreNEURON (table) | none yet: typed into the paper with no raw data kept; re-measured by the revision campaign | - | - |
+| 27 | impact text; membrane-potential equivalence (figure); results text; spiking network against NEURON and CoreNEURON (table) | none yet: typed into the paper with no raw data kept; re-measured by the revision campaign | - | - |
 <!-- claims-table:end -->
 
 The comparison simulators (NEURON, CoreNEURON for the GPU, Arbor) are built from
@@ -93,7 +95,7 @@ timings enough to matter.
 | **Dendritic trees on the GPU** | `hines_tree_eliminate` runs the real Hines elimination, one thread per neuron — <!--claim:multicomp_step_a40_n50000-->37.3<!--/claim-->× (A40) / <!--claim:multicomp_step_a100_n50000-->80.8<!--/claim-->× (A100) step-phase at 50,000 × 16 compartments |
 | **Isopotential networks on the GPU** | batched multi-step kernel, <!--claim:singlecomp_cuda_a40_n50000-->21.0<!--/claim-->× / <!--claim:singlecomp_cuda_a100_n50000-->21.9<!--/claim-->× end-to-end at N = 50,000, matching the fp64 CPU reference to ~1e-7 V |
 | **Two Hines-solver defects fixed** | with several cells under one `hsolve`, GENESIS 2.4 numbered only the first cell's tree (wrong voltages in the others, backward Euler) and read outside its arrays at every other cell's root (Crank–Nicolson diverged and crashed) — CPU bugs, shown on unmodified 2.4 by `genesis/Scripts/tests/` on the `upstream-cpu-fixes` branch |
-| **Model construction no longer quadratic** | four `O(n²)` scans removed; a 1.7-million-compartment model that never finished building now builds in <!--claim:construction_1700k_s-->51.5<!--/claim--> ± <!--claim:construction_1700k_s_sd-->0.6<!--/claim--> s. This holds for cells built element by element with `create`; copying a whole prototype cell N times under one parent is still quadratic (each `copy` checks its new name against every sibling) |
+| **Model construction no longer quadratic** | four `O(n²)` scans removed; a 1.7-million-compartment model, which before the fixes would have taken about <!--claim:e3c_before_1700k_h-->7<!--/claim--> hours to build, now builds in <!--claim:e3c_construction_1700k_s-->94.9<!--/claim--> ± <!--claim:e3c_construction_1700k_s_sd-->2.0<!--/claim--> s on inf03. This holds for cells built element by element with `create`; copying a whole prototype cell N times under one parent is still quadratic (each `copy` checks its new name against every sibling) |
 | **Faster than NEURON on one CPU core** | Vogels–Abbott COBAHH, 4000 cells, 5 s, one solver per layer: <!--claim:vanet2_vs_coreneuron_cpu-->2.30<!--/claim-->× vs CoreNEURON, <!--claim:vanet2_vs_neuron_cpu-->2.89<!--/claim-->× vs NEURON 9.0.2 |
 
 Both the solver fix and the construction fix apply whether or not you ever touch
@@ -256,9 +258,10 @@ harness and the equivalence checks are in
 
 Pushing that multi-compartment benchmark toward a Blue Brain Project-scale
 population (~31,000 neurons) is what surfaced the O(n²) construction bug
-mentioned above — before the fix, that model didn't finish building at all;
-after, a 1.7-million-compartment, N=100,000 population builds in
-<!--claim:construction_1700k_s-->51.5<!--/claim--> ± <!--claim:construction_1700k_s_sd-->0.6<!--/claim--> s.
+mentioned above. Before the fixes, 272,000 compartments took
+<!--claim:e3c_before_272k_min-->8<!--/claim--> minutes to build, and a 1.7-million-compartment,
+N=100,000 population would have taken about <!--claim:e3c_before_1700k_h-->7<!--/claim--> hours; it now builds in
+<!--claim:e3c_construction_1700k_s-->94.9<!--/claim--> ± <!--claim:e3c_construction_1700k_s_sd-->2.0<!--/claim--> s.
 
 <p align="center">
   <img src="paper/figures/fig10_multicompartment_speedup.png" alt="Multi-compartment GPU tree-elimination speedup vs. CPU on the UMCS A40 and A100, log-log, showing step-phase and end-to-end series for each card" width="600">
