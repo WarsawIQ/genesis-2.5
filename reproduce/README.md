@@ -10,7 +10,7 @@ measured, with the same code:
 | command | needs | measures | time on our machines |
 |---|---|---|---|
 | `sh reproduce/run_all.sh --cpu-only --quick` | Linux, GCC, make, flex, bison, ncurses, Python 3 | model construction up to 272 000 compartments, the CPU solver's modes, the action potential check | 2 min with the build |
-| `sh reproduce/run_all.sh --cpu-only` | the same | construction up to 1.7 million compartments | 15 min |
+| `sh reproduce/run_all.sh --cpu-only` | the same | construction up to 1.7 million compartments | 9 min |
 | `sh reproduce/run_all.sh --quick` | an NVIDIA GPU, CUDA 12.x | adds Table 2, the speedup at K = 1000 and 10 000 steps, the tree threshold of Table 4, CUDA Graphs on the tree loop | about 15 min |
 | `sh reproduce/run_all.sh` | the same | adds the paper's full sizes, the work imbalance and the 10 s spiking run | about 1 h |
 | `... --with-simulators` | NEURON, CoreNEURON and Arbor, built by [`cluster_bringup/toolchains/`](../cluster_bringup/toolchains/) | adds Table 3 and the crossover with Arbor (Fig. 4) | about 1.5 h more |

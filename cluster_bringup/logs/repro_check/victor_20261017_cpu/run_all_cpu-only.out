@@ -1,0 +1,61 @@
+
+=== environment ===
+Linux 7.0.0-111030-tuxedo x86_64
+gcc (GCC) 15.2.0
+Python 3.13.15
+mode: full, cpu only; results in /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/7251ec9a-057e-45e2-8566-77ae2d1443e2/scratchpad/clone/reproduce/results
+
+=== build (CPU only) ===
+using the existing binary (SKIP_BUILD=1)
+
+=== action potential, 8 neurons under one solver ===
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+
+=== chanmode ===
+written: /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/7251ec9a-057e-45e2-8566-77ae2d1443e2/scratchpad/clone/reproduce/results/chanmode
+(chanmode: 72 s)
+
+=== E3c ===
+[18:10:44] E3c: session reader_20261017_181044, untagged (231bd80ba4603a7855ba3178fa0ea29ee9e1a685), data /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/7251ec9a-057e-45e2-8566-77ae2d1443e2/scratchpad/clone/reproduce/results/campaign/E3c_reader_20261017_181044.csv
+(E3c: 475 s)
+
+=== tidy ===
+/tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/7251ec9a-057e-45e2-8566-77ae2d1443e2/scratchpad/clone/reproduce/results/campaign/E3c_reader_20261017_181044_tidy.csv: 24 valid replicate rows
+
+=== the paper's numbers, measured here ===
+number                     in the paper          published       yours  verdict
+-----------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2            4.0  ok
+cpu_cm4_over_cm3_trees     Section 3             1.08          1.06  ok
+e3c_construction_1700k_s   Section 4             94.9          54.4  OUTSIDE
+e3c_construction_exponent  Section 4, Fig. 5     1.02          1.01  ok
+
+4 numbers measured: 3 ok, 1 outside tolerance; on another card 0 same shape, 0 different; 0 for information
+
+not measured by this run, and what they need:
+   17  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+   16  a full GPU run (run_all.sh)
+   13  a GPU run (run_all.sh --quick)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  no raw data
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  run_all.sh --cpu-only
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
+
+A number outside tolerance is usually the machine, not the software:
+  - a GPU shared with another job inflates every GPU time
+  - a cold card runs 1.2-1.8x slower than a warm one
+  - absolute times follow the host CPU and the card model
+Check nvidia-smi and the load, and run again before concluding anything.
+
+total: 9 min; raw results and logs: /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/7251ec9a-057e-45e2-8566-77ae2d1443e2/scratchpad/clone/reproduce/results
+
+real	9m7,808s
+user	8m52,757s
+sys	0m10,927s
+exit=0

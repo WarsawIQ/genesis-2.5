@@ -18,7 +18,8 @@ inputs with the same formula.
 
 Verdicts. A number that does not depend on the card (a construction exponent,
 a ratio of two CPU modes, the CPU's membrane potential) is checked against its
-tolerance in claims.csv. A number measured on an A40 or an A100 is checked the
+tolerance in claims.csv. An absolute time (seconds on our machine) is printed
+for information only: it depends on the machine. A number measured on an A40 or an A100 is checked the
 same way when the reader's card is that card; on another card only its shape
 is checked: a speedup must stay on the same side of 1. Uncertainties (_sd) are
 printed with nothing to check.
@@ -74,6 +75,9 @@ ELSEWHERE = [
     (r"^genesis/", "nothing: read from the source code"),
 ]
 CARD = {"a40": "A40", "a100": "A100"}
+# a mean or sd of these columns is a time on the machine that ran it: printed,
+# never judged (a ratio of two of them is judged)
+WALL = ("wall_s", "total_wallclock_s", "t_per_step_s")
 SAFE = {"__builtins__": {}, "abs": abs, "min": min, "max": max}
 
 
@@ -239,7 +243,13 @@ def table(results):
         c0 = claims[got[0]]
         v = vals[got[0]]
         cards = [c for c in ids if claims[c]["hardware"] in CARD]
-        if cards:
+        timed = c0["kind"] == "measured" and c0["extract"] in ("mean", "sd") and c0["col"] in WALL
+        if timed:
+            published = " / ".join(("%s " % CARD[claims[c]["hardware"]] if claims[c]["hardware"] in CARD else "")
+                                   + fmt(pub[c], claims[c]["format"]) for c in ids if c in pub)
+            verdict = "info"
+            card_note = gpu_of(files.get(got[0], "")) if cards else ""
+        elif cards:
             path = files.get(got[0], "")
             mine = [c for c in cards if on_card(path, CARD[claims[c]["hardware"]])]
             published = " / ".join("%s %s" % (CARD[claims[c]["hardware"]], fmt(pub[c], claims[c]["format"]))
@@ -278,7 +288,7 @@ def print_table(results):
     cards = sorted({r[5] for r in rows if r[5]})
     print()
     print("%d numbers measured: %d ok, %d outside tolerance; on another card %d same shape, "
-          "%d different; %d for information"
+          "%d different; %d for information (absolute times depend on the machine)"
           % (len(rows), counts["ok"], counts["OUTSIDE"], counts["same shape"],
              counts["DIFFERENT SHAPE"], counts["info"]))
     if cards:

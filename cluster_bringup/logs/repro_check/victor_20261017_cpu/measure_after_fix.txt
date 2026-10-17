@@ -1,0 +1,21 @@
+number                     in the paper          published       yours  verdict
+-----------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2            4.0  ok
+cpu_cm4_over_cm3_trees     Section 3             1.08          1.06  ok
+e3c_construction_1700k_s   Section 4             94.9          54.4  info
+e3c_construction_exponent  Section 4, Fig. 5     1.02          1.01  ok
+
+4 numbers measured: 3 ok, 0 outside tolerance; on another card 0 same shape, 0 different; 1 for information (absolute times depend on the machine)
+
+not measured by this run, and what they need:
+   17  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+   16  a full GPU run (run_all.sh)
+   14  a GPU run (run_all.sh --quick)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
