@@ -261,7 +261,7 @@ run_arms() {
 
 # ------------------------------------------------------------- helpers
 # VAnet2 needs the default schedule, so it cannot run under -nosimrc: each arm
-# gets a scratch copy of the model with its own .simrc (as reproduce/stages/50).
+# gets a scratch copy of the model with its own .simrc (as reproduce/legacy/stages/50).
 vanet2_workdir() {   # $1 directory to create
     rm -rf "$1"; mkdir -p "$1"
     cp "$GENESIS_ROOT"/genesis/Scripts/VAnet2/*.g "$GENESIS_ROOT"/genesis/Scripts/VAnet2/*.p "$1"/

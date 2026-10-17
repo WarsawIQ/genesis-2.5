@@ -2,7 +2,7 @@
 # The claims that need no GPU: the Hines-solver fixes, linear model
 # construction, and the Vogels-Abbott network on one CPU core.
 #
-#     sh reproduce/stages/05_cpu.sh <results dir> [quick|full]
+#     sh reproduce/legacy/stages/05_cpu.sh <results dir> [quick|full]
 #
 # 1. Hines fixes. hh1952_ap_verify.g builds several neurons under one hsolve,
 #    each driven by `inject`, and checks that every neuron produces the same

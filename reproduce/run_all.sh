@@ -1,198 +1,160 @@
 #!/bin/sh
-# Reproduce the figures reported in the GENESIS 2.5 paper.
+# Measure the revised paper's numbers again, on your machine.
 #
-#   sh reproduce/run_all.sh --quick     ~15 min, the accelerator claims
-#   sh reproduce/run_all.sh             ~95 min, adds the sweeps and the
-#                                       spiking network
-#   sh reproduce/run_all.sh --with-neuron   adds the cross-simulator comparison
-#   sh reproduce/run_all.sh --cpu-only  no GPU needed: the Hines-solver fixes,
-#                                       linear model construction and the
-#                                       spiking network on one core (~20 min
-#                                       with --quick, ~90 min without)
+#   sh reproduce/run_all.sh --cpu-only --quick   no GPU: model construction, the CPU
+#                                                solver's modes, the CPU's action potential
+#   sh reproduce/run_all.sh --cpu-only           the same, construction up to 1.7 million
+#                                                compartments
+#   sh reproduce/run_all.sh --quick              with an NVIDIA GPU: adds Table 2, the
+#                                                speedup against run length, CUDA Graphs
+#   sh reproduce/run_all.sh                      adds the whole tree sweep, the work
+#                                                imbalance and the 10 s spiking run
+#   ... --with-simulators                        adds Table 3 and the crossover with Arbor
+#                                                (NEURON, CoreNEURON and Arbor installed by
+#                                                cluster_bringup/toolchains/)
 #
-# Every stage writes a CSV under reproduce/results/ and appends one line per
-# claim to reproduce/results/summary.csv. compare.py then prints measured
-# against published with a pass/fail per claim, so the output is a verdict
-# rather than a pile of numbers to interpret.
+# The times each mode took on our machines are in reproduce/README.md.
 #
-# What you need: Linux x86_64, GCC, GNU make, a CUDA 12.x toolkit and an NVIDIA
-# GPU; for --cpu-only, only GCC, GNU make, flex, bison and ncurses. --with-neuron additionally needs NEURON 9.x (pip install neuron) and,
-# for the Arbor arm, an Arbor built with CUDA. Neither is required for the
-# GENESIS claims, which are the ones this paper makes.
+# It runs the stages that measured the paper (cluster_bringup/campaign/) in a
+# reader's mode: CAMPAIGN_DRY=1, REPRO=quick|full, every file under
+# reproduce/results/, so a reader's data never mix with the paper's. Each stage
+# keeps its checks: a GPU in use by another job is waited for and then refused,
+# the start-up banner must name the backend and precision asked for, and a run
+# that did not do its work is rejected and retried once. measure.py then
+# computes every number of the paper that this run measured, with the same
+# extractor as the published value, and prints both with a verdict.
 #
-# Numbers will not match to the last digit. GPU clock state, card model and
-# host CPU all move them; the tolerances in claims.csv are set accordingly,
-# and the shape of each result -- which arm wins, and by roughly how much --
-# is what should reproduce.
+# Needs: Linux x86_64, GCC, GNU make, flex, bison, ncurses, Python 3.6+; for the
+# GPU modes a CUDA 12.x toolkit and an NVIDIA GPU (OpenCL is used when it
+# builds, and skipped otherwise).
 set -u
-GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
-. "$GENESIS_ROOT/cluster_bringup/env.sh"
-
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
-RESULTS="$HERE/results"
-mkdir -p "$RESULTS"
-SUMMARY="$RESULTS/summary.csv"
+GENESIS_ROOT=${GENESIS_ROOT:-$ROOT}
+export GENESIS_ROOT
+. "$ROOT/cluster_bringup/env.sh"
 
-MODE=quick
-WITH_NEURON=0
-CPU_ONLY=0
+MODE=full CPU_ONLY=0 WITH_SIM=0
 for a in "$@"; do
     case "$a" in
         --quick) MODE=quick ;;
-        --full)  MODE=full ;;
-        --with-neuron) WITH_NEURON=1 ;;
         --cpu-only) CPU_ONLY=1 ;;
-        -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
-        *) echo "unknown option: $a" >&2; exit 2 ;;
+        --with-simulators|--with-neuron) WITH_SIM=1 ;;
+        -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
+        *) echo "unknown option: $a (see --help)" >&2; exit 2 ;;
     esac
 done
-# Full unless --quick was given, whatever other options are present.
-case " $* " in *" --quick "*) MODE=quick ;; *) MODE=full ;; esac
 
+RESULTS=${RESULTS:-$HERE/results}
+rm -rf "$RESULTS"          # one run's results at a time: measure.py reads all it finds
+mkdir -p "$RESULTS/campaign" "$RESULTS/chanmode" "$RESULTS/runs"
+CAMPAIGN_DRY=1 REPRO=$MODE CAMPAIGN_OUT="$RESULTS/campaign" CHANMODE_OUT="$RESULTS/chanmode"
+RUN_DIR="$RESULTS/runs" CAMPAIGN_NODE=${CAMPAIGN_NODE:-reader}
+export CAMPAIGN_DRY REPRO CAMPAIGN_OUT CHANMODE_OUT RUN_DIR CAMPAIGN_NODE
 cd "$ROOT" || exit 1
-echo "claim,measured,units" > "$SUMMARY"
 
 say() { printf '\n=== %s ===\n' "$1"; }
+FAILED=""
+stage() {   # <name> <command...>: run one stage, keep going if it fails
+    name=$1; shift
+    say "$name"
+    t0=$(date +%s)
+    "$@" 2>&1 | tee "$RESULTS/$name.log" | grep -E "^\[|REFUSED|^ok|^FAIL|written" | tail -40
+    echo "($name: $(( $(date +%s) - t0 )) s)"
+}
+run() {     # <name> <command...>, recording the exit code
+    name=$1; shift
+    stage "$name" sh -c '"$@"; echo $? > "$0"' "$RESULTS/.status_$name" "$@"
+    rc=$(cat "$RESULTS/.status_$name" 2>/dev/null || echo 1)
+    [ "$rc" = 0 ] || FAILED="$FAILED $name($rc)"
+}
 
-# compare.py runs on python3.6; the plotting scripts need matplotlib and a
-# newer Python. Pick the best available rather than assuming one.
-PY=python3
-for c in python3.12 python3.11 python3.10 python3.9 python3; do
-    command -v "$c" >/dev/null 2>&1 || continue
-    if "$c" -c "import matplotlib" 2>/dev/null; then PY=$c; break; fi
-done
-
-# ---------------------------------------------------------------- environment
+T_START=$(date +%s)
 say "environment"
 uname -srm
 gcc --version | head -1
+python3 --version
+echo "mode: $MODE$([ "$CPU_ONLY" = 1 ] && echo ', cpu only')$([ "$WITH_SIM" = 1 ] && echo ', with simulators'); results in $RESULTS"
+
+# ---------------------------------------------------------------------- build
 if [ "$CPU_ONLY" = 1 ]; then
     say "build (CPU only)"
     if [ -x genesis/src/nxgenesis_nocl ] && [ "${SKIP_BUILD:-0}" = 1 ]; then
-        echo "using the existing binary (SKIP_BUILD=1; the container builds it once, at image build)"
+        echo "using the existing binary (SKIP_BUILD=1)"
     else
         sh cluster_bringup/12_build_cpu.sh > "$RESULTS/build.log" 2>&1 \
             || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
         echo "built genesis/src/nxgenesis_nocl"
     fi
-    say "claims that need no GPU"
-    sh "$HERE/stages/05_cpu.sh" "$RESULTS" "$MODE" | tee "$RESULTS/cpu.txt"
-    if [ "$WITH_NEURON" = 1 ]; then
-        say "cross-simulator comparison (CPU arms)"
-        sh "$HERE/stages/40_simulators.sh" "$RESULTS" | tee "$RESULTS/simulators.txt"
-    fi
-    say "measured against published"
-    python3 "$HERE/compare.py" "$SUMMARY"
-    echo; echo "Raw results: $RESULTS"
-    exit 0
-fi
-if command -v nvidia-smi >/dev/null 2>&1; then
-    nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
-    USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)
-    if [ "$USED" -gt 500 ]; then
-        echo
-        echo "WARNING: $USED MiB is already allocated on this GPU by another"
-        echo "process. Timings taken now will be inflated -- in our own runs a"
-        echo "foreign job raised every GPU figure by ~30% while leaving the CPU"
-        echo "arm untouched. Wait for the card before trusting these results."
-        echo
-    fi
 else
-    echo "nvidia-smi not found: no GPU stage can run" >&2
+    command -v nvidia-smi > /dev/null 2>&1 \
+        || { echo "nvidia-smi not found: the GPU modes need an NVIDIA GPU (or use --cpu-only)" >&2; exit 1; }
+    nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+    [ -x "$CUDA_HOME/bin/nvcc" ] && PATH="$CUDA_HOME/bin:$PATH" && export PATH
+    command -v nvcc > /dev/null 2>&1 || { echo "nvcc not found; set CUDA_HOME" >&2; exit 1; }
+    say "build"
+    if [ "${SKIP_BUILD:-0}" = 1 ] && [ -x genesis/src/nxgenesis ] && [ -x genesis/src/nxgenesis_nocl ]; then
+        echo "using the existing binaries (SKIP_BUILD=1)"
+    else
+        # OpenCL first (10_build.sh cleans between the builds it makes); optional
+        if sh cluster_bringup/11_build_opencl.sh > "$RESULTS/build_opencl.log" 2>&1 \
+           && [ -x genesis/src/nxgenesis_ocl ]; then
+            echo "built genesis/src/nxgenesis_ocl"
+        else
+            echo "no OpenCL build here ($RESULTS/build_opencl.log): Table 2's OpenCL columns are skipped"
+        fi
+        sh cluster_bringup/10_build.sh > "$RESULTS/build.log" 2>&1 \
+            || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
+        echo "built genesis/src/nxgenesis and genesis/src/nxgenesis_nocl"
+    fi
+fi
+
+# ------------------------------------------------- the action potential check
+# hh1952_ap_verify.g: 8 neurons under one hsolve must fire the same action
+# potential (the Hines-solver fixes); its membrane potential, in the golden's
+# format, is the CPU value the paper's fp32 deviation is measured against.
+say "action potential, 8 neurons under one solver"
+ap() {   # <label> <binary> [env...]
+    label=$1 bin=$2; shift 2
+    env "$@" timeout 600 "$bin" -nosimrc -notty -batch genesis/Scripts/benchmark/hh1952_ap_verify.g 8 200 \
+        < /dev/null 2>&1 | grep -E "^(RESULT_VM=|NEURONS_AGREE:)" | sed "s|^|$label\||"
+}
+{
+    ap ap_cpu ./genesis/src/nxgenesis_nocl
+    [ "$CPU_ONLY" = 1 ] || ap ap_gpu ./genesis/src/nxgenesis GENESIS_CUDA_MULTILOOP=210
+} | tee "$RESULTS/ap_check.txt"
+grep -q "NEURONS_AGREE: YES" "$RESULTS/ap_check.txt" || FAILED="$FAILED action_potential"
+
+# --------------------------------------------------------------------- stages
+REPS_CM=1; [ "$MODE" = full ] && REPS_CM=3
+run chanmode sh cluster_bringup/campaign/chanmode_check.sh "$ROOT" "$REPS_CM"
+run E3c sh cluster_bringup/campaign/E3c_cpu.sh
+if [ "$CPU_ONLY" = 0 ]; then
+    run E2 sh cluster_bringup/campaign/E2_ksweep.sh
+    run E3 sh cluster_bringup/campaign/E3_tables.sh
+    run E8 sh cluster_bringup/campaign/E8_graphs.sh
+    if [ "$MODE" = full ]; then
+        run E7 sh cluster_bringup/campaign/E7_imbalance.sh
+        run E5 sh cluster_bringup/campaign/E5_long_run.sh
+    fi
+    if [ "$WITH_SIM" = 1 ]; then
+        run E1 sh cluster_bringup/campaign/E1_cross_simulator.sh
+        run E4 sh cluster_bringup/campaign/E4_fp64_cost.sh
+    fi
+fi
+
+# ------------------------------------------------------------------ verdicts
+say "tidy"
+for f in "$RESULTS"/campaign/E*_*.csv; do
+    case "$f" in *_tidy.csv|*_spikes.csv|*_report.csv) continue ;; esac
+    [ -f "$f" ] && python3 cluster_bringup/campaign/tidy.py "$f"
+done
+say "the paper's numbers, measured here"
+python3 "$HERE/measure.py" "$RESULTS"; mrc=$?
+echo
+echo "total: $(( ($(date +%s) - T_START) / 60 )) min; raw results and logs: $RESULTS"
+if [ -n "$FAILED" ]; then
+    echo "stages that did not complete:$FAILED (see their logs in $RESULTS)"
     exit 1
 fi
-
-# CUDA is not always on PATH; the build needs nvcc.
-# CUDA_HOME comes from cluster_bringup/env.sh
-[ -x "$CUDA_HOME/bin/nvcc" ] && PATH="$CUDA_HOME/bin:$PATH" && export PATH CUDA_HOME
-command -v nvcc >/dev/null 2>&1 || { echo "nvcc not found; set CUDA_HOME" >&2; exit 1; }
-export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
-nvcc --version | tail -2 | head -1
-
-# A binary built for another card is the failure mode that wastes a reviewer's
-# afternoon: with no PTX in it the kernels will not launch at all, and with PTX
-# they are JIT-compiled and run at a fraction of the speed while still being
-# timed as "GPU". We hit the second of these ourselves -- an A100 measured 278.9
-# s against an expected 4.6 because the binary carried only sm_86. Checked here,
-# before anything is timed, rather than left to be discovered in the numbers.
-check_arch() {
-    [ -x "$1" ] || return 0
-    cap=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 | tr -d '. ')
-    [ -n "$cap" ] || return 0
-    [ -x "$CUDA_HOME/bin/cuobjdump" ] || return 0
-    elf=$("$CUDA_HOME/bin/cuobjdump" --list-elf "$1" 2>/dev/null)
-    case "$elf" in
-        *sm_$cap*) echo "$1 carries native sm_$cap code" ;;
-        "") ;;   # no device code section: a CPU-only binary, nothing to check
-        *) echo
-           echo "WARNING: $1 has no sm_$cap code for the card in this machine."
-           echo "It will either fail to launch or be JIT-compiled and run slow."
-           echo "Rebuild with ARCH=sm_$cap (see cluster_bringup/10_build.sh)."
-           echo ;;
-    esac
-}
-
-# Above 20000 compartments the batched tree solver otherwise declines the model
-# and falls back to per-step dispatch, which measures a different code path.
-export GENESIS_OCL_TREE_MAX_NCOMPTS=0
-
-# --------------------------------------------------------------------- build
-say "build"
-if [ -x genesis/src/nxgenesis ] && [ -x genesis/src/nxgenesis_nocl ] && [ "${SKIP_BUILD:-0}" = 1 ]; then
-    echo "using existing binaries (SKIP_BUILD=1)"
-else
-    sh cluster_bringup/10_build.sh > "$RESULTS/build.log" 2>&1 \
-        || { echo "build failed, see $RESULTS/build.log" >&2; tail -20 "$RESULTS/build.log"; exit 1; }
-    echo "built genesis/src/nxgenesis and nxgenesis_nocl"
-fi
-check_arch genesis/src/nxgenesis
-
-# --------------------------------------------------------------- correctness
-say "correctness: fp32 accelerator against the fp64 CPU solver"
-sh "$HERE/stages/10_correctness.sh" "$RESULTS" | tee "$RESULTS/correctness.txt"
-
-# ------------------------------------------------------------- accelerator
-say "accelerator speedup (this is the paper's central claim)"
-sh "$HERE/stages/20_speedup.sh" "$RESULTS" "$MODE" | tee "$RESULTS/speedup.txt"
-
-# --------------------------------------------------------------- crossover
-if [ "$MODE" = full ]; then
-    say "run-length crossover"
-    sh "$HERE/stages/30_crossover.sh" "$RESULTS" | tee "$RESULTS/crossover.txt"
-fi
-
-# ---------------------------------------------------------------- spiking
-if [ "$MODE" = full ]; then
-    say "spiking network (the coverage this release adds)"
-    sh "$HERE/stages/50_spiking.sh" "$RESULTS" | tee "$RESULTS/spiking.txt"
-fi
-
-# ------------------------------------------------------- other simulators
-if [ "$WITH_NEURON" = 1 ]; then
-    say "cross-simulator comparison"
-    sh "$HERE/stages/40_simulators.sh" "$RESULTS" | tee "$RESULTS/simulators.txt"
-fi
-
-# ------------------------------------------------------------------ figures
-# The numbers are what gets checked; the figures fall out of them. These are the
-# same scripts that made the paper's, reading the CSVs just produced, so a
-# reviewer gets the paper's plots drawn from their own hardware.
-say "figures from the measurements just taken"
-if "$PY" -c "import matplotlib" 2>/dev/null; then
-    for s in plot_crossover.py plot_multicompartment_sweep.py; do
-        [ -f "paper/scripts/$s" ] || continue
-        "$PY" "paper/scripts/$s" 2>&1 | tail -1 || echo "  $s: skipped (needs its full sweep)"
-    done
-else
-    echo "no Python with matplotlib found; skipping figures."
-    echo "The numbers above are unaffected. To draw them: pip install matplotlib"
-    echo "then run paper/scripts/plot_crossover.py against reproduce/results/."
-fi
-
-# ----------------------------------------------------------------- verdict
-say "measured against published"
-python3 "$HERE/compare.py" "$SUMMARY"
-echo
-echo "Raw results: $RESULTS"
-echo "Figures:     paper/figures/"
+exit $mrc

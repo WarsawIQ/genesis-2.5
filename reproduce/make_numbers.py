@@ -9,7 +9,7 @@
                                                  or that combine sessions
 
 Reads reproduce/claims.csv and the data files it names. Writes
-reproduce/published.csv (read by compare.py), paper/numbers.tex (read by the
+reproduce/published.csv (read by measure.py), paper/numbers.tex (read by the
 manuscript through \\claim{id}), the table between the claims-table markers
 in README.md and every <!--claim:id--> number in README.md.
 

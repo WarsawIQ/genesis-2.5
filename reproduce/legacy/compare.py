@@ -51,7 +51,8 @@ def main():
         print("usage: compare.py <summary.csv>", file=sys.stderr)
         return 2
     measured = load_measured(sys.argv[1])
-    pub, meta = load_published(os.path.dirname(os.path.abspath(__file__)))
+    # published.csv and claims.csv stay in reproduce/, one level up
+    pub, meta = load_published(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     rows, checked, passed, unknown = [], 0, 0, []
     for claim, (val, _units) in measured.items():

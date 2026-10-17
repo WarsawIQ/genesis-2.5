@@ -50,7 +50,7 @@ What reproduces which numbers, and what it needs:
 | 12 | single-compartment speedups (table) | `cluster_bringup/53_singlecomp_walltime.sh` | NVIDIA A100, NVIDIA A40 | 30 min |
 | 24 | results text; speedup against run length (table) | `cluster_bringup/55_multicomp_ksweep.sh` | NVIDIA A40 | 60 min |
 | 6 | single-compartment speedups (table) | `cluster_bringup/56_opencl_cluster_bench.sh` | NVIDIA A100, NVIDIA A40 | 20 min |
-| 1 | sec:2 | `cluster_bringup/80_accel_regression.sh` | NVIDIA A40 | - |
+| 2 | results text; sec:2 | `cluster_bringup/80_accel_regression.sh` | NVIDIA A40, any Linux machine | 1 min |
 | 26 | tab:sim | `cluster_bringup/campaign/E1_cross_simulator.sh` | NVIDIA A100, NVIDIA GPU with Arbor built for CUDA, NVIDIA GPU with the NVHPC CoreNEURON build | 65 min |
 | 6 | abstract; fig:runlength; results text | `cluster_bringup/campaign/E2_ksweep.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
 | 26 | tab:regimes; tab:single | `cluster_bringup/campaign/E3_tables.sh` | NVIDIA A100, NVIDIA A40 | 60 min |
@@ -77,7 +77,6 @@ What reproduces which numbers, and what it needs:
 | 1 | sec:2 | `genesis/src/hines/opencl/ocl_hsolve.c` | any Linux machine | - |
 | 6 | model construction (figure); results text | `paper/scripts/plot_construction_scaling.py` | any Linux machine | 30 min |
 | 4 | results text | `paper/scripts/run_pgenesis_mpi_scaling.sh` | MPI cluster, up to 24 ranks | 60 min |
-| 1 | results text | `reproduce/stages/05_cpu.sh` | any Linux machine | 1 min |
 | 27 | impact text; membrane-potential equivalence (figure); results text; spiking network against NEURON and CoreNEURON (table) | none yet: typed into the paper with no raw data kept; re-measured by the revision campaign | - | - |
 <!-- claims-table:end -->
 

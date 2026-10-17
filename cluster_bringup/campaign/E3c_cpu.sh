@@ -5,7 +5,7 @@
 #
 # Construction: hh_branching_multicompartment_benchmark.g, 4 branches of 4
 # compartments (17 per neuron), 20 steps, N = 1000 ... 100 000 (1.7 million
-# compartments), timed around the whole process, as reproduce/stages/05_cpu.sh.
+# compartments), timed around the whole process, as reproduce/legacy/stages/05_cpu.sh.
 # Only the release is measured: the "before" curve is the code before the fix,
 # which this tag no longer contains (construction_before.sh measures it on a
 # node). Construction stays in chanmode 1, as the "before" curve was measured:

@@ -12,7 +12,7 @@ deviations of both arms combined in quadrature. The first submitted version
 of the paper mixed three definitions under the one label "mean +/- std"; this
 is the one the revision uses everywhere.
 
-Plain Python 3.6, standard library only, like compare.py: the cluster's system
+Plain Python 3.6, standard library only, like measure.py: the cluster's system
 Python is 3.6.
 """
 
