@@ -255,11 +255,13 @@ NVIDIA A40 and A100 and on the AMD Radeon~890M integrated GPU under two independ
 implementations, AMD ROCm and Mesa rusticl (E9). On the same chip the two differ:
 ROCm exposes double precision and rusticl does not, so under rusticl a request for
 fp64 is refused and the model computes on the CPU. On an integrated GPU that also
-drives the display, a long tree dispatch trips the driver's watchdog. There the
-backend declines the batched tree dispatch above \claim{ocl_igpu_tree_cap}
-compartments, prints a message and runs the model step by step;
-\texttt{GENESIS\_\allowbreak OCL\_\allowbreak TREE\_\allowbreak MAX\_\allowbreak NCOMPTS}
-overrides the limit, and E9 checks that the limit is enforced. Under rusticl, which
+drives the display, a long tree dispatch trips the driver's watchdog. For that reason
+the OpenCL backend declines the batched tree dispatch above \claim{ocl_igpu_tree_cap}
+compartments by default, prints a message and runs the model step by step; on a
+dedicated card
+\texttt{GENESIS\_\allowbreak OCL\_\allowbreak TREE\_\allowbreak MAX\_\allowbreak NCOMPTS=0}
+lifts the limit, as in all our measurements, and E9 checks that the limit is
+enforced. Under rusticl, which
 submits to the graphics queue, the same kind of limit stops the longest
 single-compartment run: the driver resets the GPU during the network of $N=50\,000$
 cells batched over 50\,000 steps. Run one dispatch per step, the model takes
@@ -479,11 +481,13 @@ are far smaller than the change from one draw of the network to another.
 Each number in this paper has a row in \path{reproduce/claims.csv} that names its data
 file, the rows and formula it comes from, and the script that measures it; a number
 taken from the literature names its source. \path{make_numbers.py} computes the values
-in the text from those files, and a lint lists any number typed by hand. \texttt{sh reproduce/run\_all.sh} measures them
-again on the reader's hardware (about 15 minutes for the central claims, 95 for the
-sweeps; NVIDIA GPU, CUDA 12.x). \texttt{--cpu-only} reproduces the
-hardware-independent results in about two minutes on any Linux machine, and the same
-path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
+in the text from those files, and a lint lists any number typed by hand.
+\texttt{sh reproduce/run\_all.sh} runs the stages that measured them on the reader's
+hardware and computes the same numbers from the new data with the same code, beside
+the published ones: about 15 minutes for Table~\ref{tab:single}, the run-length
+speedup and CUDA Graphs, about an hour at the paper's full sizes (NVIDIA GPU,
+CUDA~12.x). With \texttt{--cpu-only} it measures the hardware-independent results in
+about two minutes on any Linux machine, and the same path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
 --rm genesis25-cpu}) with nothing else installed, as in our earlier pipeline for
 GENESIS experiments~\cite{chlasta2023pipeline}. Both run in the repository's CI on every
 commit. A generated table in the README says which results need which hardware. The
