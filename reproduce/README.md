@@ -55,11 +55,14 @@ not measured by this run, and what they need:
    ...
 ```
 
-**Verdicts.** A number that does not depend on the card (a construction
-exponent, a ratio of two CPU modes) is checked against its tolerance in
+**Verdicts.** A number that does not depend on the machine (the construction
+exponent, the CPU's membrane potential) is checked against its tolerance in
 `claims.csv`. A GPU number is checked the same way on an A40 or an A100, the
 cards of the paper; on any other card only its shape is checked: a speedup must
-stay on the same side of 1. `python3 reproduce/measure.py --self-test` lays our
+stay on the same side of 1. The ratios of the CPU solver's modes are checked by
+their shape too, because they depend on the processor: chanmode 1 takes 4.2
+times as long as chanmode 4 on inf03, 4.0 on our laptop and 2.0 on GitHub's
+runners. Absolute times are printed for information. `python3 reproduce/measure.py --self-test` lays our
 own data out as a reader's run and requires every published number back.
 
 Validation runs from clean clones are in `cluster_bringup/logs/repro_check/`: the

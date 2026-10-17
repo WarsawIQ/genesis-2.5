@@ -19,7 +19,9 @@ inputs with the same formula.
 Verdicts. A number that does not depend on the card (a construction exponent,
 a ratio of two CPU modes, the CPU's membrane potential) is checked against its
 tolerance in claims.csv. An absolute time (seconds on our machine) is printed
-for information only: it depends on the machine. A number measured on an A40 or an A100 is checked the
+for information only: it depends on the machine. A ratio whose notes in
+claims.csv say "shape only" (the CPU solver's modes, whose ratio depends on the
+processor) is checked by its shape, like a GPU number on another card. A number measured on an A40 or an A100 is checked the
 same way when the reader's card is that card; on another card only its shape
 is checked: a speedup must stay on the same side of 1. Uncertainties (_sd) are
 printed with nothing to check.
@@ -244,7 +246,12 @@ def table(results):
         v = vals[got[0]]
         cards = [c for c in ids if claims[c]["hardware"] in CARD]
         timed = c0["kind"] == "measured" and c0["extract"] in ("mean", "sd") and c0["col"] in WALL
-        if timed:
+        shape_only = c0["notes"].startswith("shape only")
+        if shape_only and got[0] in pub and pub[got[0]] != 1.0 and v != 1.0:
+            published = fmt(pub[got[0]], c0["format"])
+            verdict = "same shape" if (v - 1.0) * (pub[got[0]] - 1.0) > 0 else "DIFFERENT SHAPE"
+            card_note = ""
+        elif timed:
             published = " / ".join(("%s " % CARD[claims[c]["hardware"]] if claims[c]["hardware"] in CARD else "")
                                    + fmt(pub[c], claims[c]["format"]) for c in ids if c in pub)
             verdict = "info"
@@ -287,8 +294,8 @@ def print_table(results):
         print("%-*s%-22s%-*s%12s  %s" % (w, base, wh[:21], wp, published, yours, verdict))
     cards = sorted({r[5] for r in rows if r[5]})
     print()
-    print("%d numbers measured: %d ok, %d outside tolerance; on another card %d same shape, "
-          "%d different; %d for information (absolute times depend on the machine)"
+    print("%d numbers measured: %d ok, %d outside tolerance; by shape (another card, or a ratio "
+          "that depends on the CPU) %d same, %d different; %d for information (absolute times)"
           % (len(rows), counts["ok"], counts["OUTSIDE"], counts["same shape"],
              counts["DIFFERENT SHAPE"], counts["info"]))
     if cards:

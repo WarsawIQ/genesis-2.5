@@ -488,7 +488,7 @@ the published ones: about 14 minutes on an A100, build included, for
 Table~\ref{tab:single}, the run-length speedup and CUDA Graphs, and about 70 minutes
 at the paper's full sizes (NVIDIA GPU, CUDA~12.x). Run so from a fresh clone, the
 10\,s simulations of Section~3(d) gave back the published spike trains spike for
-spike. With \texttt{--cpu-only} it measures the hardware-independent results in
+spike. With \texttt{--cpu-only} it measures the results that need no GPU in
 about two minutes on any Linux machine, and the same path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
 --rm genesis25-cpu}) with nothing else installed, as in our earlier pipeline for
 GENESIS experiments~\cite{chlasta2023pipeline}. Both run in the repository's CI on every
