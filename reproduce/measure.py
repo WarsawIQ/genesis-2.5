@@ -304,7 +304,8 @@ def print_table(results):
     cards = sorted({r[5] for r in rows if r[5]})
     print()
     print("%d numbers measured: %d ok, %d outside tolerance; by shape (another card, or a ratio "
-          "that depends on the CPU) %d same, %d different; %d for information (absolute times)"
+          "that depends on the CPU) %d same, %d different; %d for information (absolute times, "
+          "or ratios within their tolerance of 1)"
           % (len(rows), counts["ok"], counts["OUTSIDE"], counts["same shape"],
              counts["DIFFERENT SHAPE"], counts["info"]))
     if cards:
