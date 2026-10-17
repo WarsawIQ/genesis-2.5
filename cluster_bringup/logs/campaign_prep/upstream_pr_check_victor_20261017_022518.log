@@ -1,0 +1,42 @@
+hostname: invalid option -- 's'
+Napisz „hostname --help” dla uzyskania informacji.
+# , gcc (GCC) 15.2.0; base 7b0a66b71ba98d5b7802c32ed856b75b8334fb05, branch upstream-cpu-fixes 434df473fa90731f3e8e911dd0dff81a0720c0a7
+== base: build exit 0
+cells 1  compartments 1 branched 0 method 10  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 1 branched 0 method 10  HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+cells 1  compartments 1 branched 0 method 11  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 1 branched 0 method 11  CRASH (signal 11)
+cells 1  compartments 3 branched 0 method 10  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 3 branched 0 method 10  HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+cells 1  compartments 3 branched 0 method 11  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 3 branched 0 method 11  CRASH (signal 11)
+cells 1  compartments 4 branched 1 method 10  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 4 branched 1 method 10  HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+cells 1  compartments 4 branched 1 method 11  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 4 branched 1 method 11  HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+hsolve tests exit 1
+cells   1000  compartments   17000     0.241 s
+cells   2000  compartments   34000     0.705 s
+cells   4000  compartments   68000     2.785 s
+cells   8000  compartments  136000    10.188 s
+wall time ~ compartments^1.82
+== fixes: build exit 0
+cells 1  compartments 1 branched 0 method 10  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 1 branched 0 method 10  HSOLVE_MANY_CELLS: PASS
+cells 1  compartments 1 branched 0 method 11  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 1 branched 0 method 11  HSOLVE_MANY_CELLS: PASS
+cells 1  compartments 3 branched 0 method 10  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 3 branched 0 method 10  HSOLVE_MANY_CELLS: PASS
+cells 1  compartments 3 branched 0 method 11  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 3 branched 0 method 11  HSOLVE_MANY_CELLS: PASS
+cells 1  compartments 4 branched 1 method 10  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 4 branched 1 method 10  HSOLVE_MANY_CELLS: PASS
+cells 1  compartments 4 branched 1 method 11  HSOLVE_MANY_CELLS: PASS
+cells 8  compartments 4 branched 1 method 11  HSOLVE_MANY_CELLS: PASS
+hsolve tests exit 0
+cells   1000  compartments   17000     0.126 s
+cells   2000  compartments   34000     0.310 s
+cells   4000  compartments   68000     0.499 s
+cells   8000  compartments  136000     0.958 s
+wall time ~ compartments^0.95
+built in /datadisk/od/nauka/1.Ac/0.Nauka/61.GENESIS/upstream-pr-check-_20261017_022518

@@ -19,12 +19,13 @@ set -u
 [ $# -ge 1 ] || { echo "usage: $0 <upstream worktree> [<base> [<branch>]]" >&2; exit 2; }
 W=$(cd "$1" && pwd); BASE=${2:-7b0a66b}; BR=${3:-upstream-cpu-fixes}
 GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
-STAMP=$(hostname -s)_$(date +%Y%m%d_%H%M%S)
+HOST=$(uname -n); HOST=${HOST%%.*}   # the VS Code flatpak's hostname has no -s
+STAMP=${HOST}_$(date +%Y%m%d_%H%M%S)
 C=$(dirname "$GENESIS_ROOT")/upstream-pr-check-$STAMP
 LOG=$GENESIS_ROOT/cluster_bringup/logs/campaign_prep/upstream_pr_check_$STAMP.log
 mkdir -p "$C" "$(dirname "$LOG")"
 {
-echo "# $(hostname -s), $(gcc --version | head -1); base $(git -C "$W" rev-parse "$BASE"), branch $BR $(git -C "$W" rev-parse "$BR")"
+echo "# $HOST, $(gcc --version | head -1); base $(git -C "$W" rev-parse "$BASE"), branch $BR $(git -C "$W" rev-parse "$BR")"
 for v in base fixes; do
     D=$C/$v; mkdir -p "$D"
     if [ $v = base ]; then
