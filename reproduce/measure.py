@@ -59,8 +59,8 @@ SOURCES = [
 ]
 
 # what a reader needs for the numbers a run did not measure, by experiment
-NEEDS = {"E2": "a GPU run (run_all.sh --quick)", "E3": "a GPU run (run_all.sh --quick)",
-         "E8": "a GPU run (run_all.sh --quick)", "E5": "a full GPU run (run_all.sh)",
+GPU = "a GPU run (run_all.sh --quick; the full sizes without --quick)"
+NEEDS = {"E2": GPU, "E3": GPU, "E8": GPU, "E5": "a full GPU run (run_all.sh)",
          "E7": "a full GPU run (run_all.sh)",
          "E3c": "the full sizes (run_all.sh --cpu-only, without --quick)",
          "chanmode": "run_all.sh --cpu-only", "accel_regression": "run_all.sh --cpu-only",
@@ -208,7 +208,7 @@ def why_missing(claims, cid, vals):
             return why
     i, key = source_of(claim["data"])
     if key == "accel_regression" and claim["hardware"] in CARD:
-        return NEEDS["E2"]                   # the GPU's value of the action potential check
+        return GPU                           # the GPU's value of the action potential check
     if key in NEEDS:
         return NEEDS[key]
     if claim["kind"] == "cited":

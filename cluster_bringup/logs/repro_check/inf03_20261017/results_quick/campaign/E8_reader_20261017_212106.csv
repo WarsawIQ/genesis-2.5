@@ -1,0 +1,31 @@
+# experiment: E8
+# session: reader_20261017_212106
+# commit: 0294cd58eece929e131b4f7d247f758fda4a2c69
+# describe: untagged
+# dirty: 0
+# build_generated_changed: 27
+# node: reader
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 1.03 0.93 0.56
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 1320 / 1410
+# clock_reasons: 0x0000000000000000
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+reader_20261017_212106,E8,tree_k5000_g0,0,1,1.8012,t_per_step_s,0.0001188172671,ok,2026-10-17T21:21:06+02:00
+reader_20261017_212106,E8,tree_k5000_g1,0,2,1.7420,t_per_step_s,0.0001096508936,ok,2026-10-17T21:21:08+02:00
+reader_20261017_212106,E8,tree_k5000_g1,1,1,1.6983,t_per_step_s,0.0001024114396,ok,2026-10-17T21:21:10+02:00
+reader_20261017_212106,E8,tree_k5000_g0,1,2,1.7217,t_per_step_s,0.0001046661607,ok,2026-10-17T21:21:12+02:00
+reader_20261017_212106,E8,tree_k5000_g0,2,1,1.7177,t_per_step_s,0.0001044256007,ok,2026-10-17T21:21:14+02:00
+reader_20261017_212106,E8,tree_k5000_g1,2,2,1.7027,t_per_step_s,0.0001013642657,ok,2026-10-17T21:21:16+02:00
+reader_20261017_212106,E8,spk_id_g0,1,1,51.3680,spikes,547155,ok,2026-10-17T21:21:18+02:00
+reader_20261017_212106,E8,spk_id_g1,1,2,48.8554,spikes,547155,ok,2026-10-17T21:22:10+02:00
+# ended: 2026-10-17T21:22:59+02:00
+# sm_clock_mhz_after: 765 / 1410
+# complete: yes

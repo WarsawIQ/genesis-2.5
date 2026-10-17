@@ -1,0 +1,3 @@
+[21:58:25] E8: session reader_20261017_215824, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E8_reader_20261017_215824.csv
+spike trains with graphs off and on: identical (547155 spikes)
+report: /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E8_reader_20261017_215824_report.md

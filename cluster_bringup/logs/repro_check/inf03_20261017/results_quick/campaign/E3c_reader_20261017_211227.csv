@@ -1,0 +1,33 @@
+# experiment: E3c
+# session: reader_20261017_211227
+# commit: 0294cd58eece929e131b4f7d247f758fda4a2c69
+# describe: untagged
+# dirty: 0
+# build_generated_changed: 27
+# node: reader
+# cpu: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+# governor: performance
+# loadavg: 0.97 0.49 0.20
+# numa_bind: 0
+# gpu: NVIDIA A100-PCIE-40GB
+# driver: 595.71.05
+# cuda: 12.8
+# persistence: Enabled
+# sm_clock_mhz: 210 / 1410
+# clock_reasons: 0x0000000000000001
+# gpu_mem_used_mib: 0
+# gpu_processes: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+reader_20261017_211227,E3c,con_n1000,0,1,0.8963,t_per_step_s,0.004904949665,ok,2026-10-17T21:12:27+02:00
+reader_20261017_211227,E3c,con_n2000,0,2,1.6831,t_per_step_s,0.006714182099,ok,2026-10-17T21:12:28+02:00
+reader_20261017_211227,E3c,con_n4000,0,3,3.4832,t_per_step_s,0.01431795855,ok,2026-10-17T21:12:30+02:00
+reader_20261017_211227,E3c,con_n8000,0,4,7.4556,t_per_step_s,0.03007622163,ok,2026-10-17T21:12:34+02:00
+reader_20261017_211227,E3c,con_n16000,0,5,14.5151,t_per_step_s,0.06134604613,ok,2026-10-17T21:12:42+02:00
+reader_20261017_211227,E3c,con_n2000,1,1,1.6746,t_per_step_s,0.006857886414,ok,2026-10-17T21:12:56+02:00
+reader_20261017_211227,E3c,con_n4000,1,2,3.4803,t_per_step_s,0.01410966615,ok,2026-10-17T21:12:58+02:00
+reader_20261017_211227,E3c,con_n8000,1,3,7.4818,t_per_step_s,0.03006007075,ok,2026-10-17T21:13:02+02:00
+reader_20261017_211227,E3c,con_n16000,1,4,14.6005,t_per_step_s,0.06045623223,ok,2026-10-17T21:13:10+02:00
+reader_20261017_211227,E3c,con_n1000,1,5,0.8833,t_per_step_s,0.004907628397,ok,2026-10-17T21:13:25+02:00
+# ended: 2026-10-17T21:13:26+02:00
+# sm_clock_mhz_after: 210 / 1410
+# complete: yes

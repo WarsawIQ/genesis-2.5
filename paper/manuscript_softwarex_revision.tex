@@ -484,9 +484,11 @@ taken from the literature names its source. \path{make_numbers.py} computes the 
 in the text from those files, and a lint lists any number typed by hand.
 \texttt{sh reproduce/run\_all.sh} runs the stages that measured them on the reader's
 hardware and computes the same numbers from the new data with the same code, beside
-the published ones: about 15 minutes for Table~\ref{tab:single}, the run-length
-speedup and CUDA Graphs, about an hour at the paper's full sizes (NVIDIA GPU,
-CUDA~12.x). With \texttt{--cpu-only} it measures the hardware-independent results in
+the published ones: about 14 minutes on an A100, build included, for
+Table~\ref{tab:single}, the run-length speedup and CUDA Graphs, and about 70 minutes
+at the paper's full sizes (NVIDIA GPU, CUDA~12.x). Run so from a fresh clone, the
+10\,s simulations of Section~3(d) gave back the published spike trains spike for
+spike. With \texttt{--cpu-only} it measures the hardware-independent results in
 about two minutes on any Linux machine, and the same path runs in a container (\texttt{docker build -t genesis25-cpu . \&\& docker run
 --rm genesis25-cpu}) with nothing else installed, as in our earlier pipeline for
 GENESIS experiments~\cite{chlasta2023pipeline}. Both run in the repository's CI on every

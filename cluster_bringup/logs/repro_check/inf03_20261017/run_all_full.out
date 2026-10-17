@@ -1,0 +1,106 @@
+
+=== environment ===
+Linux 4.18.0-553.125.1.el8_10.x86_64 x86_64
+gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28)
+Python 3.6.8
+mode: full; results in /storage2/home/kchlasta/repro-check-20261017/reproduce/results
+NVIDIA A100-PCIE-40GB, 595.71.05, 40960 MiB
+
+=== build ===
+using the existing binaries (SKIP_BUILD=1)
+
+=== action potential, 8 neurons under one solver ===
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+ap_gpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_gpu|RESULT_VM= -0.02143492922
+
+=== chanmode ===
+written: /storage2/home/kchlasta/repro-check-20261017/reproduce/results/chanmode
+(chanmode: 112 s)
+
+=== E3c ===
+[21:24:53] E3c: session reader_20261017_212453, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3c_reader_20261017_212453.csv
+(E3c: 840 s)
+
+=== E2 ===
+[21:38:53] E2: session reader_20261017_213853, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E2_reader_20261017_213853.csv
+(E2: 501 s)
+
+=== E3 ===
+[21:47:14] E3: session reader_20261017_214713, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3_reader_20261017_214713.csv
+(E3: 671 s)
+
+=== E8 ===
+[21:58:25] E8: session reader_20261017_215824, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E8_reader_20261017_215824.csv
+(E8: 463 s)
+
+=== E7 ===
+[22:06:07] E7: session reader_20261017_220607, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E7_reader_20261017_220607.csv
+(E7: 288 s)
+
+=== E5 ===
+[22:10:56] E5: session reader_20261017_221055, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E5_reader_20261017_221055.csv
+written: /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E5_reader_20261017_221055_spikes.csv
+(E5: 1091 s)
+
+=== tidy ===
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E2_reader_20261017_213853_tidy.csv: 54 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3c_reader_20261017_212453_tidy.csv: 24 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3_reader_20261017_214713_tidy.csv: 144 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E5_reader_20261017_221055_tidy.csv: 8 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E7_reader_20261017_220607_tidy.csv: 15 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E8_reader_20261017_215824_tidy.csv: 20 valid replicate rows
+
+=== the paper's numbers, measured here ===
+number                     in the paper          published                      yours  verdict
+-----------------------------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2                              4.1  ok
+cpu_cm4_over_cm3_trees     Section 3             1.08                            1.08  ok
+e2_fp64_cost               Section 3             A100 1.17 / A40 1.50            1.16  ok
+e2_max_e2e                 abstract, Section 3,  A100 24.0 / A40 17.1            23.6  ok
+e3_t1_cuda_n500            Table 2               A100 1.62 / A40 1.51            1.63  ok
+e3_t1_cuda_n5000           Table 2               A100 8.65 / A40 8.29            8.50  ok
+e3_t1_cuda_n50000          Table 2               A100 20.60 / A40 19.28         20.46  ok
+e3_t1_ocl_n500             Table 2               A100 1.77 / A40 1.49            1.73  ok
+e3_t1_ocl_n5000            Table 2               A100 9.16 / A40 8.31            9.25  ok
+e3_t1_ocl_n50000           Table 2               A100 20.64 / A40 19.33         20.45  ok
+e3c_construction_1700k_s   Section 4             94.9                            94.8  info
+e3c_construction_exponent  Section 4, Fig. 5     1.02                            1.02  ok
+e5_count_g32_pct           Section 3             A100 -0.3                       -0.3  ok
+e5_count_g64_pct           Section 3             A100 +0.9                       +0.9  ok
+e5_count_pcell_pct         Section 3             A100 -0.7                       -0.7  ok
+e5_div_g64_ms              Section 3             A100 2.65                       2.65  ok
+e5_div_pcell_ms            Section 3             A100 2.35                       2.35  ok
+e5_ks_g32                  Section 3             A100 0.003                     0.003  ok
+e5_ks_g64                  Section 3             A100 0.002                     0.002  ok
+e5_ks_pcell                Section 3             A100 0.006                     0.006  ok
+e5_ks_seed_max             Section 3             A100 0.049                     0.049  ok
+e5_ks_seed_min             Section 3             A100 0.021                     0.021  ok
+e5_rate_cpu_hz             Section 3             A100 27.2                       27.2  ok
+e5_rate_seed_max_hz        Section 3             A100 29.2                       29.2  ok
+e5_rate_seed_min_hz        Section 3             A100 24.6                       24.6  ok
+e7_block_over_uniform      Section 2             A100 1.27                       1.31  ok
+e7_cpu_inter_over_uniform  Section 2             A100 1.09                       1.09  ok
+e7_inter_over_uniform      Section 2             A100 1.08                       1.08  ok
+e8_gain_spiking            Section 2             A100 -2.4                        2.4  ok
+e8_gain_tree_k5000         Section 2             A100 4.8 / A40 0.7               5.9  ok
+e8_gain_tree_k50000        Section 2             A100 3.0 / A40 1.9               3.4  ok
+regime_single_max          Table 4               21                                20  ok
+regime_trees_min_n         Table 4               3000                            2000  ok
+
+33 numbers measured: 32 ok, 0 outside tolerance; on another card 0 same shape, 0 different; 1 for information (absolute times depend on the machine)
+card: NVIDIA A100-PCIE-40GB (the paper's GPU numbers are from an NVIDIA A40 and an A100)
+
+not measured by this run, and what they need:
+   17  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    4  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
+
+total: 66 min; raw results and logs: /storage2/home/kchlasta/repro-check-20261017/reproduce/results

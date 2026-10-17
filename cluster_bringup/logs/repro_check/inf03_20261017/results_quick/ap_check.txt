@@ -1,0 +1,4 @@
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+ap_gpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_gpu|RESULT_VM= -0.02143492922

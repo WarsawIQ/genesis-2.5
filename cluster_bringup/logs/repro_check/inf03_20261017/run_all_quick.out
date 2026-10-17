@@ -1,0 +1,80 @@
+
+=== environment ===
+Linux 4.18.0-553.125.1.el8_10.x86_64 x86_64
+gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28)
+Python 3.6.8
+mode: quick; results in /storage2/home/kchlasta/repro-check-20261017/reproduce/results
+NVIDIA A100-PCIE-40GB, 595.71.05, 40960 MiB
+
+=== build ===
+built genesis/src/nxgenesis_ocl
+built genesis/src/nxgenesis and genesis/src/nxgenesis_nocl
+
+=== action potential, 8 neurons under one solver ===
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+ap_gpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_gpu|RESULT_VM= -0.02143492922
+
+=== chanmode ===
+written: /storage2/home/kchlasta/repro-check-20261017/reproduce/results/chanmode
+(chanmode: 38 s)
+
+=== E3c ===
+[21:12:27] E3c: session reader_20261017_211227, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3c_reader_20261017_211227.csv
+(E3c: 59 s)
+
+=== E2 ===
+[21:13:26] E2: session reader_20261017_211326, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E2_reader_20261017_211326.csv
+(E2: 198 s)
+
+=== E3 ===
+[21:16:44] E3: session reader_20261017_211644, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3_reader_20261017_211644.csv
+(E3: 262 s)
+
+=== E8 ===
+[21:21:06] E8: session reader_20261017_212106, untagged (0294cd58eece929e131b4f7d247f758fda4a2c69), data /storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E8_reader_20261017_212106.csv
+(E8: 113 s)
+
+=== tidy ===
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E2_reader_20261017_211326_tidy.csv: 12 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3c_reader_20261017_211227_tidy.csv: 5 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E3_reader_20261017_211644_tidy.csv: 48 valid replicate rows
+/storage2/home/kchlasta/repro-check-20261017/reproduce/results/campaign/E8_reader_20261017_212106_tidy.csv: 6 valid replicate rows
+
+=== the paper's numbers, measured here ===
+number                     in the paper          published                      yours  verdict
+-----------------------------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2                              4.1  ok
+cpu_cm4_over_cm3_trees     Section 3             1.08                            1.09  ok
+e2_fp64_cost               Section 3             A100 1.17 / A40 1.50            1.17  ok
+e2_max_e2e                 abstract, Section 3,  A100 24.0 / A40 17.1            23.7  ok
+e3_t1_cuda_n500            Table 2               A100 1.62 / A40 1.51            1.55  ok
+e3_t1_cuda_n5000           Table 2               A100 8.65 / A40 8.29            8.54  ok
+e3_t1_cuda_n50000          Table 2               A100 20.60 / A40 19.28         20.42  ok
+e3_t1_ocl_n500             Table 2               A100 1.77 / A40 1.49            1.58  ok
+e3_t1_ocl_n5000            Table 2               A100 9.16 / A40 8.31            9.75  ok
+e3_t1_ocl_n50000           Table 2               A100 20.64 / A40 19.33         20.74  ok
+e3c_construction_exponent  Section 4, Fig. 5     1.02                            1.03  ok
+e8_gain_tree_k5000         Section 2             A100 4.8 / A40 0.7               1.1  ok
+regime_single_max          Table 4               21                                21  ok
+regime_trees_min_n         Table 4               3000                            2000  ok
+
+14 numbers measured: 14 ok, 0 outside tolerance; on another card 0 same shape, 0 different; 0 for information (absolute times depend on the machine)
+card: NVIDIA A100-PCIE-40GB (the paper's GPU numbers are from an NVIDIA A40 and an A100)
+
+not measured by this run, and what they need:
+   17  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+   16  a full GPU run (run_all.sh)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    4  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh
+    2  a GPU run (run_all.sh --quick)
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  the full sizes (run_all.sh --cpu-only, without --quick)
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
+
+total: 13 min; raw results and logs: /storage2/home/kchlasta/repro-check-20261017/reproduce/results
