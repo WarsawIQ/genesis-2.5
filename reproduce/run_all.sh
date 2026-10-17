@@ -125,6 +125,15 @@ ap() {   # <label> <binary> [env...]
 } | tee "$RESULTS/ap_check.txt"
 grep -q "NEURONS_AGREE: YES" "$RESULTS/ap_check.txt" || FAILED="$FAILED action_potential"
 
+# ------------------------------------------------------- the core's own tests
+# The element tree, readcell and the Hines solver with several cells under one
+# hsolve (genesis/Scripts/tests/): not numbers of the paper, but what the paper's
+# "existing models run unchanged" rests on.
+say "regression tests of the GENESIS core"
+sh genesis/Scripts/tests/run_tests.sh ./genesis/src/nxgenesis_nocl | tee "$RESULTS/core_tests.txt" \
+    | grep -v ": PASS$" ; echo "$(grep -c ': PASS' "$RESULTS/core_tests.txt") of $(wc -l < "$RESULTS/core_tests.txt") pass"
+grep -q -v ": PASS" "$RESULTS/core_tests.txt" && FAILED="$FAILED core_tests"
+
 # --------------------------------------------------------------------- stages
 REPS_CM=1; [ "$MODE" = full ] && REPS_CM=3
 run chanmode sh cluster_bringup/campaign/chanmode_check.sh "$ROOT" "$REPS_CM"
