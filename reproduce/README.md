@@ -1,144 +1,137 @@
-# Reproducing the paper's results
+# Reproducing the paper's numbers
 
-One command:
+Every number in the revised paper was measured by the stages in
+[`cluster_bringup/campaign/`](../cluster_bringup/campaign/) on release v2.6.0
+(its release candidate rc4, same sources) and is computed from the raw data in
+this repository by [`make_numbers.py`](make_numbers.py). `run_all.sh` runs the
+same stages on your machine and computes the same numbers from what they
+measured, with the same code:
+
+| command | needs | measures | time on our machines |
+|---|---|---|---|
+| `sh reproduce/run_all.sh --cpu-only --quick` | Linux, GCC, make, flex, bison, ncurses, Python 3 | model construction up to 272 000 compartments, the CPU solver's modes, the action potential check | 2 min with the build |
+| `sh reproduce/run_all.sh --cpu-only` | the same | construction up to 1.7 million compartments | 15 min |
+| `sh reproduce/run_all.sh --quick` | an NVIDIA GPU, CUDA 12.x | adds Table 2, the speedup at K = 1000 and 10 000 steps, the tree threshold of Table 4, CUDA Graphs on the tree loop | about 15 min |
+| `sh reproduce/run_all.sh` | the same | adds the paper's full sizes, the work imbalance and the 10 s spiking run | about 1 h |
+| `... --with-simulators` | NEURON, CoreNEURON and Arbor, built by [`cluster_bringup/toolchains/`](../cluster_bringup/toolchains/) | adds Table 3 and the crossover with Arbor (Fig. 4) | about 1.5 h more |
+
+The CPU-only quick path also runs in a container with nothing installed, and in
+CI on every push:
 
 ```sh
-sh reproduce/run_all.sh --quick        # ~15 min, the accelerator claims
-sh reproduce/run_all.sh                # ~95 min, adds the sweeps and the spiking network
-sh reproduce/run_all.sh --with-neuron  # adds the cross-simulator comparison
+docker build -t genesis25-cpu . && docker run --rm genesis25-cpu
 ```
 
-It builds GENESIS, checks the accelerator against the CPU solver, measures the
-speedups, regenerates the figures from what it just measured, and prints each
-published number beside yours with a verdict:
+## What it does
+
+`run_all.sh` builds GENESIS, runs the action potential check (8 neurons under
+one solver must fire the same action potential: the Hines-solver fixes), and
+then runs the campaign stages in a reader's mode: `CAMPAIGN_DRY=1`,
+`REPRO=quick` or `full`, and every file under `reproduce/results/`, so your data
+never mix with the paper's. The stages keep the checks they had on the cluster:
+a GPU in use by another job is waited for and then refused, the start-up banner
+must name the backend and the precision asked for, a binary without code for
+your card is refused, each arm has a discarded warm-up run, replicates
+interleave the arms, and a run that did not do its work is rejected and retried
+once.
+
+[`measure.py`](measure.py) then takes every number the manuscript prints, swaps
+its data file in [`claims.csv`](claims.csv) for your file of the same experiment,
+and runs the extractor that computed the published value. On the CPU-only quick
+path the end of the output looks like this (our laptop, 17 October 2026):
 
 ```
-claim                     table            published    measured    delta  verdict
-correctness_fp32          text                 1e-07       7e-08  7.0e-08  ok
-ksweep_k5000              tab:mcksweep            57        55.2      -3%  ok
-vanet2_1solver_speedup    tab:coreneuron        1.43        1.41      -1%  ok
+number                     in the paper          published       yours  verdict
+-----------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2            3.9  ok
+cpu_cm4_over_cm3_trees     Section 3             1.08          1.10  ok
+e3c_construction_exponent  Section 4, Fig. 5     1.02          1.02  ok
+
+3 numbers measured: 3 ok, 0 outside tolerance; ...
+
+not measured by this run, and what they need:
+   16  a full GPU run (run_all.sh)
+   14  a GPU run (run_all.sh --quick)
+   ...
 ```
 
-## What you need
+**Verdicts.** A number that does not depend on the card (a construction
+exponent, a ratio of two CPU modes) is checked against its tolerance in
+`claims.csv`. A GPU number is checked the same way on an A40 or an A100, the
+cards of the paper; on any other card only its shape is checked: a speedup must
+stay on the same side of 1. `python3 reproduce/measure.py --self-test` lays our
+own data out as a reader's run and requires every published number back.
 
-Linux x86_64, GCC, GNU make, a CUDA 12.x toolkit and an NVIDIA GPU. Set
-`CUDA_HOME` if `nvcc` is not on your `PATH`. `--with-neuron` also wants NEURON
-9.x (`pip install neuron`); the Arbor arms additionally need an Arbor built with
-CUDA, since the published wheels are CPU-only.
+## Where each number comes from
 
-Nothing here needs root, a scheduler, or the UMCS cluster.
-
-## Where each result in the paper comes from
-
-| in the paper | reproduced by | needs |
+| in the paper | stage | `run_all.sh` mode |
 |---|---|---|
-| Fig. 1, fp32 against fp64 | `stages/10_correctness.sh` | GPU |
-| Table 2, single-compartment speedups | `stages/20_speedup.sh` | GPU |
-| Table 3 and Fig. 2, multi-compartment sweep | `stages/20_speedup.sh` (full mode) | GPU |
-| Table 4, K-sweep | `stages/20_speedup.sh` | GPU |
-| Table 5 and Fig. 4, GENESIS arms | `stages/50_spiking.sh` | CPU + GPU |
-| Table 5 and Fig. 4, NEURON arms | `cluster_bringup/coreneuron/verify_cn.sh` | NEURON 9.x |
-| Table 5, Arbor arm | `cluster_bringup/arbor_vanet2/` | Arbor with CUDA |
-| Table 6 and Fig. 5, crossover | `stages/30_crossover.sh` | GPU, and Arbor for the crossing itself |
-| Fig. 6, membrane potentials agree | `paper/scripts/compare_vm_traces.py` over `cluster_bringup/logs/vmcross/` | nothing |
-| Fig. 3, construction scaling | `paper/scripts/plot_construction_scaling.py` over the shipped CSVs | nothing |
+| Table 2, single-compartment speedups | `E3_tables.sh` | `--quick` |
+| Table 4, the tree threshold | `E3_tables.sh` | `--quick` |
+| Fig. 3 and the abstract, speedup against run length, cost of fp64 | `E2_ksweep.sh` | `--quick` (K = 1000, 10 000), full |
+| Section 2, CUDA Graphs | `E8_graphs.sh` | `--quick` (trees), full (and the spiking network) |
+| Section 2, work imbalance | `E7_imbalance.sh` | full |
+| Section 3(d), the 10 s run | `E5_long_run.sh` | full |
+| Section 3, CPU modes on the trees | `chanmode_check.sh` | `--cpu-only` |
+| Section 4 and Fig. 5, construction | `E3c_cpu.sh` | `--cpu-only` |
+| Table 3, the spiking network against NEURON, CoreNEURON and Arbor | `E1_cross_simulator.sh` | `--with-simulators` |
+| Fig. 4, GENESIS against Arbor | `E4_fp64_cost.sh` | `--with-simulators` |
 
-Two rows are out of this pack's reach and are documented rather than automated.
-**CoreNEURON on the GPU** needs the NVHPC compiler and a rebuild of NEURON; the
-procedure, the two failures it runs into, and the raw logs are in
-`cluster_bringup/coreneuron/README.md` and `cluster_bringup/logs/cn_gpu_r*.log`.
-**The A40 arm of the crossover** needs that card; the sweep script is
-`cluster_bringup/coreneuron/crossover_sweep.sh` and its output is
-`cluster_bringup/logs/crossover_inf02_20260820_131248.csv`.
-
-## What is checked, and what merely follows
-
-**The numbers are the claims**, so those are what `compare.py` checks against
-`published.csv`, computed from the raw data by `make_numbers.py`. **The figures follow from them** -- the plotting scripts under
-`paper/scripts/` read the CSVs this pack writes, so you get the paper's figures
-drawn from your own hardware rather than ours. That is a stronger check than
-matching numbers alone, because it shows the same shape, not just the same
-endpoint.
+Some numbers need hardware or tools a reader is unlikely to have, and their
+scripts run on their own: the CPU profiles (`E6_profile.sh`, perf), the AMD
+Radeon 890M under ROCm and rusticl (`E9_890m.sh`), the host's kernel-launch
+cost (`host_kernel_profile.sh`, Nsight Systems), the cluster's two sockets
+(`numa_check.sh`), and the code before the construction fixes
+(`construction_before.sh`, which builds the upstream branch). `measure.py` lists
+them under "not measured by this run".
 
 ## Your numbers will differ, and that is expected
 
-Absolute timings track the host CPU, the card model, and how warm the card is.
-Tolerances in `claims.csv` are set accordingly, and what should reproduce is
-the shape of each result: which arm wins, and roughly by how much.
-
-Four things move results enough to be worth knowing about, all of them found the
-hard way while producing this paper:
-
-**A binary built for another card.** With no PTX in it the kernels will not
-launch; with PTX they are JIT-compiled and run at a fraction of the speed while
-still being timed as "GPU". An A100 once measured 278.9 s against an expected
-4.6 for exactly this reason. `run_all.sh` checks the binary against the card
-before timing anything and warns if they disagree; rebuild with `ARCH=sm_XX`.
+Absolute times follow the host CPU, the card model and how warm the card is. The
+tolerances in `claims.csv` allow for that, and what should reproduce is the shape
+of each result: which arm wins, and by roughly how much. Three things move
+results enough to know about, all found while producing the paper:
 
 **A GPU shared with another job.** A foreign process on the card once raised
-every GPU figure by ~30% while leaving the CPU arm untouched, and the speedup
-curve stayed smooth and entirely plausible. `run_all.sh` warns if the card is
-already in use; heed it.
+every GPU figure by about 30% while leaving the CPU arm untouched, and the
+speedup curve stayed smooth and plausible. The stages wait for an idle card and
+refuse a busy one.
 
-**A cold card.** The first run after the GPU has been idle is 1.2-1.8x slower
-than a warm one. The pack takes several replicates for this reason. Do not
-compare one short run against a published campaign.
+**A cold card.** The first run after the GPU has been idle is 1.2 to 1.8 times
+slower than a warm one. Each arm's first run is discarded for this reason.
 
-**`GENESIS_OCL_TREE_MAX_NCOMPTS`.** Above 20,000 compartments the batched tree
-solver otherwise declines the model and falls back to per-step dispatch, which
-is a different code path and looks like a 3-7x GPU slowdown. `run_all.sh` sets
-it; if you run the benchmarks by hand, set it too.
+**A binary built for another card.** With no device code for the card the
+kernels do not launch; with only PTX they are compiled at start-up and run
+slowly while still being timed as GPU runs. The stages refuse a binary without
+code for the card; rebuild with `ARCH=sm_XX` (`cluster_bringup/10_build.sh`).
 
-## Two results depend on the card, not just on the software
+The spiking network runs slower on the GPU than on the CPU (Table 3). A
+zero-delay network exchanges spikes every step, so every step is a dispatch.
+Reproducing that is the expected outcome.
 
-The crossover with Arbor falls at K ~ 6,400 steps on an A100 and at K ~ 1,800 on
-an A40, because our kernel is fp32 where Arbor computes in double and the A40's
-double-precision throughput is a fraction of the A100's. `stages/30_crossover.sh`
-reads the card and records the crossing under the matching claim, so a run on an
-A40 is not scored against the A100 figure.
+## If a number lands outside tolerance
 
-The spiking network reaches parity between CPU and GPU rather than a speedup. A
-zero-delay network exchanges spikes every step, so batching does not apply and
-each step pays a dispatch. Reproducing parity is the expected outcome, not a
-failure.
-
-## If a claim lands outside tolerance
-
-Check `nvidia-smi` for other jobs, re-run, and compare the *ratios* rather than
-the absolute seconds. A number outside tolerance on different hardware is
-usually hardware. If the ordering itself inverts -- the CPU arm beating the GPU
-at large N, say -- that is worth reporting to karol@chlasta.pl.
+Check `nvidia-smi` for other jobs and the machine's load, run again, and compare
+ratios, not seconds. If the ordering itself inverts (the CPU beating the
+GPU at large N, say), please report it to karol@chlasta.pl.
 
 ## Layout
 
 | path | what it is |
 |---|---|
 | `run_all.sh` | the entry point |
-| `../Dockerfile` | the CPU-only path in a container: `docker build -t genesis25-cpu . && docker run --rm genesis25-cpu` |
-| `stages/` | one script per claim group, runnable on their own |
-| `claims.csv` | every published number: where it comes from, how it is computed, what it needs |
-| `published.csv` | the published values, generated from `claims.csv` and the data |
-| `make_numbers.py` | computes every published value from the data into `published.csv`, `paper/numbers.tex` and README.md |
-| `lint_numbers.py`, `lint_allow.txt` | finds numbers typed into a manuscript instead of printed by `\claim{}` |
-| `compare.py` | measured against published, with a verdict |
+| `measure.py` | the paper's numbers from a reader's run, with verdicts |
+| `claims.csv` | every published number: its data file, extractor, stage, hardware and tolerance |
+| `claims_extract.py` | the extractors, shared by `make_numbers.py` and `measure.py` |
+| `make_numbers.py` | computes every published value from the data into `published.csv`, `paper/numbers.tex` and the README |
+| `published.csv` | the published values |
+| `lint_numbers.py`, `lint_allow.txt` | finds numbers typed into the manuscript instead of printed by `\claim{}` |
 | `check_paths.sh` | refuses machine-specific paths outside `cluster_bringup/env.sh` |
-| `tests/test_claims.sh` | breaks the map on purpose and checks that every tool refuses |
-| `results/` | written by the run: CSVs, logs, `summary.csv` |
-
-Each stage takes the results directory as its only argument, so any one of them
-can be run on its own:
-
-```sh
-mkdir -p reproduce/results
-sh reproduce/stages/50_spiking.sh reproduce/results
-```
+| `tests/` | breaks the claim map, the harness and `measure.py` on purpose and checks that each refuses |
+| `legacy/` | the reproduction pack of the paper's first version (August 2026), kept for the record |
+| `results/` | written by a run: the stages' CSVs and logs, `ap_check.txt` |
 
 Paths to toolkits, the comparison simulators and the ModelDB model are variables
-in `cluster_bringup/env.sh`; the simulators are built by the recipes in
-`cluster_bringup/toolchains/`, and what the cluster held before those recipes,
-with the defects found in it, is in `cluster_bringup/toolchains/as-found/`.
-
-The underlying benchmarks live in `cluster_bringup/`, and the cross-simulator
-harness, including how the NEURON and Arbor models were matched to the GENESIS
-one and why that matching had to be verified rather than assumed, in
-`cluster_bringup/coreneuron/README.md`.
+in `cluster_bringup/env.sh`. How the NEURON, CoreNEURON and Arbor models were
+matched to the GENESIS one, and checked, is in `cluster_bringup/coreneuron/README.md`
+and `cluster_bringup/arbor_vanet2/README.md`.

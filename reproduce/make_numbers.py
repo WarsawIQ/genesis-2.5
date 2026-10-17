@@ -183,28 +183,43 @@ def render_numbers(by_id, values):
     return "\n".join(out) + "\n"
 
 
+# The where-tags of claims.csv as the revised manuscript numbers its sections,
+# tables and figures (the README's table lists only the revised paper's numbers).
 WHERE_TEXT = {
     "abstract": "abstract",
-    "readme": "README",
-    "sec:3": "results text",
-    "sec:5": "impact text",
-    "sec:6": "conclusions",
-    "tab:cuda": "single-compartment speedups (table)",
-    "tab:multicomp": "dendritic-tree speedups (table)",
-    "fig:multicomp_speedup": "dendritic-tree speedups (figure)",
-    "tab:mcksweep": "speedup against run length (table)",
-    "tab:coreneuron": "spiking network against NEURON and CoreNEURON (table)",
-    "tab:mccross": "dendritic trees against NEURON and Arbor (table)",
-    "fig:crossover": "GPU crossover with Arbor (figure)",
-    "fig:construction_scaling": "model construction (figure)",
-    "fig:vmequiv": "membrane-potential equivalence (figure)",
+    "sec:2": "Section 2",
+    "sec:3": "Section 3",
+    "sec:4": "Section 4",
+    "sec:5": "Section 5",
+    "tab:single": "Table 2",
+    "tab:sim": "Table 3",
+    "tab:regimes": "Table 4",
+    "fig:trees": "Fig. 2",
+    "fig:runlength": "Fig. 3",
+    "fig:crossover": "Fig. 4",
+    "fig:construction": "Fig. 5",
 }
+MANUSCRIPT = os.path.join(ROOT, "paper", "manuscript_softwarex_revision.tex")
+
+
+def paper_closure(by_id):
+    """The ids the revised manuscript prints, with every input they come from."""
+    text = "\n".join(re.sub(r"(?<!\\)%.*$", "", l) for l in open(MANUSCRIPT).read().split("\n"))
+    todo, seen = list(set(re.findall(r"\\claim\{([^}]+)\}", text))), set()
+    while todo:
+        c = todo.pop()
+        if c in seen or c not in by_id:
+            continue
+        seen.add(c)
+        todo.extend(i for i in by_id[c]["inputs"].split(";") if i)
+    return seen
 
 
 def render_table(by_id):
     stages = {}
+    used = paper_closure(by_id)
     for c in by_id.values():
-        if c["kind"] == "derived":
+        if c["kind"] == "derived" or c["id"] not in used:
             continue
         key = c["stage"] if c["kind"] != "prose" else ""
         if c["kind"] == "cited":
@@ -248,7 +263,9 @@ def with_inline(readme, by_id, values):
         cid = m.group(1)
         if cid not in by_id:
             raise ClaimError("README.md: <!--claim:%s--> names no claim" % cid)
-        return "<!--claim:%s-->%s<!--/claim-->" % (cid, fmt(values[cid], by_id[cid]["format"]))
+        # Markdown, not LaTeX: thousands with a plain comma
+        text = fmt(values[cid], by_id[cid]["format"]).replace("\\,", ",")
+        return "<!--claim:%s-->%s<!--/claim-->" % (cid, text)
     return INLINE_RE.sub(sub, readme)
 
 

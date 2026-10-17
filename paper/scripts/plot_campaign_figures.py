@@ -127,7 +127,7 @@ def fig_runlength(sessions, dest):
     ax.set_ylabel("end-to-end speedup over the CPU solver")
     ax.legend(frameon=False, fontsize=8)
     fig.tight_layout()
-    fig.savefig(dest)
+    save(fig, dest)
 
 
 def fig_trees(sessions, dest):
@@ -150,7 +150,7 @@ def fig_trees(sessions, dest):
     axes[0].set_ylabel("speedup over the CPU solver")
     axes[0].legend(frameon=False, fontsize=8)
     fig.tight_layout()
-    fig.savefig(dest)
+    save(fig, dest)
 
 
 def fig_crossover(sessions, dest):
@@ -175,7 +175,13 @@ def fig_crossover(sessions, dest):
         ax.legend(frameon=False, fontsize=8)
     axes[0][0].set_ylabel("wall time (s)")
     fig.tight_layout()
+    save(fig, dest)
+
+
+def save(fig, dest):
+    """The PDF for the paper, and a PNG of the same figure for the README."""
     fig.savefig(dest)
+    fig.savefig(os.path.splitext(dest)[0] + ".png", dpi=200)
 
 
 def fig_construction(sessions, before_csv, dest):
@@ -200,7 +206,7 @@ def fig_construction(sessions, before_csv, dest):
     ax.set_ylabel("construction wall time (s)")
     ax.legend(frameon=False, fontsize=8)
     fig.tight_layout()
-    fig.savefig(dest)
+    save(fig, dest)
 
 
 def main(argv):

@@ -1,5 +1,5 @@
 {
-    "title": "GENESIS 2.5: optimisation and opt-in OpenCL/CUDA acceleration for the GENESIS/PGENESIS compartmental neural simulator",
+    "title": "GENESIS 2.5: CUDA and OpenCL acceleration for existing models of the GENESIS compartmental neural simulator",
     "upload_type": "software",
     "license": "GPL-2.0-or-later",
     "creators": [

@@ -60,7 +60,8 @@ SOURCES = [
 # what a reader needs for the numbers a run did not measure, by experiment
 NEEDS = {"E2": "a GPU run (run_all.sh --quick)", "E3": "a GPU run (run_all.sh --quick)",
          "E8": "a GPU run (run_all.sh --quick)", "E5": "a full GPU run (run_all.sh)",
-         "E7": "a full GPU run (run_all.sh)", "E3c": "run_all.sh --cpu-only",
+         "E7": "a full GPU run (run_all.sh)",
+         "E3c": "the full sizes (run_all.sh --cpu-only, without --quick)",
          "chanmode": "run_all.sh --cpu-only", "accel_regression": "run_all.sh --cpu-only",
          "E1": "run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)",
          "E4": "run_all.sh --with-simulators (Arbor)"}
@@ -68,7 +69,7 @@ ELSEWHERE = [
     (r"/E6_", "perf profiles: cluster_bringup/campaign/E6_profile.sh"),
     (r"/E9_|e9_rusticl|/runs/victor_", "an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh"),
     (r"numa_check", "the cluster's two sockets: cluster_bringup/campaign/numa_check.sh"),
-    (r"host_kernel_profile", "Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh"),
+    (r"host_kernel", "Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh"),
     (r"construction_before", "the code before the fixes: cluster_bringup/campaign/construction_before.sh"),
     (r"^genesis/", "nothing: read from the source code"),
 ]
@@ -202,6 +203,8 @@ def why_missing(claims, cid, vals):
         if re.search(pat, claim["data"]):
             return why
     i, key = source_of(claim["data"])
+    if key == "accel_regression" and claim["hardware"] in CARD:
+        return NEEDS["E2"]                   # the GPU's value of the action potential check
     if key in NEEDS:
         return NEEDS[key]
     if claim["kind"] == "cited":

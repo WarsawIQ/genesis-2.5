@@ -1,9 +1,12 @@
 # The revision measurement campaign
 
 Every number in the revised paper is measured by the stages in this folder, on
-one tagged commit (`v2.6.0-rc1`), and written to
-`cluster_bringup/logs/campaign_v2.6.0-rc1/`. The experiments, E1 to E9, answer
-the reviewers' points 3, 4, 6, 7, 8 and 9:
+one tagged commit, and written to `cluster_bringup/logs/campaign_<tag>/`. The
+campaign started on `v2.6.0-rc1`; defects found on the way moved it to rc2, rc3
+and finally `v2.6.0-rc4`, whose sources release v2.6.0 keeps unchanged, so every
+published number is from `cluster_bringup/logs/campaign_v2.6.0-rc4/` (the
+earlier nights are kept and superseded). The experiments, E1 to E9, answer the
+reviewers' points 3, 4, 6, 7, 8 and 9:
 
 | Stage | What it measures | Where | Replicates |
 |---|---|---|---|
@@ -74,9 +77,16 @@ Toolchains on UMCS: `WORK_DIR=$HOME/tc-verify-20260929`, built from
 3. CI green on the candidate commit.
 4. Update `CITATION.cff` (version, date) — `.zenodo.json` carries the rest of the
    deposit metadata.
-5. Then, and only on Karol's word: merge into `master`, tag `v2.6.0-rc1`,
+5. Then, and only on Karol's word: merge into `master`, tag the candidate (`v2.6.0-rcN`),
    push the tag. From then on only documentation, analysis and packaging change.
 
 All cluster access goes through one `ssh -fN miranda` master connection;
 `sync_from_cluster.sh` refuses to run without it. No script or loop may log
 in by itself.
+
+## A reader's run
+
+`reproduce/run_all.sh` runs these stages for a reader with `REPRO=quick` or
+`full`: `CAMPAIGN_DRY=1`, every file under `reproduce/results/`, sizes chosen
+next to each stage's dry-run line. `reproduce/measure.py` then computes the
+paper's numbers from those files with the same extractors (`reproduce/README.md`).
