@@ -113,8 +113,9 @@ met its maintainer, Dave Beeman, at the EU Advanced Course in Computational
 Neuroscience in \'Obidos in 2001; the first author completed his PhD under the second
 author's supervision in 2023. On 30 September 2026
 we offered the work to the original project: the solver fixes as a pull request, and
-the whole release as its next version. \pending{upstream_status}
-%% Outcome by submission: reply / PR number / no reply.
+the whole release as its next version. Dave Beeman had not replied by the time we
+submitted this revision; the solver and construction fixes are open as pull request
+\href{https://github.com/genesis-sim/genesis-2.4/pull/7}{\#7} in that repository.
 
 \textbf{Alternatives, and what they ask of a user.} NEURON~\cite{hines1997neuron} with
 its engine CoreNEURON~\cite{kumbhar2019coreneuron} and Arbor~\cite{arbor2019} run
@@ -481,9 +482,8 @@ first cell's were perturbed and the others were never computed), and under
 Crank--Nicolson the solve diverged or crashed. The configuration is natural for networks,
 so models may exist whose published results this touched. GENESIS~2.5 computes each
 cell exactly as if it were alone, shown by a committed test against a single-cell
-reference, and we have offered the two fixes, with the test, to the original
-project. \pending{upstream_pr_status}
-%% merge with the upstream_status sentence of Section 1 when the outcome is known.
+reference, and the two fixes, with the test, are offered to the original project as
+a pull request (Section~1).
 
 Second, construction. Building a model was quadratic in its size: wall time grew as
 compartments$^{\claim{e3c_before_exponent_inf03}}$, which made population-scale
