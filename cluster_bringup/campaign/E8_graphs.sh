@@ -13,7 +13,12 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/campaign/lib.sh"
 . "$GENESIS_ROOT/cluster_bringup/campaign/sanity.sh"
 REPS=${REPS:-5}; N=10000; KS="5000 50000"
-[ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && N=1000 && KS="500"
+SPK=1
+case "${REPRO:-}" in   # a reader's run, reproduce/run_all.sh; quick: the tree loop only
+    quick) REPS=${REPS_REPRO:-2}; KS="5000"; SPK=0 ;;
+    full)  REPS=${REPS_REPRO:-3} ;;
+    *) [ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && N=1000 && KS="500" ;;
+esac
 campaign_init E8
 cuda_env
 need genesis/src/nxgenesis "cluster_bringup/10_build.sh"
@@ -48,7 +53,7 @@ arm() {
 }
 ARMS=""; RATIOS=""
 for k in $KS; do ARMS="$ARMS tree_k${k}_g0 tree_k${k}_g1"; RATIOS="$RATIOS gain_tree_k$k=tree_k${k}_g0/tree_k${k}_g1"; done
-ARMS="$ARMS spk_g0 spk_g1"; RATIOS="$RATIOS gain_spiking=spk_g0/spk_g1"
+[ "$SPK" = 1 ] && ARMS="$ARMS spk_g0 spk_g1" && RATIOS="$RATIOS gain_spiking=spk_g0/spk_g1"
 run_arms "$REPS" arm $ARMS; st=$?
 arm spk_id_g0 1 1 || st=$?
 arm spk_id_g1 1 2 || st=$?

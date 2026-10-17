@@ -9,7 +9,11 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/campaign/lib.sh"
 . "$GENESIS_ROOT/cluster_bringup/campaign/sanity.sh"
 REPS=${REPS:-5}; N=10000; KLIST="200 500 1000 2000 5000 10000"
-[ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && N=1000 && KLIST="200 1000"
+case "${REPRO:-}" in   # a reader's run, reproduce/run_all.sh
+    quick) REPS=${REPS_REPRO:-2}; KLIST="1000 10000" ;;
+    full)  REPS=${REPS_REPRO:-3} ;;
+    *) [ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && N=1000 && KLIST="200 1000" ;;
+esac
 campaign_init E2
 cuda_env
 need genesis/src/nxgenesis "cluster_bringup/10_build.sh"

@@ -27,7 +27,10 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 . "$GENESIS_ROOT/cluster_bringup/campaign/lib.sh"
 . "$GENESIS_ROOT/cluster_bringup/campaign/sanity.sh"
 REPS=${REPS:-3}; TMAX=9.95; SCALE=""
-[ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && TMAX=0.45
+case "${REPRO:-}" in   # a reader's run, reproduce/run_all.sh: the paper's numbers use replicate 1
+    quick|full) REPS=${REPS_REPRO:-1} ;;
+    *) [ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && TMAX=0.45 ;;
+esac
 campaign_init E5
 cuda_env
 need genesis/src/nxgenesis "cluster_bringup/10_build.sh"

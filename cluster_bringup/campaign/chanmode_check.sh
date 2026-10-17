@@ -25,11 +25,17 @@ NUMA=${CAMPAIGN_NUMA:-0}
 MODES=${MODES:-1 3 4}
 N=${N:-10000}; K=${K:-1000}
 BIN=$REL/genesis/src/nxgenesis_nocl
-OUT=$GENESIS_ROOT/cluster_bringup/logs/campaign_prep/chanmode_check_$(hostname -s)_$(date +%Y%m%d_%H%M%S)
+HOST=$(uname -n); HOST=${HOST%%.*}
+# CHANMODE_OUT: a reader's run (reproduce/run_all.sh) writes under its results
+OUT=${CHANMODE_OUT:-$GENESIS_ROOT/cluster_bringup/logs/campaign_prep/chanmode_check_${HOST}_$(date +%Y%m%d_%H%M%S)}
+BIND=""
+if [ "$NUMA" != off ] && command -v numactl >/dev/null 2>&1; then
+    BIND="numactl --cpunodebind=$NUMA --membind=$NUMA"
+fi
 mkdir -p "$OUT"
 {
-echo "# node $(hostname -s); binary $(cd "$REL" && git describe --tags --always) nxgenesis_nocl sha256 $(sha256sum "$BIN" | cut -d' ' -f1)"
-echo "# hh_multicompartment_createmap.g N=$N x 16 compartments, K=$K, numactl node $NUMA, modes $MODES"
+echo "# node $HOST; binary $(cd "$REL" && git describe --tags --always 2>/dev/null || echo unknown) nxgenesis_nocl sha256 $(sha256sum "$BIN" | cut -d' ' -f1)"
+echo "# hh_multicompartment_createmap.g N=$N x 16 compartments, K=$K, binding: ${BIND:-none}, modes $MODES"
 echo "chanmode,rep,wall_s,t_per_step_s,vm_soma,vm_far"
 } > "$OUT/data.csv"
 cd "$REL" || exit 2
@@ -37,7 +43,7 @@ for r in $(seq 1 "$REPS"); do
     for m in $MODES; do
         log=$OUT/cm${m}_r$r.log
         t0=$(date +%s%N)
-        numactl --cpunodebind="$NUMA" --membind="$NUMA" env GENESIS_BENCH_CHANMODE="$m" GENESIS_BENCH_NCOMP=16 \
+        $BIND env GENESIS_BENCH_CHANMODE="$m" GENESIS_BENCH_NCOMP=16 \
             timeout 3600 "$BIN" -nosimrc -notty -batch genesis/Scripts/benchmark/hh_multicompartment_createmap.g \
             "$N" "$K" > "$log" 2>&1 < /dev/null
         t1=$(date +%s%N)

@@ -14,14 +14,20 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 REPS=${REPS:-10}
 T1_N="500 5000 50000"; T1_K=50000
 T2_N="100 500 1000 2000 3000 5000 7000 10000 15000 20000 30000 40000 50000"; T2_K=200
-if [ "$CAMPAIGN_DRY" = 1 ]; then
+BACKENDS="cuda ocl"
+if [ -n "${REPRO:-}" ]; then   # a reader's run, reproduce/run_all.sh
+    REPS=${REPS_REPRO:-3}
+    [ "$REPRO" = quick ] && REPS=${REPS_REPRO:-2} && T2_N="1000 2000 3000 5000 10000"
+    # OpenCL is optional for a reader: without its binary, the CUDA columns only
+    [ -x genesis/src/nxgenesis_ocl ] || [ -x "$GENESIS_ROOT/genesis/src/nxgenesis_ocl" ] || BACKENDS="cuda"
+elif [ "$CAMPAIGN_DRY" = 1 ]; then
     REPS=${REPS_DRY:-1}; T1_N="500"; T1_K=5000; T2_N="100 1000"
 fi
 campaign_init E3
 cuda_env
 need genesis/src/nxgenesis "cluster_bringup/10_build.sh"
 need genesis/src/nxgenesis_nocl "cluster_bringup/10_build.sh"
-need genesis/src/nxgenesis_ocl "cluster_bringup/11_build_opencl.sh, before 10_build.sh"
+case "$BACKENDS" in *ocl*) need genesis/src/nxgenesis_ocl "cluster_bringup/11_build_opencl.sh, before 10_build.sh" ;; esac
 need_sass genesis/src/nxgenesis
 S1=genesis/Scripts/benchmark/hh_spiking_benchmark.g
 
@@ -54,12 +60,16 @@ arm() {   # t1_<be>_n<N>, t2_<be>_n<N>
 }
 ARMS=""; RATIOS=""
 for n in $T1_N; do
-    ARMS="$ARMS t1_cpu_n$n t1_cuda_n$n t1_ocl_n$n"
-    RATIOS="$RATIOS t1_cuda_n$n=t1_cpu_n$n/t1_cuda_n$n t1_ocl_n$n=t1_cpu_n$n/t1_ocl_n$n"
+    ARMS="$ARMS t1_cpu_n$n"
+    for be in $BACKENDS; do
+        ARMS="$ARMS t1_${be}_n$n"; RATIOS="$RATIOS t1_${be}_n$n=t1_cpu_n$n/t1_${be}_n$n"
+    done
 done
 for n in $T2_N; do
-    ARMS="$ARMS t2_cpu_n$n t2_cuda_n$n t2_ocl_n$n"
-    RATIOS="$RATIOS t2_cuda_e2e_n$n=t2_cpu_n$n/t2_cuda_n$n t2_ocl_e2e_n$n=t2_cpu_n$n/t2_ocl_n$n"
+    ARMS="$ARMS t2_cpu_n$n"
+    for be in $BACKENDS; do
+        ARMS="$ARMS t2_${be}_n$n"; RATIOS="$RATIOS t2_${be}_e2e_n$n=t2_cpu_n$n/t2_${be}_n$n"
+    done
 done
 OCL_BIN=./genesis/src/nxgenesis_ocl
 run_arms "$REPS" arm $ARMS; st=$?

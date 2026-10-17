@@ -22,12 +22,18 @@ GENESIS_ROOT=${GENESIS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 REPS=${REPS:-3}
 CN="1000 2000 4000 8000 16000 31000 62000 100000"
 PLIST="1 2 4 6 8 12 16 20 24"
-[ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && CN="1000 4000" && PLIST="1 2"
+case "${REPRO:-}" in   # a reader's run, reproduce/run_all.sh: construction only, no MPI
+    quick) REPS=${REPS_REPRO:-1}; CN="1000 2000 4000 8000 16000"; PLIST="" ;;
+    full)  REPS=${REPS_REPRO:-3}; PLIST="" ;;
+    *) [ "$CAMPAIGN_DRY" = 1 ] && REPS=${REPS_DRY:-1} && CN="1000 4000" && PLIST="1 2" ;;
+esac
 campaign_init E3c
 need genesis/src/nxgenesis_nocl "cluster_bringup/10_build.sh or 12_build_cpu.sh"
 PGEN=pgenesis/bin/Linux/nxpgenesis
-need "$PGEN" "PGENESIS build, cluster_bringup/70_pgenesis_build_status.md"
-[ "$(nproc)" -ge 24 ] || [ "$CAMPAIGN_DRY" = 1 ] || { echo "REFUSED: $(nproc) cores, 24 ranks need 24" >&2; exit 2; }
+if [ -n "$PLIST" ]; then
+    need "$PGEN" "PGENESIS build, cluster_bringup/70_pgenesis_build_status.md"
+    [ "$(nproc)" -ge 24 ] || [ "$CAMPAIGN_DRY" = 1 ] || { echo "REFUSED: $(nproc) cores, 24 ranks need 24" >&2; exit 2; }
+fi
 
 arm() {   # con_n<N>, mpi_p<P>
     case "$1" in

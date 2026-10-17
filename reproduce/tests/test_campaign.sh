@@ -160,5 +160,18 @@ else
     echo "skip  NUMA binding (numactl cannot bind here)"
 fi
 
+# 11. A reader's run (REPRO, reproduce/run_all.sh) needs CAMPAIGN_DRY=1 and its own
+#     CAMPAIGN_OUT, and then writes only there
+fresh
+stage CAMPAIGN_DRY=1 REPRO=quick; rc=$?
+if [ "$rc" = 2 ] && grep -q "REFUSED: REPRO needs" "$T/out"; then ok "REPRO without CAMPAIGN_OUT refused"
+else bad "REPRO without CAMPAIGN_OUT: rc $rc"; fi
+fresh
+stage CAMPAIGN_DRY=1 REPRO=quick CAMPAIGN_OUT="$T/reader"; rc=$?
+if [ "$rc" = 0 ] && ls "$T/reader"/EX_testnode_*.csv > /dev/null 2>&1 \
+   && ! ls "$OUTDIR"/EX_* > /dev/null 2>&1; then
+    ok "a reader's run writes only to its CAMPAIGN_OUT"
+else bad "reader's run: rc $rc"; fi
+
 [ "$fail" = 0 ] && echo "all campaign harness checks passed"
 exit "$fail"

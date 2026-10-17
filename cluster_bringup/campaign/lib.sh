@@ -28,7 +28,7 @@ CAMPAIGN_WAIT_S=${CAMPAIGN_WAIT_S:-600}
 CAMPAIGN_WAIT_TRIES=${CAMPAIGN_WAIT_TRIES:-6}
 CAMPAIGN_MEM_MIB=${CAMPAIGN_MEM_MIB:-100}   # memory in use on an idle card, at most
 NVSMI=${NVIDIA_SMI:-nvidia-smi}
-NODE=${CAMPAIGN_NODE:-$(hostname -s)}
+NODE=${CAMPAIGN_NODE:-$(hostname -s 2>/dev/null || uname -n | cut -d. -f1)}
 
 say() { echo "[$(date +%H:%M:%S)] $*"; }
 
@@ -89,14 +89,23 @@ header() {   # the run header of data-model.md, as '# key: value' lines
 # ------------------------------------------------------------- init / done
 campaign_init() {   # $1 experiment id, e.g. E1
     EXP=$1
+    # A reader's run (reproduce/run_all.sh) picks its sizes with REPRO and must
+    # never write where the campaign's data live.
+    if [ -n "${REPRO:-}" ]; then
+        case "$REPRO" in quick|full) ;; *) echo "REFUSED: REPRO=$REPRO (quick or full)" >&2; exit 2 ;; esac
+        if [ "$CAMPAIGN_DRY" != 1 ] || [ -z "${CAMPAIGN_OUT:-}" ]; then
+            echo "REFUSED: REPRO needs CAMPAIGN_DRY=1 and CAMPAIGN_OUT (reproduce/run_all.sh sets both)" >&2
+            exit 2
+        fi
+    fi
     cd "$GENESIS_ROOT" || exit 2
-    COMMIT=$(git rev-parse HEAD)
+    COMMIT=$(git rev-parse HEAD 2>/dev/null || echo unknown)
     DESCRIBE=$(git describe --tags --exact-match 2>/dev/null || echo untagged)
     # The build rewrites some tracked generated files (build_generated.txt);
     # they are counted apart, and any other change makes the tree dirty.
     _gen=$(grep -v '^#' cluster_bringup/campaign/build_generated.txt | sed 's/^/:(exclude)/')
-    DIRTY=$(git status --porcelain --untracked-files=no -- . $_gen | wc -l | tr -d ' ')
-    GENCHANGED=$(git status --porcelain --untracked-files=no | wc -l | tr -d ' ')
+    DIRTY=$(git status --porcelain --untracked-files=no -- . $_gen 2>/dev/null | wc -l | tr -d ' ')
+    GENCHANGED=$(git status --porcelain --untracked-files=no 2>/dev/null | wc -l | tr -d ' ')
     GENCHANGED=$((GENCHANGED - DIRTY))
     if [ "$CAMPAIGN_DRY" = 1 ]; then
         CAMPAIGN_OUT=${CAMPAIGN_OUT:-$GENESIS_ROOT/cluster_bringup/logs/campaign_dry}
