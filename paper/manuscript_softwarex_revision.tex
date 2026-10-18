@@ -51,7 +51,7 @@ or scripts. On 160\,000 compartments over 10\,000 steps an A100 runs
 \claim{e2_max_e2e_a100}$\times$ faster end to end than the CPU solver. In double
 precision it matches the CPU solver to ten significant figures. Spiking networks with
 zero axonal delay run slower, because the host delivers spikes every step. The release
-also makes model construction linear in the common case and fixes two Hines-solver
+also makes model construction linear in the common case and fixes three Hines-solver
 defects of GENESIS~2.4.
 \end{abstract}
 
@@ -69,9 +69,9 @@ GENESIS \sep PGENESIS \sep compartmental neural simulation \sep Hines solver \se
 \hline
 \textbf{Nr.} & \textbf{Code metadata description} & \textbf{Please fill in this column} \\
 \hline
-C1 & Current code version & v2.6.0 \\
+C1 & Current code version & v2.6.2 \\
 \hline
-C2 & Permanent GitHub link to code/repository used for this code version & \url{https://github.com/WarsawIQ/genesis-2.5} (release v2.6.0, archived at \url{https://doi.org/10.5281/zenodo.23298087}) \\
+C2 & Permanent GitHub link to code/repository used for this code version & \url{https://github.com/WarsawIQ/genesis-2.5} (release v2.6.2, archived at \pending{v262_doi}) \\
 \hline
 C3 & Legal Code License & GNU General Public License v2 or later (program); GNU Lesser General Public License v2.1 or later (library portions); see \texttt{LICENSE} \\
 \hline
@@ -111,7 +111,8 @@ continues GENESIS~2. GENESIS~3 took a different path, a modularisation of the si
 into stand-alone components based on the Neurospaces
 project~\cite{cornelis2007dendrite,cornelis2008cbi,cornelis2011,cornelis2012python,cornelis2013interop};
 GENESIS~2.5 keeps the code base of GENESIS~2.4 and runs its scripts unchanged. This paper
-describes release v2.6.0 of GENESIS~2.5. The second
+describes release v2.6.2 of GENESIS~2.5; its numbers were measured on v2.6.0, whose
+computations v2.6.2 keeps (Section~3). The second
 author has used GENESIS and PGENESIS since his doctoral work~\cite{wojcik2004lsm} and
 met its maintainer, Dave Beeman, at the EU Advanced Course in Computational
 Neuroscience in \'Obidos in 2001; the first author completed his PhD under the second
@@ -136,10 +137,12 @@ GENESIS~2.5 runs existing GENESIS scripts on a GPU without porting them.
 \item CUDA and OpenCL backends for \texttt{hsolve}, selected at run time, in single or
       double precision, falling back to the CPU for anything they cannot compute.
 \item \hte{}, a GPU Hines elimination for populations of dendritic trees.
-\item Two fixes to the Hines solver of GENESIS~2.4, which with several cells under
+\item Three fixes to the Hines solver of GENESIS~2.4, which with several cells under
       one solver computed wrong voltages (backward Euler) or diverged and crashed
-      (Crank--Nicolson), and model construction in linear time; both apply with or
-      without a GPU and are open as a pull request to the original project.
+      (Crank--Nicolson), and with one compartment returned a wrong backward-Euler
+      voltage under \texttt{chanmode~2}; and model construction in linear time. Both
+      apply with or without a GPU and are open as a pull request to the original
+      project.
 \item A comparison with NEURON, CoreNEURON and Arbor in which every arm is measured in
       one session, and a reproduction package that regenerates every number in this
       paper from raw data (Section~3).
@@ -302,7 +305,10 @@ a model the device cannot compute is reported and run on the CPU.
 
 Every number in this section was measured on release v2.6.0 on the UMCS ``Lunar''
 cluster (inf02: Xeon Gold 6342 and NVIDIA A40; inf03: Xeon Platinum 8358 and NVIDIA
-A100). CPU arms are single-threaded. Times are wall-clock times of the whole process,
+A100). Release v2.6.2, which the metadata cite,
+corrects defects of the element tree introduced in GENESIS~2.5 (\texttt{readcell}
+crashed on a cell whose compartments have coordinates) and computes the same results:
+\pending{v262_gate}. CPU arms are single-threaded. Times are wall-clock times of the whole process,
 and each value is a mean over replicates run in interleaved order. All runs, CPU arms
 included, were bound to the GPU's NUMA node, so both arms of a speedup used the same
 socket. A speedup is the ratio of two means; its uncertainty combines the two arms'
@@ -509,8 +515,10 @@ silently gave wrong voltages under backward Euler: the first cell's were perturb
 the others were never computed. Under Crank--Nicolson the solve diverged or crashed.
 Networks are often built this way, so published results may be affected. GENESIS~2.5
 computes each cell exactly as if it were alone, which a committed test checks against
-a single-cell reference. The fixes and their tests are open as a pull request to the
-original project (Section~1).
+a single-cell reference. A third defect stored, for a cell of one compartment under
+\texttt{chanmode~2}, the backward-Euler solution minus the previous voltage in place of
+the voltage. The fixes and their tests are open as a pull request to the original
+project (Section~1).
 
 The second is construction. Building a model took time quadratic in its size, growing
 as compartments$^{\claim{e3c_before_exponent_inf03}}$: 272\,000 compartments took
@@ -606,9 +614,9 @@ backend was developed.
 \hline
 \textbf{Nr.} & \textbf{(Executable) software metadata description} & \textbf{Please fill in this column} \\
 \hline
-S1 & Current software version & v2.6.0 \\
+S1 & Current software version & v2.6.2 \\
 \hline
-S2 & Permanent link to executables of this version & \url{https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.0} \\
+S2 & Permanent link to executables of this version & \url{https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.2} \\
 \hline
 S3 & Legal Software License & GNU General Public License v2 or later \\
 \hline
