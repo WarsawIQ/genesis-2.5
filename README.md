@@ -117,8 +117,13 @@ How the kernels work, including the dead ends, is in
 
 ## Known issues
 
-Two past releases gave wrong results on the GPU. If you used one of them, read
+Two past releases gave wrong results on the GPU, and every release from v2.5 to
+v2.6.1 crashes on reading some cells. If you used one of them, read
 [KNOWN_ISSUES.md](KNOWN_ISSUES.md):
+
+- **v2.5 to v2.6.1**: `readcell` crashes on a cell whose compartments have
+  coordinates, and re-creating an element made at start-up duplicates it (fixed in
+  2.6.2; no computed number was affected).
 
 - **v2.5**: models with synaptic channels, a `spike` element, GHK or
   concentration pools under `chanmode` 4 or 5 (fixed in 2.5.1).

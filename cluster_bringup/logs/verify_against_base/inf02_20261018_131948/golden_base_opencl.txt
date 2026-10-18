@@ -1,0 +1,16 @@
+# accelerator regression golden
+# device: NVIDIA A40
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+ap_gpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_gpu|RESULT_VM= -0.02143489154
+multi_cpu|RESULT_VM_FAR= -0.0798336887
+multi_cpu|RESULT_VM_SOMA= -0.0735408486
+multi_gpu|RESULT_VM_FAR= -0.07983308288
+multi_gpu|RESULT_VM_SOMA= -0.0735396004
+branch_cpu|RESULT_VM_FAR= -0.06712074288
+branch_cpu|RESULT_VM_SOMA= -0.06603039703
+branch_gpu|RESULT_VM_FAR= -0.06712071115
+branch_gpu|RESULT_VM_SOMA= -0.06603036164
+vanet2_cpu|vm_md5=1440eb862079f69f891c5a57a99af681
+vanet2_cpu|vm_lines=50001

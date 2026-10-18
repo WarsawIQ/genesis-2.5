@@ -5,12 +5,40 @@ and where it is fixed. Build problems are in [docs/BUILDING.md](docs/BUILDING.md
 
 | Issue | Affects | Fixed in | Effect |
 |---|---|---|---|
+| [readcell crashes on a cell whose compartments have coordinates; re-creating an element duplicates it](#the-element-tree-in-v25v261-fixed-in-262) | v2.5 to v2.6.1 | 2.6.2 | a crash when the model is read; no wrong number reported |
 | [A long OpenCL single-compartment batch resets an integrated GPU under rusticl](#opencl-a-long-single-compartment-batch-can-reset-an-integrated-gpu-fixed-in-261) | 2.6.0 | 2.6.1 | the run is lost; no wrong result |
 | [Table 2's GPU arms ran 10 steps fewer than the CPU arm](#table-2s-gpu-arms-ran-10-steps-fewer-than-the-cpu-arm-002-fixed-in-261) | 2.6.0 benchmark harness | 2.6.1 | 0.02% of the work; no published speedup moves |
 | [Spiking networks on the GPU: spurious first-step spikes, state kept across RESET, stale HGET/HPUT](#spiking-networks-on-the-gpu-in-v251v254-fixed-in-260) | v2.5.1 to v2.5.4 | 2.6.0 | **wrong results** for spiking networks on CUDA; reruns after RESET on both backends |
 | [Models the kernels cannot compute were computed anyway](#wrong-results-in-the-v25-release-fixed-in-251) | v2.5 | 2.5.1 | **wrong results** with synaptic channels, `spike`, GHK or concentration pools |
 | [A missing `include` corrupts the heap and never reports failure](#a-missing-include-corrupted-the-heap-and-never-reported-failure-fixed-in-253) | up to v2.5.2 | 2.5.3 | a hung or crashed batch job, never a clean error |
 | [The binary reports version 2.4](#the-v25-and-v251-tags-report-24-in-their-banner-fixed-in-252) | v2.5, v2.5.1 | 2.5.2 | cosmetic |
+
+## The element tree in v2.5–v2.6.1 (fixed in 2.6.2)
+
+**If you read a cell with `readcell` and its compartments have coordinates (any
+branched cell from a `.p` file in cartesian or polar form), GENESIS 2.5 up to
+2.6.1 crashes**, usually while reading the cell. The constant-time `Attach()` of
+2.5 added a tail pointer, `childtail`, to the generic element layout but not to
+the layout compartments use, so a compartment's link to its next sibling lay on
+its own `x0`/`y0` coordinates: setting them broke the element tree, and adding a
+sibling overwrote them. Three smaller defects came with the same change:
+`readcell`'s `*makeproto` left the new tail pointers and the element hash table
+pointing at a freed element (a crash on the next child created under the
+prototype); an element made outside `create`, such as `/output` at start-up, was
+missing from the hash table, so creating it again appended a second element of
+the same name where GENESIS 2.4 replaced it; and two hash lookups copied
+pathnames into 300-byte buffers.
+
+We know of no model in which this changed a computed number instead of crashing,
+though a script that set and later read a compartment's `x0`/`y0` could have read
+corrupted coordinates. The campaign's models build their compartments by script, and
+VAnet2's single compartment sits at 0,0,0, so no number of the SoftwareX paper is
+affected; v2.6.2's output is byte-identical to v2.6.0's in fp32 on the A40 and
+the A100 (`cluster_bringup/logs/verify_against_base/`). All four were found from
+GitHub Copilot's review of genesis-sim/genesis-2.4#7, which carries the same
+construction code, and are covered by `genesis/Scripts/tests/run_tests.sh`
+(element_layout.g, readcell_coords.g, makeproto.g, duplicate_element.g,
+long_paths.g), which `reproduce/run_all.sh` and CI run on every push.
 
 ## OpenCL: a long single-compartment batch can reset an integrated GPU (fixed in 2.6.1)
 

@@ -307,7 +307,9 @@ Every number in this section was measured on release v2.6.0 on the UMCS ``Lunar'
 cluster (inf02: Xeon Gold 6342 and NVIDIA A40; inf03: Xeon Platinum 8358 and NVIDIA
 A100). Release v2.6.2, which the metadata cite,
 fixes all the defects found during the work on this paper and computes the same
-results: \pending{v262_gate}. CPU arms are single-threaded. Times are wall-clock times of the whole process,
+results: on both cards its fp32 output is byte-identical to that of v2.6.0, and its
+fp64 output agrees with the CPU solver to $10^{-10}$\,V.
+CPU arms are single-threaded. Times are wall-clock times of the whole process,
 and each value is a mean over replicates run in interleaved order. All runs, CPU arms
 included, were bound to the GPU's NUMA node, so both arms of a speedup used the same
 socket. A speedup is the ratio of two means; its uncertainty combines the two arms'
