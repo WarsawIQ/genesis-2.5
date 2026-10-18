@@ -9,7 +9,7 @@ A maintenance release. It fixes defects of the element tree that came with GENES
 - **Re-creating an element replaces it again.** Elements made outside `create` (`/output` and `/proto` at start-up, `readcell`'s compartments, `createmap`'s grid) were missing from the element hash table on which `Attach()` relies to find an existing sibling, so creating one of them again appended a second element of the same name where GENESIS 2.4 replaced it. Every attached element is now in the table.
 - **Pathnames longer than 300 characters no longer overflow the two buffers 2.5 added** to `Attach()` and to path resolution. (GENESIS 2.4 itself stops at about 300 characters in older code.)
 
-We know of no model in which these changed a computed number instead of crashing. See [KNOWN_ISSUES.md](../../KNOWN_ISSUES.md).
+We know of no model in which these changed a computed number instead of crashing. See [KNOWN_ISSUES.md](https://github.com/WarsawIQ/genesis-2.5/blob/master/KNOWN_ISSUES.md).
 
 ## Tests and reproduction
 
