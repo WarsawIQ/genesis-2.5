@@ -1,0 +1,38 @@
+# v2.6.2 tarball unpacked on the laptop (Ubuntu 24.04, Radeon 890M), 2026-10-18T14:02:59+02:00; genesis/src/startup -> the tarball's startup/
+checksums: 0 failing
+core tests exit 0: 30 PASS, 0 other
+cpu exit 0: VMFINAL 0  -0.08130143871
+rocm fp64 exit 0: OCL: gotowy (500 kompartmentow, 5500 chips, kernele fp64) | VMFINAL 0  -0.08130143871
+rusticl fp32 exit 0: OCL: gotowy (500 kompartmentow, 5500 chips, kernele fp32) | VMFINAL 0  -0.08130148053
+
+== core tests
+element layout                               ELEMENT_LAYOUT: PASS
+readcell, coordinates                        READCELL_COORDS: PASS
+readcell, *makeproto                         MAKEPROTO: PASS
+re-creating an element                       DUPLICATE_ELEMENT: PASS
+long pathnames                               LONG_PATHS: PASS
+one compartment, Euler                       SINGLE_COMPARTMENT_EULER: PASS
+hsolve: 1 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 3 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 8 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 1 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 3 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 8 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 1 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 3 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 8 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 1 cells x 3 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 3 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 3 cells x 3 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 8 cells x 3 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 1 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 3 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 8 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 1 cells x 4 comp, branched 1, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 4 comp, branched 1, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 3 cells x 4 comp, branched 1, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 8 cells x 4 comp, branched 1, method 11 HSOLVE_MANY_CELLS: PASS

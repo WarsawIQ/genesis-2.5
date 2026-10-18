@@ -1,0 +1,4 @@
+commit 6699e792d46ae0d2757aa0b46be9368bf11f87ec (v2.6.2) on inf03
+built pgenesis/bin/Linux/nxpgenesis
+native code: sm_80
+ready

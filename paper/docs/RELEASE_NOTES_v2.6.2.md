@@ -23,4 +23,4 @@ We know of no model in which these changed a computed number instead of crashing
 
 ## Binaries
 
-`genesis-v2.6.2-linux-x86_64.tar.gz` holds `nxgenesis` (CUDA 12), `nxgenesis_ocl` (OpenCL 1.2) and `nxgenesis_nocl` (CPU), built from the v2.6.2 tag on the UMCS cluster, with `startup/`. Its `README.txt` lists the libraries each needs; `SHA256SUMS` inside and `cluster_bringup/logs/release/v2.6.2/manifest.txt` give the checksums.
+`genesis-v2.6.2-linux-x86_64.tar.gz` holds `nxgenesis_nocl` (CPU), `nxgenesis_ocl` (OpenCL 1.2, with its kernel source in `bin/hines/opencl/`) and `nxgenesis` (CUDA 12), built from the v2.6.2 tag on the UMCS cluster (AlmaLinux 8.10, glibc 2.28), with `startup/`. Its `README.txt` lists the libraries each needs and the GPU code the CUDA binary carries (native for sm_80, PTX for newer GPUs); `SHA256SUMS` inside and `cluster_bringup/logs/release/v2.6.2/manifest.txt` give the checksums. Unpacked on Ubuntu 24.04, the CPU binary passes all 30 tests, and it and the OpenCL binary under ROCm (fp64) print the same final voltage as v2.6.1; under rusticl the OpenCL binary runs on the GPU (`cluster_bringup/logs/release/v2.6.2/laptop_test.txt`).
