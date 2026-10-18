@@ -306,9 +306,8 @@ a model the device cannot compute is reported and run on the CPU.
 Every number in this section was measured on release v2.6.0 on the UMCS ``Lunar''
 cluster (inf02: Xeon Gold 6342 and NVIDIA A40; inf03: Xeon Platinum 8358 and NVIDIA
 A100). Release v2.6.2, which the metadata cite,
-corrects defects of the element tree introduced in GENESIS~2.5 (\texttt{readcell}
-crashed on a cell whose compartments have coordinates) and computes the same results:
-\pending{v262_gate}. CPU arms are single-threaded. Times are wall-clock times of the whole process,
+fixes all the defects found during the work on this paper and computes the same
+results: \pending{v262_gate}. CPU arms are single-threaded. Times are wall-clock times of the whole process,
 and each value is a mean over replicates run in interleaved order. All runs, CPU arms
 included, were bound to the GPU's NUMA node, so both arms of a speedup used the same
 socket. A speedup is the ratio of two means; its uncertainty combines the two arms'
