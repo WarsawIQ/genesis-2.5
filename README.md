@@ -7,8 +7,8 @@ or channel prototypes. A model the GPU cannot compute is reported and left to th
 CPU solver. Without a GPU backend it behaves as GENESIS 2.4, with two defects of
 the Hines solver and the quadratic cost of building large models fixed.
 
-- **Release:** [v2.6.1](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.1),
-  with Linux binaries; archived at [10.5281/zenodo.23301981](https://doi.org/10.5281/zenodo.23301981)
+- **Release:** [v2.6.2](https://github.com/WarsawIQ/genesis-2.5/releases/tag/v2.6.2),
+  with Linux binaries; archived at [10.5281/zenodo.23451767](https://doi.org/10.5281/zenodo.23451767)
   (all versions: [10.5281/zenodo.21716630](https://doi.org/10.5281/zenodo.21716630)).
 - **Paper:** under review at SoftwareX
   ([revised manuscript](paper/submission-revision/manuscript_softwarex_revision.pdf)).
@@ -66,7 +66,7 @@ computed from the raw data in this repository
 
 ## Install
 
-**Binaries.** The v2.6.1 release carries `genesis-v2.6.1-linux-x86_64.tar.gz` with
+**Binaries.** The v2.6.2 release carries `genesis-v2.6.2-linux-x86_64.tar.gz` with
 `nxgenesis` (CUDA 12), `nxgenesis_ocl` (OpenCL 1.2) and `nxgenesis_nocl` (CPU
 only), built on AlmaLinux 8.10 (glibc 2.28); its `README.txt` lists the libraries
 each one needs.
@@ -218,8 +218,8 @@ Until the paper is published, cite the software ([`CITATION.cff`](CITATION.cff))
 
 ```
 Chlasta K, Wójcik GM. GENESIS 2.5: CUDA and OpenCL acceleration for existing
-models of the GENESIS compartmental neural simulator. v2.6.1, 2026.
-https://github.com/WarsawIQ/genesis-2.5, https://doi.org/10.5281/zenodo.23301981
+models of the GENESIS compartmental neural simulator. v2.6.2, 2026.
+https://github.com/WarsawIQ/genesis-2.5, https://doi.org/10.5281/zenodo.23451767
 ```
 
 The paper's numbers were measured on v2.6.0,
