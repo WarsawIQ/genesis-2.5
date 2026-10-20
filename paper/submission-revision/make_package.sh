@@ -12,19 +12,27 @@
 #                                        figures, flat (Editorial Manager refuses subfolders),
 #                                        without the %% working comments, rebuilt from an
 #                                        empty directory to prove it compiles
+#   em/                                  what Editorial Manager's revision asks for: the
+#                                        manuscript as one editable .tex with PNG figures,
+#                                        and manuscript_marked_up.pdf against the reviewed
+#                                        version (REVIEWED, default 4452b40 of 23 August)
 # With <private dir> (softwarex-revision/), also <private dir>/submission/:
 #   response_to_reviewers.pdf, cover_letter.pdf   from the Markdown letters, which stay
 #                                        out of the public repository
 #
 # Refuses when a \pending value is left in the manuscript or a [bracketed]
 # placeholder in a letter, unless DRAFT=1. LATEXMK names the latexmk to run
-# (inside the VS Code flatpak: LATEXMK="flatpak-spawn --host latexmk").
+# (inside the VS Code flatpak: LATEXMK="flatpak-spawn --host latexmk"); LATEXDIFF and
+# PDFTOCAIRO likewise.
 set -eu
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 P=$ROOT/paper; S=$P/submission-revision
 PRIV=${1:-}
 DRAFT=${DRAFT:-0}
 LATEXMK=${LATEXMK:-latexmk}
+LATEXDIFF=${LATEXDIFF:-latexdiff}
+PDFTOCAIRO=${PDFTOCAIRO:-pdftocairo}
+REVIEWED=${REVIEWED:-4452b40}
 cd "$ROOT"
 
 python3 reproduce/make_numbers.py --check > /dev/null
@@ -89,6 +97,60 @@ T=$(mktemp -d "$ROOT/../.mktest.XXXXXX")
 $LATEXMK -pdf -interaction=nonstopmode -halt-on-error -cd "$T/manuscript_softwarex_revision.tex" > "$T/latexmk.out" 2>&1 \
     || { echo "REFUSED: latex_source.zip does not compile on its own" >&2; exit 1; }
 echo "latex_source.zip: $(unzip -l "$S/latex_source.zip" | tail -1 | awk '{print $2}') files, compiles on its own"
+
+# 3b. what Editorial Manager asks of a revision: the manuscript as one editable
+# .tex with its figures as PNG (it builds its own PDF; a PDF is refused), and a
+# marked-up copy against the version the reviewers read (REVIEWED, 23 August)
+E=$S/em; rm -rf "$E"; mkdir -p "$E"
+D=$(mktemp -d "$ROOT/../.mkdiff.XXXXXX")
+for f in fig_architecture fig_trees fig_runlength fig_crossover fig_construction; do
+    $PDFTOCAIRO -png -r 600 -singlefile "$Z/$f.pdf" "$E/$f"
+done
+git show "$REVIEWED:paper/manuscript_softwarex_submission.tex" > "$D/old.tex"
+for f in $(git ls-tree --name-only "$REVIEWED" paper/figures/ | grep '\.png$'); do
+    git show "$REVIEWED:$f" > "$D/$(basename "$f")"
+done
+cp "$E"/*.png "$D/"
+python3 - "$Z" "$E" "$D" <<'PY'
+import re, sys
+Z, E, D = sys.argv[1:]
+src = open(Z + "/manuscript_softwarex_revision.tex").read()
+num = open(Z + "/numbers.tex").read().rstrip("\n")
+bib = open(Z + "/bibliography.tex").read().rstrip("\n")
+png = lambda t: re.sub(r"(\\includegraphics(?:\[[^\]]*\])?\{fig_\w+)\.pdf\}", r"\1.png}", t)
+# the editable copy: numbers.tex and bibliography.tex pasted in, figures as PNG
+flat = src.replace("\\input{numbers}", num).replace("\\input{bibliography}", bib)
+open(E + "/manuscript_softwarex_revision.tex", "w").write(png(flat))
+# the diff's new side: every \claim written out, so a changed value shows as changed
+vals = dict(re.findall(r"\\csname claim@(.+?)\\endcsname\{(.*)\}\s*$", num, re.M))
+new = re.sub(r"\\claim\{([^}]+)\}", lambda m: vals[m.group(1)],
+             src.replace("\\input{numbers}", "").replace("\\input{bibliography}", bib))
+old = open(D + "/old.tex").read()
+for name, t in (("old", old), ("new", png(new))):
+    # latexdiff breaks elsarticle's frontmatter: abstract and keywords become sections
+    out = []
+    for env, head in (("abstract", "Abstract"), ("keyword", "Keywords")):
+        m = re.search(r"\\begin\{%s\}(.*?)\\end\{%s\}" % (env, env), t, re.S)
+        body = "\n".join(l for l in m.group(1).strip().split("\n") if not l.lstrip().startswith("%"))
+        out.append("\\section*{%s}\n%s\n" % (head, body.replace("\\sep", ";")))
+        t = t[:m.start()] + t[m.end():]
+    i = t.index("\\end{frontmatter}") + len("\\end{frontmatter}")
+    t = t[:i] + "\n\n" + "\n".join(out) + t[i:]
+    # "$\sim$$10^{-7}$" reads to latexdiff as display math
+    open("%s/%s_d.tex" % (D, name), "w").write(t.replace("$\\sim$$", "\\ensuremath{\\sim}$"))
+PY
+( cd "$D" && $LATEXDIFF --graphics-markup=none --math-markup=whole \
+      --config="PICTUREENV=(?:picture|DIFnomarkup|tabular)[\w\d*@]*" old_d.tex new_d.tex > marked.tex 2> latexdiff.err ) \
+    || { tail -5 "$D/latexdiff.err"; echo "REFUSED: latexdiff failed" >&2; exit 1; }
+$LATEXMK -pdf -interaction=nonstopmode -halt-on-error -cd "$D/marked.tex" > "$D/latexmk.out" 2>&1 \
+    || { tail -20 "$D/latexmk.out"; echo "REFUSED: the marked-up copy does not compile" >&2; exit 1; }
+cp "$D/marked.pdf" "$E/manuscript_marked_up.pdf"
+T2=$(mktemp -d "$ROOT/../.mktest.XXXXXX")
+cp "$E"/*.tex "$E"/*.png "$T2/"
+$LATEXMK -pdf -interaction=nonstopmode -halt-on-error -cd "$T2/manuscript_softwarex_revision.tex" > "$T2/latexmk.out" 2>&1 \
+    || { tail -20 "$T2/latexmk.out"; echo "REFUSED: the editable copy does not compile on its own" >&2; exit 1; }
+echo "em/: editable .tex and $(ls "$E"/*.png | wc -l) PNG figures compile on their own; marked-up copy against $REVIEWED"
+rm -rf "$D" "$T2"
 
 # 4. the letters, privately
 if [ -n "$PRIV" ]; then
