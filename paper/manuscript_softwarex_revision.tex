@@ -47,7 +47,7 @@
 GENESIS is a long-established compartmental neural simulator. GENESIS~2.5 adds
 optional CUDA and OpenCL backends to its \texttt{hsolve} solver, including a GPU
 Hines elimination for dendritic-tree populations, without changes to existing models
-or scripts. On 160\,000 compartments over 10\,000 steps an A100 runs
+or scripts. On 160\,000 compartments over 10\,000 steps an NVIDIA A100 runs
 \claim{e2_max_e2e_a100}$\times$ faster end to end than the CPU solver. In double
 precision it matches the CPU solver to ten significant figures. Spiking networks with
 zero axonal delay run slower, because the host delivers spikes every step. The release
@@ -591,7 +591,7 @@ in this paper.
 
 \section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
 
-During the preparation of this work the authors used Anthropic's Claude to draft and edit the manuscript and to assist with the software and its benchmarking. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+The authors used Anthropic's Claude to draft and edit the text and to help with the software and its benchmarks. They reviewed and edited all of it and take full responsibility for the published article.
 
 \section*{Funding}
 
