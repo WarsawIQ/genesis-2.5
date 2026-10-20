@@ -3,11 +3,11 @@
 # anything). The GPU results need a CUDA machine and are not built here.
 #
 #   docker build -t genesis25-cpu .
-#   docker run --rm genesis25-cpu                   # ~2 min: the quick CPU claims,
+#   docker run --rm genesis25-cpu                   # ~3 min: the quick CPU claims,
 #                                                   # each printed beside its
 #                                                   # published value with a verdict
 #   docker run --rm genesis25-cpu \
-#       sh reproduce/run_all.sh --cpu-only          # ~90 min: full replicate counts
+#       sh reproduce/run_all.sh --cpu-only          # ~13 min: the full sizes
 #   docker run --rm -v "$PWD/results:/genesis/reproduce/results" genesis25-cpu
 #                                                   # keep the raw CSVs and logs
 #

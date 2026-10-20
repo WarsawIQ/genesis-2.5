@@ -9,14 +9,15 @@ measured, with the same code:
 
 | command | needs | measures | time on our machines |
 |---|---|---|---|
-| `sh reproduce/run_all.sh --cpu-only --quick` | Linux, GCC, make, flex, bison, ncurses, Python 3 | model construction up to 272 000 compartments, the CPU solver's modes, the action potential check | 2 min with the build (laptop) |
-| `sh reproduce/run_all.sh --cpu-only` | the same | construction up to 1.7 million compartments | 9 min (laptop) |
+| `sh reproduce/run_all.sh --cpu-only --quick` | Linux, GCC, make, flex, bison, ncurses, Python 3 | model construction up to 272 000 compartments, the CPU solver's modes, the action potential check, the gain from one solver per layer (Table 3's two GENESIS CPU rows) | 3 min with the build (laptop) |
+| `sh reproduce/run_all.sh --cpu-only` | the same | construction up to 1.7 million compartments, more replicates | 13 min (laptop) |
 | `sh reproduce/run_all.sh --quick` | an NVIDIA GPU, CUDA 12.x | adds Table 2, the speedup at K = 1000 and 10 000 steps, the tree threshold of Table 4, CUDA Graphs on the tree loop | 14 min with the build (A100): 14 numbers |
 | `sh reproduce/run_all.sh` | the same | adds the paper's full sizes, the work imbalance and the 10 s spiking run | 66 min after the build (A100): 33 numbers |
 | `... --with-simulators` | NEURON, CoreNEURON and Arbor, built by [`cluster_bringup/toolchains/`](../cluster_bringup/toolchains/) | adds Table 3 and the crossover with Arbor (Fig. 4) | about 1.5 h more (the campaign's E1 and E4) |
 
-The CPU-only quick path also runs in a container with nothing installed, and in
-CI on every push:
+The CPU-only path also runs in a container with nothing installed, in CI on
+every push (the quick sizes), and as the paper's Code Ocean capsule
+([`codeocean_run.sh`](codeocean_run.sh), the full sizes):
 
 ```sh
 docker build -t genesis25-cpu . && docker run --rm genesis25-cpu
@@ -84,7 +85,7 @@ gave back the published spike trains spike for spike.
 | Section 3(d), the 10 s run | `E5_long_run.sh` | full |
 | Section 3, CPU modes on the trees | `chanmode_check.sh` | `--cpu-only` |
 | Section 4 and Fig. 5, construction | `E3c_cpu.sh` | `--cpu-only` |
-| Table 3, the spiking network against NEURON, CoreNEURON and Arbor | `E1_cross_simulator.sh` | `--with-simulators` |
+| Table 3, the spiking network against NEURON, CoreNEURON and Arbor | `E1_cross_simulator.sh` | `--with-simulators`; its two GENESIS CPU rows also `--cpu-only` |
 | Fig. 4, GENESIS against Arbor | `E4_fp64_cost.sh` | `--with-simulators` |
 
 Some numbers need hardware or tools a reader is unlikely to have, and their

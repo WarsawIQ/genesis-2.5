@@ -136,7 +136,7 @@ The same file lists the smaller issues, all fixed.
 ## Reproducing the paper
 
 ```sh
-sh reproduce/run_all.sh --cpu-only --quick   # 2 min, no GPU
+sh reproduce/run_all.sh --cpu-only --quick   # 3 min, no GPU
 sh reproduce/run_all.sh --quick              # 14 min on an A100, NVIDIA GPU, CUDA 12.x
 sh reproduce/run_all.sh                      # 70 min, the paper's full sizes
 ```

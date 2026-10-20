@@ -2,7 +2,8 @@
 # Measure the revised paper's numbers again, on your machine.
 #
 #   sh reproduce/run_all.sh --cpu-only --quick   no GPU: model construction, the CPU
-#                                                solver's modes, the CPU's action potential
+#                                                solver's modes, the CPU's action potential,
+#                                                one solver per layer against one per cell
 #   sh reproduce/run_all.sh --cpu-only           the same, construction up to 1.7 million
 #                                                compartments
 #   sh reproduce/run_all.sh --quick              with an NVIDIA GPU: adds Table 2, the
@@ -138,6 +139,12 @@ grep -q -v ": PASS" "$RESULTS/core_tests.txt" && FAILED="$FAILED core_tests"
 REPS_CM=1; [ "$MODE" = full ] && REPS_CM=3
 run chanmode sh cluster_bringup/campaign/chanmode_check.sh "$ROOT" "$REPS_CM"
 run E3c sh cluster_bringup/campaign/E3c_cpu.sh
+# Table 3's two GENESIS CPU arms, one solver per cell and one per layer; with
+# the simulators E1 runs every arm instead (below).
+if [ "$CPU_ONLY" = 1 ] || [ "$WITH_SIM" = 0 ]; then
+    REPS_E1=1; [ "$MODE" = full ] && REPS_E1=3
+    run E1 env E1_ARMS="g_cpu_pub g_cpu_1s" REPS_DRY=$REPS_E1 sh cluster_bringup/campaign/E1_cross_simulator.sh
+fi
 if [ "$CPU_ONLY" = 0 ]; then
     run E2 sh cluster_bringup/campaign/E2_ksweep.sh
     run E3 sh cluster_bringup/campaign/E3_tables.sh

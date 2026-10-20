@@ -1,6 +1,6 @@
 # Reproduce the claims that need no GPU on every push, on a clean machine:
 # the Hines-solver fixes, linear model construction and the Vogels-Abbott
-# network on one core (reproduce/run_all.sh --cpu-only --quick, about 2
+# network on one core (reproduce/run_all.sh --cpu-only --quick, about 3
 # minutes of simulation). The verdict table is printed at the end of the log
 # and the results are kept as an artifact. Before that, the claim map must
 # regenerate with no change (no number edited by hand) and its tests must pass.
