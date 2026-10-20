@@ -251,6 +251,8 @@ tested. Synaptic weights and
 plasticity are computed by the synapse objects on the host in double precision in every
 mode. Only the resulting activation reaches the device. Section~3 measures the cost of
 double precision on each card and compares the two precisions over a 10\,s run.
+Runs longer than 10\,s, with or without plasticity, and PGENESIS runs in which several
+MPI ranks share one GPU have not been tested.
 
 \textbf{Portability.} %% R7
 The OpenCL backend runs the same kernels on any OpenCL~1.2 device. We test it on the
