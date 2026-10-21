@@ -1,0 +1,30 @@
+element layout                               ELEMENT_LAYOUT: PASS
+readcell, coordinates                        READCELL_COORDS: PASS
+readcell, *makeproto                         MAKEPROTO: PASS
+re-creating an element                       DUPLICATE_ELEMENT: PASS
+long pathnames                               LONG_PATHS: PASS
+one compartment, Euler                       SINGLE_COMPARTMENT_EULER: FAIL (chanmode 0  -0.06905286984 , chanmode 2  -0.0005882352875 )
+hsolve: 1 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: FAIL ( 2  of  2  cells differ from the reference)
+hsolve: 3 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: FAIL ( 2  of  3  cells differ from the reference)
+hsolve: 8 cells x 1 comp, branched 0, method 10 HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+hsolve: 1 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: FAIL ( 2  of  2  cells differ from the reference)
+hsolve: 3 cells x 1 comp, branched 0, method 11 HSOLVE_MANY_CELLS: FAIL ( 3  of  3  cells differ from the reference)
+hsolve: 8 cells x 1 comp, branched 0, method 11 CRASH (signal 11)
+hsolve: 1 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: FAIL ( 2  of  2  cells differ from the reference)
+hsolve: 3 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: FAIL ( 3  of  3  cells differ from the reference)
+hsolve: 8 cells x 3 comp, branched 0, method 10 HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+hsolve: 1 cells x 3 comp, branched 0, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 3 comp, branched 0, method 11 CRASH (signal 11)
+hsolve: 3 cells x 3 comp, branched 0, method 11 HSOLVE_MANY_CELLS: FAIL ( 3  of  3  cells differ from the reference)
+hsolve: 8 cells x 3 comp, branched 0, method 11 CRASH (signal 11)
+hsolve: 1 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: FAIL ( 2  of  2  cells differ from the reference)
+hsolve: 3 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: FAIL ( 3  of  3  cells differ from the reference)
+hsolve: 8 cells x 4 comp, branched 1, method 10 HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)
+hsolve: 1 cells x 4 comp, branched 1, method 11 HSOLVE_MANY_CELLS: PASS
+hsolve: 2 cells x 4 comp, branched 1, method 11 CRASH (signal 11)
+hsolve: 3 cells x 4 comp, branched 1, method 11 CRASH (signal 11)
+hsolve: 8 cells x 4 comp, branched 1, method 11 HSOLVE_MANY_CELLS: FAIL ( 8  of  8  cells differ from the reference)

@@ -1,0 +1,23 @@
+# experiment: E1
+# session: reader_20261021_011959
+# commit: 5664282622925ef7e79abdc45bb8546d31d0229b
+# describe: untagged
+# dirty: 6
+# build_generated_changed: 22
+# node: reader
+# cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# governor: powersave
+# loadavg: 3.00 2.76 2.16
+# numa_bind: none
+# gpu: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+reader_20261021_011959,E1,g_cpu_pub,0,1,38.0351,finished,1,ok,2026-10-21T01:19:59+02:00
+reader_20261021_011959,E1,g_cpu_1s,0,2,25.4906,ncompts,4000,ok,2026-10-21T01:20:37+02:00
+reader_20261021_011959,E1,g_cpu_1s,1,1,25.6297,ncompts,4000,ok,2026-10-21T01:21:02+02:00
+reader_20261021_011959,E1,g_cpu_pub,1,2,37.5398,finished,1,ok,2026-10-21T01:21:28+02:00
+reader_20261021_011959,E1,g_cpu_pub,2,1,37.7729,finished,1,ok,2026-10-21T01:22:06+02:00
+reader_20261021_011959,E1,g_cpu_1s,2,2,25.1737,ncompts,4000,ok,2026-10-21T01:22:43+02:00
+reader_20261021_011959,E1,g_cpu_1s,3,1,24.8745,ncompts,4000,ok,2026-10-21T01:23:09+02:00
+reader_20261021_011959,E1,g_cpu_pub,3,2,39.0970,finished,1,ok,2026-10-21T01:23:33+02:00
+# ended: 2026-10-21T01:24:13+02:00
+# complete: yes

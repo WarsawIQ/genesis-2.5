@@ -1,0 +1,25 @@
+# experiment: E3c
+# session: reader_20261021_010736
+# commit: 5664282622925ef7e79abdc45bb8546d31d0229b
+# describe: untagged
+# dirty: 2
+# build_generated_changed: 22
+# node: reader
+# cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+# governor: powersave
+# loadavg: 2.27 1.93 1.37
+# numa_bind: none
+# gpu: none
+session,experiment,arm,rep,order,wall_s,metric,metric_value,status,started
+reader_20261021_010736,E3c,con_n1000,0,1,0.4966,t_per_step_s,0.004435581466,ok,2026-10-21T01:07:36+02:00
+reader_20261021_010736,E3c,con_n2000,0,2,1.0072,t_per_step_s,0.007973229388,ok,2026-10-21T01:07:36+02:00
+reader_20261021_010736,E3c,con_n4000,0,3,2.0460,t_per_step_s,0.01314903001,ok,2026-10-21T01:07:37+02:00
+reader_20261021_010736,E3c,con_n8000,0,4,4.4472,t_per_step_s,0.02246515354,ok,2026-10-21T01:07:39+02:00
+reader_20261021_010736,E3c,con_n16000,0,5,8.2670,t_per_step_s,0.04409642617,ok,2026-10-21T01:07:44+02:00
+reader_20261021_010736,E3c,con_n2000,1,1,1.0775,t_per_step_s,0.00787688146,ok,2026-10-21T01:07:52+02:00
+reader_20261021_010736,E3c,con_n4000,1,2,2.0645,t_per_step_s,0.01323172251,ok,2026-10-21T01:07:53+02:00
+reader_20261021_010736,E3c,con_n8000,1,3,4.3738,t_per_step_s,0.02160040736,ok,2026-10-21T01:07:55+02:00
+reader_20261021_010736,E3c,con_n16000,1,4,8.3263,t_per_step_s,0.04351208607,ok,2026-10-21T01:08:00+02:00
+reader_20261021_010736,E3c,con_n1000,1,5,0.4913,t_per_step_s,0.004418993493,ok,2026-10-21T01:08:08+02:00
+# ended: 2026-10-21T01:08:08+02:00
+# complete: yes

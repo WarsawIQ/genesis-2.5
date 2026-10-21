@@ -1,0 +1,61 @@
+
+=== environment ===
+Linux 7.0.0-111030-tuxedo x86_64
+gcc (GCC) 15.2.0
+Python 3.13.15
+mode: quick, cpu only; results in /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick
+
+=== build (CPU only) ===
+built genesis/src/nxgenesis_nocl
+
+=== action potential, 8 neurons under one solver ===
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+
+=== regression tests of the GENESIS core ===
+30 of 30 pass
+
+=== chanmode ===
+written: /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick/chanmode
+(chanmode: 24 s)
+
+=== E3c ===
+[01:07:36] E3c: session reader_20261021_010736, untagged (5664282622925ef7e79abdc45bb8546d31d0229b), data /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick/campaign/E3c_reader_20261021_010736.csv
+(E3c: 33 s)
+
+=== E1 ===
+[01:08:09] E1: session reader_20261021_010809, untagged (5664282622925ef7e79abdc45bb8546d31d0229b), data /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick/campaign/E1_reader_20261021_010809.csv
+(E1: 130 s)
+
+=== tidy ===
+/tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick/campaign/E1_reader_20261021_010809_tidy.csv: 2 valid replicate rows
+/tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick/campaign/E3c_reader_20261021_010736_tidy.csv: 5 valid replicate rows
+
+=== the paper's numbers, measured here ===
+number                     in the paper          published         yours  verdict
+----------------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2                 3.9  same shape
+cpu_cm4_over_cm3_trees     Section 3             1.08               1.07  info
+e1_g_cpu_1s_s              Table 3               A100 34.6          25.3  info
+e1_g_cpu_pub_rel           Table 3               A100 1.36          1.61  same shape
+e1_g_cpu_pub_s             Table 3               A100 46.9          40.7  info
+e3c_construction_exponent  Section 4, Fig. 5     1.02               1.02  ok
+
+6 numbers measured: 1 ok, 0 outside tolerance; by shape (another card, or a ratio that depends on the CPU) 2 same, 0 different; 3 for information (absolute times, or ratios within their tolerance of 1)
+card: none (the paper's GPU numbers are from an NVIDIA A40 and an A100)
+
+not measured by this run, and what they need:
+   16  a full GPU run (run_all.sh)
+   14  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+   14  a GPU run (run_all.sh --quick; the full sizes without --quick)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  the full sizes (run_all.sh --cpu-only, without --quick)
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
+
+total: 3 min; raw results and logs: /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-quick

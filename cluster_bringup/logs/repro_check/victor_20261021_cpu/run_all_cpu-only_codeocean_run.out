@@ -1,0 +1,61 @@
+
+=== environment ===
+Linux 7.0.0-111030-tuxedo x86_64
+gcc (GCC) 15.2.0
+Python 3.13.15
+mode: full, cpu only; results in /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce
+
+=== build (CPU only) ===
+using the existing binary (SKIP_BUILD=1)
+
+=== action potential, 8 neurons under one solver ===
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+
+=== regression tests of the GENESIS core ===
+30 of 30 pass
+
+=== chanmode ===
+written: /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce/chanmode
+(chanmode: 72 s)
+
+=== E3c ===
+[01:11:57] E3c: session reader_20261021_011157, untagged (5664282622925ef7e79abdc45bb8546d31d0229b), data /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce/campaign/E3c_reader_20261021_011157.csv
+(E3c: 482 s)
+
+=== E1 ===
+[01:19:59] E1: session reader_20261021_011959, untagged (5664282622925ef7e79abdc45bb8546d31d0229b), data /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce/campaign/E1_reader_20261021_011959.csv
+(E1: 254 s)
+
+=== tidy ===
+/tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce/campaign/E1_reader_20261021_011959_tidy.csv: 6 valid replicate rows
+/tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce/campaign/E3c_reader_20261021_011157_tidy.csv: 24 valid replicate rows
+
+=== the paper's numbers, measured here ===
+number                     in the paper          published         yours  verdict
+----------------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2                 3.9  same shape
+cpu_cm4_over_cm3_trees     Section 3             1.08               1.06  info
+e1_g_cpu_1s_s              Table 3               A100 34.6          25.2  info
+e1_g_cpu_pub_rel           Table 3               A100 1.36          1.51  same shape
+e1_g_cpu_pub_s             Table 3               A100 46.9          38.1  info
+e3c_construction_1700k_s   Section 4             94.9               55.5  info
+e3c_construction_exponent  Section 4, Fig. 5     1.02               1.01  ok
+
+7 numbers measured: 1 ok, 0 outside tolerance; by shape (another card, or a ratio that depends on the CPU) 2 same, 0 different; 4 for information (absolute times, or ratios within their tolerance of 1)
+card: none (the paper's GPU numbers are from an NVIDIA A40 and an A100)
+
+not measured by this run, and what they need:
+   16  a full GPU run (run_all.sh)
+   14  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+   14  a GPU run (run_all.sh --quick; the full sizes without --quick)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
+
+total: 13 min; raw results and logs: /tmp/claude-1000/-datadisk-od-nauka-1-Ac-0-Nauka-61-GENESIS/20f99094-d815-4629-b208-6edf28706381/scratchpad/repro-full/reproduce
