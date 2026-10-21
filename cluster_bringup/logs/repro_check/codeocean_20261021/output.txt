@@ -1,0 +1,64 @@
+Run environment setup complete, running code...
+
++ bash reproduce/codeocean_run.sh
+
+=== environment ===
+Linux 5.4.0-1103-aws x86_64
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+Python 3.12.3
+mode: full, cpu only; results in /results/reproduce
+
+=== build (CPU only) ===
+built genesis/src/nxgenesis_nocl
+
+=== action potential, 8 neurons under one solver ===
+ap_cpu|NEURONS_AGREE: YES (spread < 1e-6 V)
+ap_cpu|RESULT_VM= -0.02143485882
+
+=== regression tests of the GENESIS core ===
+30 of 30 pass
+
+=== chanmode ===
+written: /results/reproduce/chanmode
+(chanmode: 266 s)
+
+=== E3c ===
+[21:40:31] E3c: session reader_20261021_214031, untagged (unknown), data /results/reproduce/campaign/E3c_reader_20261021_214031.csv
+(E3c: 1073 s)
+
+=== E1 ===
+[21:58:25] E1: session reader_20261021_215825, untagged (unknown), data /results/reproduce/campaign/E1_reader_20261021_215825.csv
+(E1: 578 s)
+
+=== tidy ===
+/results/reproduce/campaign/E1_reader_20261021_215825_tidy.csv: 6 valid replicate rows
+/results/reproduce/campaign/E3c_reader_20261021_214031_tidy.csv: 24 valid replicate rows
+
+=== the paper's numbers, measured here ===
+number                     in the paper          published         yours  verdict
+----------------------------------------------------------------------------------------
+cpu_cm1_over_cm4_trees     Section 3             4.2                 2.7  same shape
+cpu_cm4_over_cm3_trees     Section 3             1.08               1.05  info
+e1_g_cpu_1s_s              Table 3               A100 34.6          57.7  info
+e1_g_cpu_pub_rel           Table 3               A100 1.36          1.49  same shape
+e1_g_cpu_pub_s             Table 3               A100 46.9          86.3  info
+e3c_construction_1700k_s   Section 4             94.9              123.6  info
+e3c_construction_exponent  Section 4, Fig. 5     1.02               1.03  ok
+
+7 numbers measured: 1 ok, 0 outside tolerance; by shape (another card, or a ratio that depends on the CPU) 2 same, 0 different; 4 for information (absolute times, or ratios within their tolerance of 1)
+card: none (the paper's GPU numbers are from an NVIDIA A40 and an A100)
+
+not measured by this run, and what they need:
+   16  a full GPU run (run_all.sh)
+   14  run_all.sh --with-simulators (NEURON, CoreNEURON, Arbor)
+   14  a GPU run (run_all.sh --quick; the full sizes without --quick)
+    9  perf profiles: cluster_bringup/campaign/E6_profile.sh
+    3  the code before the fixes: cluster_bringup/campaign/construction_before.sh
+    3  run_all.sh --with-simulators (Arbor)
+    3  an AMD Radeon 890M: cluster_bringup/campaign/E9_890m.sh
+    3  Nsight Systems: cluster_bringup/campaign/host_kernel_profile.sh
+    2  the cluster's two sockets: cluster_bringup/campaign/numa_check.sh
+    1  nothing: cited from the literature
+    1  nothing: read from the source code
+
+total: 33 min; raw results and logs: /results/reproduce
