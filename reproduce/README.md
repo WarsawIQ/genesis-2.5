@@ -16,8 +16,9 @@ measured, with the same code:
 | `... --with-simulators` | NEURON, CoreNEURON and Arbor, built by [`cluster_bringup/toolchains/`](../cluster_bringup/toolchains/) | adds Table 3 and the crossover with Arbor (Fig. 4) | about 1.5 h more (the campaign's E1 and E4) |
 
 The CPU-only path also runs in a container with nothing installed, in CI on
-every push (the quick sizes), and as the paper's Code Ocean capsule
-([`codeocean_run.sh`](codeocean_run.sh), the full sizes):
+every push (the quick sizes), and as the paper's Code Ocean capsule,
+[10.24433/CO.9285615.v1](https://doi.org/10.24433/CO.9285615.v1)
+([`codeocean_run.sh`](codeocean_run.sh), the full sizes, about 35 minutes):
 
 ```sh
 docker build -t genesis25-cpu . && docker run --rm genesis25-cpu

@@ -13,6 +13,8 @@ the Hines solver and the quadratic cost of building large models fixed.
 - **Paper:** under review at SoftwareX
   ([revised manuscript](paper/submission-revision/manuscript_softwarex_revision.pdf)).
   Its numbers were measured on [v2.6.0](https://doi.org/10.5281/zenodo.23298087).
+- **Capsule:** the CPU-only reproduction runs on Code Ocean,
+  [10.24433/CO.9285615.v1](https://doi.org/10.24433/CO.9285615.v1).
 - **Upstream:** an independently maintained derivative of
   [genesis-sim/genesis-2.4](https://github.com/genesis-sim/genesis-2.4); the CPU
   fixes are offered there as [pull request #7](https://github.com/genesis-sim/genesis-2.4/pull/7).
@@ -146,8 +148,10 @@ sh reproduce/run_all.sh                      # 70 min, the paper's full sizes
 computes the paper's numbers from what they measured, with the same code that
 computed the published values, and prints both with a verdict. The CPU-only path
 also runs in a container (`docker build -t genesis25-cpu . && docker run --rm
-genesis25-cpu`) and in [CI](.github/workflows/cpu-only.yml) on every push. What
-each mode measures, how long it takes and how the verdicts work:
+genesis25-cpu`), in [CI](.github/workflows/cpu-only.yml) on every push, and as a
+published [Code Ocean capsule](https://doi.org/10.24433/CO.9285615.v1) (the full
+sizes, about 35 minutes). What each mode measures, how long it takes and how the
+verdicts work:
 [reproduce/README.md](reproduce/README.md).
 
 <details>
